@@ -41,7 +41,11 @@ A possible Application.cpp implementation can be:
 
 #include "../application/Application.h"
 
-class UserVars\n
+class UserVars
+{
+};
+
+class UserVars
 {
 public:
 	friend class Application;
