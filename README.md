@@ -35,55 +35,8 @@ modifications to the engine
 To use this engine you need to create an Application.cpp file in a newly
 created project and to implement the methods required.
 
-A possible Application.cpp implementation can be:
-
-///////////////////////////
-
-#include "../application/Application.h"
-
-class UserVars
-{
-public:
-	friend class Application;
-private:
-	UserVars(){}
-	~UserVars(){}
-};
-
-Application::Application(const Window& window)
-{
-	m_Window = (Window*)::operator new(sizeof(Window));
-	memcpy(m_Window, &window, sizeof(Window));
-}
-
-Application::~Application()
-{
-	m_VertexManagers.clear();
-	m_SceneObjs.clear();
-	m_Textures.clear();
-	m_CubeMaps.clear();
-	m_Shaders.clear();
-	m_Models.clear();
-	m_CustomFrameBuffers.clear();
-	::operator delete (m_Window);
-}
-
-
-void Application::OnUserCreate()
-{
-	//User code
-}
-
-void Application::OnUserRun()
-{
-	//User code
-
-	while (!m_Window->ShouldClose())
-	{
-		m_Window->Update();
-	}
-
-}
+A possible Application.cpp implementation can be found in the ApplicationTemplate.cpp file in this same
+Github folder
 
 ///////////////////////////
 
