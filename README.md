@@ -43,10 +43,6 @@ A possible Application.cpp implementation can be:
 
 class UserVars
 {
-};
-
-class UserVars
-{
 public:
 	friend class Application;
 private:
