@@ -1,7 +1,7 @@
 # C7Engine
 Mini library used to process basic 2D/3D rendering (uses OpenGL)
 
-HOW TO SETUP AN EXTERNAL PROJECT TO USE THIS ENGINE
+HOW TO SETUP AN EXTERNAL PROJECT TO USE THIS ENGINE WITH VISUAL STUDIO
 
 1) New Project Settings Configurations
 
