@@ -17,8 +17,8 @@ Steps: ("C:/Engine" will be just a placeholder dir, feel free to use a different
 
 
 
-2)Open the CMake GUI: in the source code section insert "C:/Engine" and in the binaries folder choose
-	"C:/Engine/build" (strongly recommended)
+2)Open the CMake GUI: in the source code section insert "C:/Engine/C7Engine" and in the binaries folder choose
+	"C:/Engine/C7Engine/build" (strongly recommended)
 
 
 
