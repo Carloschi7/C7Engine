@@ -1,45 +1,27 @@
 # C7Engine
 Mini library used to process basic 2D/3D rendering (uses OpenGL)
 
-HOW TO SETUP AN EXTERNAL PROJECT TO USE THIS ENGINE WITH VISUAL STUDIO
+HOW TO COMPILE THIS ENGINE (retrieve the C7Engine.lib)
 
-1) New Project Settings Configurations
+Requirements:
+1) The latest version of Visual Studio (preferably)
+2) CMake GUI (version 3.12 or higher)
+3) GIT BASH
 
-To get started, create a blank project using visual studio, then add the engine's project
-by going to Solution -> Add -> Existing project
+Steps: ("C:/Engine" will be just a placeholder dir, feel free to use a different one)
+1)Clone this repo with the command "git clone https://github.com/Carloschi7/C7Engine.git" in a chosen dir,
+	for example "C:/Engine"
+2)Open the CMake GUI: in the source code section insert "C:/Engine" and in the binaries folder choose
+	"C:/Engine/build" (strongly recommended)
+3)Click Configure and set the project platform to Win32 when the popup window appears (this step is fundamental, 
+	because a x64 Visual Studio project won't link against 32 bit libs)
+4)Open the build folder and open the sln file with Visual Studio
+5)Set the C7Engine project as the starting project(right click on the project icon to find the setting)
+6)Right click on the C7Engine project and click Build
+7)You will find your C7Engine.lib file in build/Debug
 
-In the solution folder, copy the Dependencies directory which can be found in the original
-Dummy solution
+8)If you want the latest version of the C7Engine.lib, download the most recent upload of this repo and
+	repeat exacly the same process
 
-To be safe, in the new project's properties -> General, Select the c++ standard as stdc++:17
-
-Go to new project's properties -> C/C++ -> General -> Include additional directories. Paste the
-same paths found in the Dummy project. Tweak the $(ProjectDir)Engine environment variable to the
-relative or absolute path of that directory from the new project's location 
-
-Compile the Dummy project. It will produce a lib file (Dummy.lib) which will be stored
-in the $(SolutionDir)/Debug or $(SolutionDir)/Release
-
-Open the new project's linker options. Copy all the additional include directories and
-all the lib files from dummy's linker. Then:
--> Add to the lib files Dummy.lib
--> Add to the additional directories $(SolutionDir)/Debug or $(SolutionDir)/Release depending
-	on your configuration
-
-Go to new project->Add->Reference and tic the dummy project. This will make sure every time
-you compile your application also the Dummy.lib file will be recompiled if there were implemented
-modifications to the engine
-
-2) Source Code Implementation
-
-To use this engine you need to create an Application.cpp file in a newly
-created project and to implement the methods required.
-
-A possible Application.cpp implementation can be found in the ApplicationTemplate.cpp file in this same
-Github folder
-
-///////////////////////////
-
-NOTES: the class UserVars needs to be used to introduce user defined variables
-for the current application
+Enjoy!
 
