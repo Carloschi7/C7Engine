@@ -38,7 +38,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/Dependencies/GLFW
 	${PROJECT_SOURCE_DIR}/Dependencies/GLEW)
 
+#This is a preprocessor instruction required by glew to build as a static library
+#check the header glew.h for further informations
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLEW_STATIC)
 
+#Setting the default c++ version to c++17
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
