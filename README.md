@@ -23,7 +23,7 @@ Steps: ("C:/Engine" will be just a placeholder dir, feel free to use a different
 
 
 3)Click Configure and set the project platform to Win32 when the popup window appears (this step is fundamental, 
-	because a x64 Visual Studio project won't link against 32 bit libs)
+	because a x64 Visual Studio project won't link against 32 bit libs), then click Generate
 
 
 

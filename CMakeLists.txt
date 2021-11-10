@@ -39,3 +39,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/Dependencies/GLEW)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLEW_STATIC)
+
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
