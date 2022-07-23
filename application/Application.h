@@ -4,7 +4,7 @@
 class Application
 {
 public:
-	Application(const Window& window);
+	Application(Window& window);
 	~Application();
 
 	void OnUserCreate();
@@ -39,7 +39,7 @@ private:
 	}
 
 private:
-	Window* m_Window;
+	Window& m_Window;
 	std::vector<VertexManager> m_VertexManagers;
 	std::vector<Entity> m_SceneObjs;
 	std::vector<Texture> m_Textures;
