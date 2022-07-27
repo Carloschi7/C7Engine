@@ -50,7 +50,7 @@ void Texture::Bind(unsigned int slot) const
 
 //CubeMap definitions
 
-CubeMap::CubeMap(const std::vector<std::string> files, float fScalingFactor)
+CubeMap::CubeMap(const std::vector<std::string>& files, float fScalingFactor)
 	:m_Width(0), m_Height(0), m_TextureID(0), m_BPP(0), m_Data(nullptr)
 {
 	glGenTextures(1, &m_TextureID);

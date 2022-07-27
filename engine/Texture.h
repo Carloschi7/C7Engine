@@ -25,7 +25,7 @@ private:
 class CubeMap
 {
 public:
-	CubeMap(const std::vector<std::string> files, float fScalingFactor);
+	CubeMap(const std::vector<std::string>& files, float fScalingFactor);
 	~CubeMap();
 	CubeMap(CubeMap&& right) noexcept;
 
