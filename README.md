@@ -58,15 +58,19 @@ the executable needs to be linked to the PATH section of Windows' environmental 
 
 
 
-2) mkdir build
+2) cd C7Engine
 
 
 
-3) cd build
+3) mkdir build
 
 
 
-4) cmake -A Win32 ..
+4) cd build
+
+
+
+5) cmake -A Win32 ..
 
 
 
@@ -75,13 +79,13 @@ the executable needs to be linked to the PATH section of Windows' environmental 
 
 
 
-5) make (needs to be installed)
+6) make (needs to be installed)
 
 
 
 (For Windows + Visual Studio)
 
-5) (YourProjectName).sln (which opens up the project in Visual Studio, then you can follow the previous
+6) (YourProjectName).sln (which opens up the project in Visual Studio, then you can follow the previous
 points from 5) to the end)
 
 Enjoy!
