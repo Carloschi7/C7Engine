@@ -1,7 +1,7 @@
 # C7Engine
 Mini library used to process basic 2D/3D rendering (uses OpenGL)
 
-## BUILDING THE ENGINE ON WINDOWS + Visual Studio 
+## Building on Windows + Visual Studio 
 
 For now the engine on Windows is only available in 32bits due to some problems during development,
 this will be fixed soon
@@ -44,17 +44,18 @@ Steps with GUI: ("C:/Engine" will be just a placeholder dir, feel free to use a 
 
 
 
-7)You will find your C7Engine.lib file in build/Debug
+7)You will find your C7Engine.lib file in build/$(Configuration), where $(Configuration) is
+your project building configuration (Debug, Release)
 
 
 
 
 #### Building with the terminal
 
-
-
-Recommended steps with terminal (requires cmake to function as a terminal command, 
-the executable needs to be linked to the PATH section of Windows' environmental variables):
+Requirements:
+1) The latest version of Visual Studio (preferably)
+2) CMake linked to the console via Windows' environmental variables
+3) GIT BASH
 
 
 
@@ -83,9 +84,20 @@ points from 5) to the end)
 
 
 
-## BUILDING ON LINUX
+## Building on Linux Ubuntu
 
 
+
+1) Open a terminal and execute the following command:
+`$ sudo apt-get install libglfw3 libglfw3-dev libglew-dev libassimp-dev`
+
+
+
+2) `$ git clone --recursive https://github.com/Carloschi7/C7Engine.git`
+
+
+
+3) `$ git clone --recursive https://github.com/Carloschi7/C7Engine_AppTemplate.git`
 
 
 
