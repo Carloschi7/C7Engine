@@ -59,23 +59,23 @@ Requirements:
 
 
 
-1) (In a chosen dir) git clone https://github.com/Carloschi7/C7Engine.git
+1) (In a chosen dir) `git clone https://github.com/Carloschi7/C7Engine.git`
 
 
 
-2) cd C7Engine
+2) `cd C7Engine`
 
 
 
-3) mkdir build
+3) `mkdir build`
 
 
 
-4) cd build
+4) `cd build`
 
 
 
-5) cmake -A Win32 ..
+5) `cmake -A Win32 ..`
 
 
 
