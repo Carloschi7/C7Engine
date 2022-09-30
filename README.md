@@ -86,6 +86,7 @@ points from 5) to the end)
 
 ## Building on Linux Ubuntu
 
+To build the library on Ubuntu, execute the following command
 
 
 1) `$ sudo apt-get install libglfw3 libglfw3-dev libglew-dev libassimp-dev`
@@ -96,9 +97,14 @@ points from 5) to the end)
 
 
 
-3) `$ git clone --recursive https://github.com/Carloschi7/C7Engine_AppTemplate.git`
+3) `cd C7Engine && mkdir build && cd build`
 
 
 
+4) `cmake .. && make`
+
+
+
+And there you have it, you should file the libC7Engine.so in the build folder
 Enjoy!
 
