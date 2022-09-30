@@ -97,11 +97,11 @@ To build the library on Ubuntu, execute the following commands
 
 
 
-3) `cd C7Engine && mkdir build && cd build`
+3) `$ cd C7Engine && mkdir build && cd build`
 
 
 
-4) `cmake .. && make`
+4) `$ cmake .. && make`
 
 
 
