@@ -89,6 +89,7 @@ points from 5) to the end)
 
 
 1) Open a terminal and execute the following command:
+
 `$ sudo apt-get install libglfw3 libglfw3-dev libglew-dev libassimp-dev`
 
 
