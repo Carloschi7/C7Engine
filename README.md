@@ -1,7 +1,12 @@
 # C7Engine
 Mini library used to process basic 2D/3D rendering (uses OpenGL)
 
-HOW TO COMPILE THIS ENGINE (retrieve the C7Engine.lib)
+## BUILDING THE ENGINE ON WINDOWS + Visual Studio 
+
+For now the engine on Windows is only available in 32bits due to some problems during development,
+this will be fixed soon
+
+#### Building with the cmake gui
 
 Requirements:
 1) The latest version of Visual Studio (preferably)
@@ -44,8 +49,7 @@ Steps with GUI: ("C:/Engine" will be just a placeholder dir, feel free to use a 
 
 
 
-8)If you want the latest version of the C7Engine.lib, download the most recent upload of this repo and
-	repeat exacly the same process
+#### Building with the terminal
 
 
 
@@ -74,19 +78,16 @@ the executable needs to be linked to the PATH section of Windows' environmental 
 
 
 
-(Depending on which method you prefer according to your configuration)
-
-
-
-
-6) make (needs to be installed)
-
-
-
-(For Windows + Visual Studio)
-
 6) (YourProjectName).sln (which opens up the project in Visual Studio, then you can follow the previous
 points from 5) to the end)
+
+
+
+## BUILDING ON LINUX
+
+
+
+
 
 Enjoy!
 
