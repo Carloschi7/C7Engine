@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include <cstring>
 
 Entity::Entity()
 	: m_ModelMatrix(1.0f), m_Position(glm::vec3(0.0f)), m_VertexManager(nullptr), m_Vertices(nullptr)
@@ -39,8 +40,7 @@ void Entity::Draw(Shader& shd)
 	if (!m_VertexManager || !m_VertexManager->IsLoaded())
 	{
 		std::cout << GLError << "Invalid vertex manager bound! Please make sure to bind it correctly" << std::endl;
-		__debugbreak();
-		return;
+		throw std::runtime_error("Error in file Entity.cpp");
 	}
 
 	shd.Use();

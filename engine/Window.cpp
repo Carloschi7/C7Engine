@@ -19,7 +19,7 @@ Window::Window(uint32_t width, uint32_t height, const char* title, bool bFullscr
 	if (!m_Window)
 	{
 		std::cout << "Could not open the window\n";
-		__debugbreak();
+		throw std::runtime_error("Error in file Window.cpp");
 	}
 
 	glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

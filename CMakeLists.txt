@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.12)
 
 project(C7Engine)
 set(CMAKE_GENERATOR_PLATFORM x86)
-add_library(${PROJECT_NAME} STATIC engine/Origine.cpp
+
+set(C7ENGINE_SOURCE_FILES engine/Origine.cpp
 	engine/Camera.h 
 	engine/Camera.cpp
 	engine/Entity.h 
@@ -23,12 +24,24 @@ add_library(${PROJECT_NAME} STATIC engine/Origine.cpp
 	application/Application.h)
 
 
-#32 bit only for this version
-target_link_libraries(${PROJECT_NAME}
-	opengl32.lib
-	${CMAKE_SOURCE_DIR}/Dependencies/ASSIMP/bin/assimp.lib
-	${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/Win32/glew32s.lib
-	${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib)
+string(SUBSTRING "${CMAKE_GENERATOR}" 0 13 VISUAL_STUDIO_DEF)
+if("${VISUAL_STUDIO_DEF}" STREQUAL "Visual Studio")
+
+	add_library(${PROJECT_NAME} STATIC ${C7ENGINE_SOURCE_FILES})
+	
+	#32 bit only for this version
+	target_link_libraries(${PROJECT_NAME}
+		opengl32.lib
+		${CMAKE_SOURCE_DIR}/Dependencies/ASSIMP/bin/assimp.lib
+		${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/Win32/glew32s.lib
+		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib)
+
+else() #for now only linux ubuntu
+	set(UBUNTU_LIB_PATH /usr/lib/x86_64-linux-gnu)
+	add_library(${PROJECT_NAME} SHARED ${C7ENGINE_SOURCE_FILES})
+	target_link_libraries(${PROJECT_NAME} glfw GLEW ${UBUNTU_LIB_PATH}/libGL.so.1
+		${UBUNTU_LIB_PATH}/libassimp.so)
+endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/engine 

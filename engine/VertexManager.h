@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include "GL\glew.h"
+#include "GL/glew.h"
 
 struct _LayoutElem
 {

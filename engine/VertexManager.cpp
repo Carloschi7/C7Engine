@@ -1,4 +1,5 @@
 #include "VertexManager.h"
+#include <cstring>
 
 VertexManager::VertexManager()
 	:m_IndicesCount(0), m_AttribCount(0), m_SuccesfullyLoaded(false), m_HasIndices(false), m_ValuesCount(0),
