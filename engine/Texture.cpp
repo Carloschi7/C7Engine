@@ -61,7 +61,6 @@ CubeMap::CubeMap(const std::vector<std::string>& files, float fScalingFactor)
 	{
 		m_Data = stbi_load(files[i].c_str(), &m_Width, &m_Height, &m_BPP, 3);
 
-
 		if (m_Data)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8,
