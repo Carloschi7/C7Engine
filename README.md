@@ -89,7 +89,7 @@ points from 5) to the end)
 To build the library on Ubuntu, execute the following commands
 
 
-1) `$ sudo apt-get install libglfw3 libglfw3-dev libglew-dev libassimp-dev`
+1) `$ sudo apt-get install libgl1-mesa-dev libglfw3 libglfw3-dev libglew-dev libassimp-dev`
 
 
 

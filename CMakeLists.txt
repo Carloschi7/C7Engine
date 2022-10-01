@@ -39,7 +39,7 @@ if("${VISUAL_STUDIO_DEF}" STREQUAL "Visual Studio")
 else() #for now only linux ubuntu
 	set(UBUNTU_LIB_PATH /usr/lib/x86_64-linux-gnu)
 	add_library(${PROJECT_NAME} SHARED ${C7ENGINE_SOURCE_FILES})
-	target_link_libraries(${PROJECT_NAME} glfw GLEW ${UBUNTU_LIB_PATH}/libGL.so.1
+	target_link_libraries(${PROJECT_NAME} glfw GLEW ${UBUNTU_LIB_PATH}/libGL.so
 		${UBUNTU_LIB_PATH}/libassimp.so)
 endif()
 
