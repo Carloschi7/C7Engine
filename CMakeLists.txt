@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 project(C7Engine)
 set(CMAKE_GENERATOR_PLATFORM x86)
 
-set(C7ENGINE_SOURCE_FILES engine/Origine.cpp
+set(C7ENGINE_SOURCE_FILES engine/Entrypoint.cpp
 	engine/Camera.h 
 	engine/Camera.cpp
 	engine/Entity.h 

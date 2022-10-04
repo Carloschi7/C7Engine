@@ -13,8 +13,8 @@ int main()
 	//Printing OpenGL version
 	std::cout << glfwGetVersionString() << std::endl;
 
-    std::unique_ptr<Window> w = WindowMaker::MakeWindow();
-    //Allows glew initialization
+	std::unique_ptr<Window> w = WindowMaker::MakeWindow();
+	//Allows glew initialization
 	w->SetWndInCurrentContext();
 
 	//GLEW
