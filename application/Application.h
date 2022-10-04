@@ -1,5 +1,15 @@
 #pragma once
 #include "MainIncl.h"
+#include <memory>
+
+//Allows the end-user to generate a custom window
+class WindowMaker
+{
+public:
+    WindowMaker(){}
+
+    static std::unique_ptr<Window> MakeWindow();
+};
 
 class Application
 {

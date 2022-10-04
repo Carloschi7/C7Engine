@@ -12,9 +12,10 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//Printing OpenGL version
 	std::cout << glfwGetVersionString() << std::endl;
-	
-	Window w(1920, 1080, "[OpenGL]", true);
-	w.SetWndInCurrentContext();
+
+    std::unique_ptr<Window> w = WindowMaker::MakeWindow();
+    //Allows glew initialization
+	w->SetWndInCurrentContext();
 
 	//GLEW
 	if (glewInit() != GLEW_OK)
@@ -23,7 +24,7 @@ int main()
 		return -1;
 	}
 
-	Application* app = new Application(w);
+	Application* app = new Application(*w);
 	app->OnUserCreate();
 	app->OnUserRun();
 
