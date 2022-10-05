@@ -11,7 +11,7 @@ Camera::~Camera()
 }
 
 Camera::Camera(const glm::vec3& pos, const glm::vec3& dir)
-	: m_View(1.0f), fAngleX(0.0f), fAngleY(0.0f), fZoom(1.0f),
+	: fAngleX(0.0f), fAngleY(0.0f), fZoom(1.0f),
 	m_MouseX(0.0f), m_MouseY(0.0f), m_Dpi(0.0025f),
 	m_CameraType(CameraType::UNDEFINED)
 {
@@ -94,18 +94,16 @@ void Camera::SetMouseFunction(const MouseFun& mf)
 	mousefun = mf;
 }
 
-const glm::mat4& Camera::GetViewMatrix()
+const glm::mat4& Camera::GetViewMatrix() const
 {
 	if (m_CameraType == CameraType::ORTHOGRAPHIC)
 	{
-		m_View = glm::translate(glm::mat4(1.0f), m_Pos);
-		return m_View;
+		return glm::translate(glm::mat4(1.0f), m_Pos);
 	}
 
 	if (m_CameraType == CameraType::PERSPECTIVE)
 	{
-		m_View = glm::lookAt(m_Pos, m_Pos + m_Front, glm::vec3(0.0f, 1.0f, 0.0f));
-		return m_View;
+		return glm::lookAt(m_Pos, m_Pos + m_Front, glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 	
 }
@@ -140,7 +138,7 @@ void Camera::SetOrthographicValues(float fLeft, float fRight, float fBottom, flo
 	m_ProjParams.fTop = fTop;
 }
 
-glm::mat4 Camera::GetProjMatrix()
+glm::mat4 Camera::GetProjMatrix() const
 {
 	if (m_CameraType == CameraType::ORTHOGRAPHIC)
 	{

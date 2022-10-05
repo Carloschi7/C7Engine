@@ -43,6 +43,11 @@ VertexManager::~VertexManager()
 	glDeleteBuffers(1, &m_VAO);
 }
 
+void VertexManager::ReleaseResources()
+{
+	std::memset(this, 0, sizeof(VertexManager));
+}
+
 void VertexManager::SendDataToOpenGLArray(const float* verts, size_t verts_size, const Layout& l)
 {
 	glBindVertexArray(m_VAO);

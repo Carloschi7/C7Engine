@@ -12,6 +12,13 @@ Entity::Entity(const VertexManager& vm)
 	SetVertexManager(vm);
 }
 
+Entity::Entity(VertexManager&& vm)
+	:Entity()
+{
+	SetVertexManager(vm);
+	vm.ReleaseResources();
+}
+
 Entity::Entity(Entity&& e) noexcept
 {
 	m_ModelMatrix = e.m_ModelMatrix;

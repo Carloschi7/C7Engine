@@ -44,14 +44,14 @@ public:
 	void ProcessInput(const Window& window, double deltaTime);
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
-	const glm::mat4& GetViewMatrix();
+	const glm::mat4& GetViewMatrix() const;
 	const glm::vec3& GetPosition() const;
 	const glm::vec3& GetFront() const;
 
 	//Projection matrix setup
 	void SetPerspectiveValues(float fAngle, float fAspect, float fNear, float fFar);
 	void SetOrthographicValues(float fLeft, float fRight, float fBottom, float fTop);
-	glm::mat4 GetProjMatrix();
+	glm::mat4 GetProjMatrix() const;
 
 	void Zoom(float fMultiplyRatio);
 
@@ -67,7 +67,6 @@ private:
 	void ClampAngleY();
 
 private:
-	glm::mat4 m_View;
 	//Variables for 3D camera, except m_Pos, which is used for both 3D and 2D
 	float fAngleX, fAngleY, fZoom;
 	double m_MouseX, m_MouseY, m_Dpi;

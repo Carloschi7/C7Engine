@@ -34,6 +34,7 @@ public:
 		const Layout& l);
 	VertexManager(VertexManager&& vm) noexcept;
 	~VertexManager();
+	void ReleaseResources();
 
 	void SendDataToOpenGLArray(const float* verts, size_t verts_size, const Layout& l);
 	void SendDataToOpenGLElements(const float* verts, size_t verts_size, const uint32_t* indices, size_t indices_size,

@@ -11,6 +11,7 @@ class Entity // The actual vertices match the drawing of a perfect centered octa
 public:
 	Entity();
 	Entity(const VertexManager& vm);
+	Entity(VertexManager&& vm);
 	Entity(const Entity&) = delete;
 	Entity(Entity&& e) noexcept;
 	~Entity();
