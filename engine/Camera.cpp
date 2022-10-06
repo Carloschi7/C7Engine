@@ -94,7 +94,7 @@ void Camera::SetMouseFunction(const MouseFun& mf)
 	mousefun = mf;
 }
 
-const glm::mat4& Camera::GetViewMatrix() const
+glm::mat4 Camera::GetViewMatrix() const
 {
 	if (m_CameraType == CameraType::ORTHOGRAPHIC)
 	{

@@ -6,10 +6,13 @@
 
 #define GLError "[OpenGL]: Error in file:" << __FILE__ << ", line:" << __LINE__ << "\n"
 
+//Defines how a texture is loaded
+enum class TextureFormat {Linear = 0, Nearest};
+
 class Texture
 {
 public:
-	Texture(const char* filepath, bool flipaxis = false);
+	Texture(const char* filepath, bool flipaxis = false, TextureFormat fmt = TextureFormat::Linear);
 	Texture(const Texture&) = delete;
 	Texture(Texture&& tex) noexcept;
 	~Texture();

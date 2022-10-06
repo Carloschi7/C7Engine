@@ -44,7 +44,7 @@ public:
 	void ProcessInput(const Window& window, double deltaTime);
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
-	const glm::mat4& GetViewMatrix() const;
+	glm::mat4 GetViewMatrix() const;
 	const glm::vec3& GetPosition() const;
 	const glm::vec3& GetFront() const;
 
