@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-Texture::Texture(const char* filepath, bool flipaxis, TextureFormat fmt)
+Texture::Texture(const char* filepath, bool flipaxis, TextureFilter fmt)
 {
 	glGenTextures(1, &m_TextureID);
 	glBindTexture(GL_TEXTURE_2D, m_TextureID);
@@ -13,11 +13,11 @@ Texture::Texture(const char* filepath, bool flipaxis, TextureFormat fmt)
 
 	switch (fmt)
 	{
-	case TextureFormat::Linear:
+	case TextureFilter::Linear:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		break;
-	case TextureFormat::Nearest:
+	case TextureFilter::Nearest:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		break;
