@@ -171,3 +171,8 @@ void CubeMap::BindTexture(uint32_t slot)
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_TextureID);
 }
+
+void CubeMap::BindVertexArray() const
+{
+	glBindVertexArray(m_VertexManager.GetVertexArray());
+}

@@ -34,6 +34,7 @@ public:
 
 	void BindTexture(uint32_t slot = 0);
 	uint32_t GetVertexArray() const { return m_VertexManager.GetVertexArray(); }
+	void BindVertexArray() const;
 	const VertexManager& GetVertexManager() { return m_VertexManager; }
 private:
 	unsigned char* m_Data;

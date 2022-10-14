@@ -32,8 +32,8 @@ if("${VISUAL_STUDIO_DEF}" STREQUAL "Visual Studio")
 	#32 bit only for this version
 	target_link_libraries(${PROJECT_NAME}
 		opengl32.lib
-		${CMAKE_SOURCE_DIR}/Dependencies/ASSIMP/bin/assimp.lib
-		${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/Win32/glew32s.lib
+		${CMAKE_SOURCE_DIR}/Dependencies/ASSIMP/lib/assimp-vc143-mtd.lib
+		${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/x64/glew32sd.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib)
 
 else() #for now only linux ubuntu
