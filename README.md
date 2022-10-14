@@ -75,7 +75,7 @@ Requirements:
 
 
 
-5) `cmake -A Win32 ..`
+5) `cmake ..`
 
 
 
