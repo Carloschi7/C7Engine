@@ -40,7 +40,11 @@ Shader::~Shader()
 
 void Shader::Use() const
 {
-	glUseProgram(m_programID);
+	int curr_prog;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &curr_prog);
+	
+	if(curr_prog != m_programID)
+		glUseProgram(m_programID);
 }
 
 void Shader::UniformMat4f(const glm::mat4& mat, const std::string& UniformName)
