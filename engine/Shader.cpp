@@ -1,6 +1,8 @@
 #include "Shader.h"
+#include <xutility>
 
 uint32_t Shader::s_UniformBuffer = 0;
+std::atomic<uint32_t> Shader::s_CurrentlyBoundProgram = 0;
 
 Shader::Shader(const std::string& filepath)
 {
@@ -40,35 +42,40 @@ Shader::~Shader()
 
 void Shader::Use() const
 {
-	int curr_prog;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &curr_prog);
-	
-	if(curr_prog != m_programID)
+	if (m_programID != s_CurrentlyBoundProgram)
+	{
 		glUseProgram(m_programID);
+		s_CurrentlyBoundProgram = m_programID;
+	}
 }
 
 void Shader::UniformMat4f(const glm::mat4& mat, const std::string& UniformName)
 {
+	Use();
 	glUniformMatrix4fv(GetUniformLocation(UniformName), 1, GL_FALSE, &mat[0][0]);
 }
 
 void Shader::UniformVec3f(const glm::vec3& v, const std::string& UniformName)
 {
+	Use();
 	glUniform3f(GetUniformLocation(UniformName), v.x, v.y, v.z);
 }
 
 void Shader::UniformVec4f(const glm::vec4& v, const std::string& UniformName)
 {
+	Use();
 	glUniform4f(GetUniformLocation(UniformName), v.x, v.y, v.z, v.a);
 }
 
 void Shader::Uniform1i(int i, const std::string& UniformName)
 {
+	Use();
 	glUniform1i(GetUniformLocation(UniformName), i);
 }
 
 void Shader::Uniform1f(float i, const std::string& UniformName)
 {
+	Use();
 	glUniform1f(GetUniformLocation(UniformName), i);
 }
 
@@ -152,9 +159,12 @@ void Shader::LoadShadersFromFile(const std::string& File, std::string& vs, std::
 	fs = input[2].str();
 }
 
-int Shader::GetUniformLocation(const std::string& UniformName) const
+int32_t Shader::GetUniformLocation(const std::string& UniformName) const
 {
-	Use();
+	//Checking if the uniform is already stored in the cache
+	if (m_UniformCache.find(UniformName) != m_UniformCache.end())
+		return m_UniformCache[UniformName];
+
 	int uniform = glGetUniformLocation(m_programID, UniformName.c_str());
 	if (uniform == -1)
 	{
@@ -162,6 +172,7 @@ int Shader::GetUniformLocation(const std::string& UniformName) const
 		return -1;
 	}
 
+	m_UniformCache[UniformName] = uniform;
 	return uniform;
 }
 

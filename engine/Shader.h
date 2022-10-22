@@ -1,7 +1,9 @@
 #pragma once
 #include <iostream>
+#include <unordered_map>
 #include <fstream>
 #include <sstream>
+#include <atomic>
 #include "GL/glew.h"
 
 #include "glm/glm.hpp"
@@ -32,10 +34,14 @@ public:
 	static void SendDataToUniformBuffer(uint32_t size, uint32_t offset, const void* data);
 private:
 	void LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs);
-	int GetUniformLocation(const std::string& UniformName) const;
+	int32_t GetUniformLocation(const std::string& UniformName) const;
 	int SetupShader(std::string& source, GLenum ShaderType);
 	void CheckShaderCompileStatus(uint32_t shader, GLenum ShaderType);
 private:
 	uint32_t m_programID;
 	static uint32_t s_UniformBuffer;
+	//Uniform cache
+	mutable std::unordered_map<std::string, int32_t> m_UniformCache;
+	//Static var used to make Use function way faster
+	static std::atomic<uint32_t> s_CurrentlyBoundProgram;
 };
