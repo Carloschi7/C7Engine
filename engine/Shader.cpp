@@ -1,5 +1,4 @@
 #include "Shader.h"
-#include <xutility>
 
 uint32_t Shader::s_UniformBuffer = 0;
 std::atomic<uint32_t> Shader::s_CurrentlyBoundProgram = 0;
