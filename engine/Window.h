@@ -21,11 +21,13 @@ public:
 	~Window();
 
 	Window(const Window&) = delete;
-	Window(Window&&) = delete;
+	Window(Window&& wnd) noexcept;
 
-	void Update();
+	void Update() const;
 	void Destroy();
-	void SetWndInCurrentContext();
+	void ClearScreen() const;
+	void AttachWndToCurrentContext() const;
+	void DetachWndFromContext() const;
 	bool IsKeyboardEvent(const InputEvent& ie) const;
 	bool IsMouseEvent(const InputEvent& ie) const;
 	bool IsMouseWheelUp() const;

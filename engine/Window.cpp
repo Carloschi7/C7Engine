@@ -30,10 +30,19 @@ Window::Window(uint32_t width, uint32_t height, const char* title, bool bFullscr
 
 Window::~Window()
 {
+	DetachWndFromContext();
 	Destroy();
 }
 
-void Window::Update()
+Window::Window(Window&& wnd) noexcept :
+	m_Window(std::exchange(wnd.m_Window, nullptr)),
+	m_Monitor(std::exchange(wnd.m_Monitor, nullptr)),
+	m_Width(wnd.m_Width), m_Height(wnd.m_Height), 
+	m_Fullscreen(wnd.m_Fullscreen)
+{
+}
+
+void Window::Update() const
 {
 	//Resetting the mouse wheel state
 	s_MouseWheelY = 0.0;
@@ -56,9 +65,19 @@ void Window::Destroy()
 	if (m_Monitor) delete m_Monitor;
 }
 
-void Window::SetWndInCurrentContext()
+void Window::ClearScreen() const
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Window::AttachWndToCurrentContext() const
 {
 	glfwMakeContextCurrent(m_Window);
+}
+
+void Window::DetachWndFromContext() const
+{
+	glfwMakeContextCurrent(nullptr);
 }
 
 bool Window::IsKeyboardEvent(const InputEvent& ie) const

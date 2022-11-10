@@ -1,20 +1,12 @@
 #pragma once
 #include "MainIncl.h"
 #include <memory>
-
-//Allows the end-user to generate a custom window
-class WindowMaker
-{
-public:
-    WindowMaker(){}
-
-    static std::unique_ptr<Window> MakeWindow();
-};
+#include <thread>
 
 class Application
 {
 public:
-	Application(Window& window);
+	Application();
 	~Application();
 
 	void OnUserCreate();
@@ -49,7 +41,7 @@ private:
 	}
 
 private:
-	Window& m_Window;
+	Window m_Window;
 	std::vector<VertexManager> m_VertexManagers;
 	std::vector<Entity> m_SceneObjs;
 	std::vector<Texture> m_Textures;
@@ -57,5 +49,7 @@ private:
 	std::vector<Shader> m_Shaders;
 	std::vector<Model> m_Models;
 	std::vector<FrameBuffer> m_CustomFrameBuffers;
+	//Different working threads, can be used for logic, rendering, ...
+	std::vector<std::thread> m_AppThreads;
 	Camera m_Camera;
 };

@@ -117,6 +117,11 @@ void Shader::SetUniformBindingPoint(const std::string& UniformBlockName, uint32_
 	glUniformBlockBinding(m_programID, block_adress, binding_point);
 }
 
+void Shader::ClearUniformCache()
+{
+	m_UniformCache.clear();
+}
+
 void Shader::LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs)
 {
 	std::ifstream str(File);

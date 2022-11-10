@@ -1,10 +1,13 @@
+//Wrapper header for quick glfw/glew context init
+#pragma once
 #include <iostream>
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "../application/Application.h"
 #include "Window.h"
 
-int main()
+template<class... Args>
+static Window InitContext(Args&&... args)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -13,23 +16,20 @@ int main()
 	//Printing OpenGL version
 	std::cout << glfwGetVersionString() << std::endl;
 
-	std::unique_ptr<Window> w = WindowMaker::MakeWindow();
+	Window w(std::forward<Args>(args)...);
 	//Allows glew initialization
-	w->SetWndInCurrentContext();
+	w.AttachWndToCurrentContext();
 
 	//GLEW
 	if (glewInit() != GLEW_OK)
 	{
-		std::cout << "Could not initialize glew\n";
-		return -1;
+		throw std::runtime_error("Could not initialize glew");
 	}
 
-	Application* app = new Application(*w);
-	app->OnUserCreate();
-	app->OnUserRun();
+	return std::move(w);
+}
 
-	delete app;
-	
+static void TerminateContext()
+{
 	glfwTerminate();
-	return 0;
 }

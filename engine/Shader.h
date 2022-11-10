@@ -27,6 +27,7 @@ public:
 	void Uniform1f(float i, const std::string& UniformName);
 	bool IsUniformDefined(const std::string& UniformName) const;
 	void SetUniformBindingPoint(const std::string& UniformBlockName, uint32_t binding_point);
+	void ClearUniformCache();
 
 	//Beta
 	static void GenUniformBuffer(uint32_t size, uint32_t binding_point);
