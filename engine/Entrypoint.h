@@ -26,10 +26,11 @@ static Window InitContext(Args&&... args)
 		throw std::runtime_error("Could not initialize glew");
 	}
 
-	return std::move(w);
+	return w;
 }
 
-static void TerminateContext()
+static void TerminateContext(Window& w)
 {
+	w.Destroy();
 	glfwTerminate();
 }

@@ -41,6 +41,9 @@ private:
 	}
 
 private:
+	//The window needs to be defined (the InitContext function in Entrypoint.h is recommended)
+	//If your app is multithreaded, the main thread needs to be the one which handles opengl
+	//stuff
 	Window m_Window;
 	std::vector<VertexManager> m_VertexManagers;
 	std::vector<Entity> m_SceneObjs;
