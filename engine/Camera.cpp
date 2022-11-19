@@ -70,7 +70,7 @@ void Camera::MoveY(float fSpeed)
 void Camera::ProcessInput(const Window& window, double deltaTime)
 {
 	if (keyfun)
-		keyfun(window, this);
+		keyfun(window, this, deltaTime);
 
 	if (mousefun)
 	{

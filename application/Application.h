@@ -13,22 +13,22 @@ public:
 	void OnUserRun();
 private:
 	//3D applications utilities
-	static void KeyboardForCameraFun(const Window& window, Camera* camera)
+	static void KeyboardForCameraFun(const Window& window, Camera* camera, double time)
 	{
 		float fScalar = 0.6f;
 
 		if (window.IsKeyboardEvent({GLFW_KEY_W, GLFW_PRESS}))
-			camera->MoveTowardsFront(fScalar);
+			camera->MoveTowardsFront(fScalar * time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_S, GLFW_PRESS }))
-			camera->MoveTowardsFront(-fScalar);
+			camera->MoveTowardsFront(-fScalar * time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_A, GLFW_PRESS }))
-			camera->StrafeX(-fScalar);
+			camera->StrafeX(-fScalar * time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_D, GLFW_PRESS }))
-			camera->StrafeX(fScalar);
+			camera->StrafeX(fScalar * time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_E, GLFW_PRESS }))
-			camera->StrafeY(fScalar);
+			camera->StrafeY(fScalar * time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_C, GLFW_PRESS }))
-			camera->StrafeY(-fScalar);
+			camera->StrafeY(-fScalar * time);
 	}
 
 	static void MouseForCameraFun(const Window& window, Camera* camera, double x, double y, double dpi, double time)

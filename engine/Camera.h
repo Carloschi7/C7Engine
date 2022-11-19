@@ -19,7 +19,7 @@ enum class CameraType
 class Camera
 {
 public:
-	using KeyFun = std::function<void(const Window&, Camera*)>;
+	using KeyFun = std::function<void(const Window&, Camera*, double)>;
 	using MouseFun = std::function<void(const Window&, Camera*, double, double, double, double)>;
 public:
 	Camera();
