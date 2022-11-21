@@ -42,10 +42,11 @@ public:
 	void MoveY(float fSpeed);
 
 	void ProcessInput(const Window& window, double deltaTime);
+	void ProcessInput(const Window& window, double keyDeltaTime, double mouseDeltaTime);
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
 	glm::mat4 GetViewMatrix() const;
-	const glm::vec3& GetPosition() const;
+	const glm::vec3& Position() const;
 	const glm::vec3& GetFront() const;
 
 	//Projection matrix setup

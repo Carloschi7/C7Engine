@@ -84,6 +84,23 @@ void Camera::ProcessInput(const Window& window, double deltaTime)
 	}
 }
 
+void Camera::ProcessInput(const Window& window, double keyDeltaTime, double mouseDeltaTime)
+{
+	if (keyfun)
+		keyfun(window, this, keyDeltaTime);
+
+	if (mousefun)
+	{
+		if (m_MouseX == 0.0f && m_MouseY == 0.0f)
+		{
+			window.GetCursorCoord(m_MouseX, m_MouseY);
+		}
+
+		mousefun(window, this, m_MouseX, m_MouseY, m_Dpi, mouseDeltaTime);
+		window.GetCursorCoord(m_MouseX, m_MouseY);
+	}
+}
+
 void Camera::SetKeyboardFunction(const KeyFun& kf)
 {
 	keyfun = kf;
@@ -108,7 +125,7 @@ glm::mat4 Camera::GetViewMatrix() const
 	
 }
 
-const glm::vec3& Camera::GetPosition() const
+const glm::vec3& Camera::Position() const
 {
 	return m_Pos;
 }
