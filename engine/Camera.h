@@ -46,7 +46,7 @@ public:
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
 	glm::mat4 GetViewMatrix() const;
-	const glm::vec3& Position() const;
+	const glm::vec3& GetPosition() const;
 	const glm::vec3& GetFront() const;
 
 	//Projection matrix setup

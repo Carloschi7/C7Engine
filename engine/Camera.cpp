@@ -125,7 +125,7 @@ glm::mat4 Camera::GetViewMatrix() const
 	
 }
 
-const glm::vec3& Camera::Position() const
+const glm::vec3& Camera::GetPosition() const
 {
 	return m_Pos;
 }
