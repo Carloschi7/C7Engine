@@ -43,7 +43,7 @@ public:
 	bool IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, float fRadius, float ratio_vertex_center);
 
 	const glm::mat4& ModelMatrix() const;
-	const glm::vec3& Position() const { return m_Position; }
+	const glm::vec3& GetPosition() const { return m_Position; }
 	const VertexManager* GetVertexManager() const { return m_VertexManager; }
 
 private:
