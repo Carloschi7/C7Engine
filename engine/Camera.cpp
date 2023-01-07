@@ -113,16 +113,18 @@ void Camera::SetMouseFunction(const MouseFun& mf)
 
 glm::mat4 Camera::GetViewMatrix() const
 {
-	if (m_CameraType == CameraType::ORTHOGRAPHIC)
+	switch (m_CameraType) 
 	{
+	case CameraType::ORTHOGRAPHIC:
 		return glm::translate(glm::mat4(1.0f), m_Pos);
-	}
-
-	if (m_CameraType == CameraType::PERSPECTIVE)
-	{
+	case CameraType::PERSPECTIVE:
 		return glm::lookAt(m_Pos, m_Pos + m_Front, glm::vec3(0.0f, 1.0f, 0.0f));
 	}
-	
+}
+
+const glm::mat4& Camera::GetProjMatrix() const
+{
+	return m_ProjMat;
 }
 
 const glm::vec3& Camera::GetPosition() const
@@ -143,6 +145,9 @@ void Camera::SetPerspectiveValues(float fAngle, float fAspect, float fNear, floa
 	m_ProjParams.fAspectRatio = fAspect;
 	m_ProjParams.fNear = fNear;
 	m_ProjParams.fFar = fFar;
+
+	//Set matrix as perspective
+	m_ProjMat = glm::perspective(fAngle, fAspect, fNear, fFar);
 }
 
 void Camera::SetOrthographicValues(float fLeft, float fRight, float fBottom, float fTop)
@@ -153,23 +158,12 @@ void Camera::SetOrthographicValues(float fLeft, float fRight, float fBottom, flo
 	m_ProjParams.fRight = fRight;
 	m_ProjParams.fBottom = fBottom;
 	m_ProjParams.fTop = fTop;
+
+	//Set matrix as ortho
+	m_ProjMat = glm::ortho(fLeft, fRight, fBottom, fTop);
 }
 
-glm::mat4 Camera::GetProjMatrix() const
-{
-	if (m_CameraType == CameraType::ORTHOGRAPHIC)
-	{
-		glm::mat4 proj = glm::ortho(m_ProjParams.fLeft, m_ProjParams.fRight, m_ProjParams.fBottom, m_ProjParams.fTop);
-		return proj;
-	}
 
-	if (m_CameraType == CameraType::PERSPECTIVE)
-	{
-		glm::mat4 proj = glm::perspective(m_ProjParams.fAngle, m_ProjParams.fAspectRatio, m_ProjParams.fNear, m_ProjParams.fFar);
-		return proj;
-	}
-	
-}
 
 void Camera::Zoom(float fMultiplyRatio)
 {

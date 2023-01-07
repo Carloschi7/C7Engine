@@ -45,14 +45,14 @@ public:
 	void ProcessInput(const Window& window, double keyDeltaTime, double mouseDeltaTime);
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
-	glm::mat4 GetViewMatrix() const;
 	const glm::vec3& GetPosition() const;
 	const glm::vec3& GetFront() const;
+	glm::mat4 GetViewMatrix() const;
+	const glm::mat4& GetProjMatrix() const;
 
 	//Projection matrix setup
 	void SetPerspectiveValues(float fAngle, float fAspect, float fNear, float fFar);
 	void SetOrthographicValues(float fLeft, float fRight, float fBottom, float fTop);
-	glm::mat4 GetProjMatrix() const;
 
 	void Zoom(float fMultiplyRatio);
 
@@ -72,6 +72,7 @@ private:
 	float fAngleX, fAngleY, fZoom;
 	double m_MouseX, m_MouseY, m_Dpi;
 	glm::vec3 m_Pos, m_Front;
+	glm::mat4 m_ProjMat;
 
 
 	KeyFun keyfun;
