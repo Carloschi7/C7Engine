@@ -1,6 +1,8 @@
 #include "VertexManager.h"
 #include <cstring>
 
+uint32_t VertexManager::s_VaoBinding = 0;
+
 VertexManager::VertexManager()
 	:m_IndicesCount(0), m_AttribCount(0), m_SuccesfullyLoaded(false), m_HasIndices(false), m_ValuesCount(0),
 	m_StrideLength(0)
@@ -50,7 +52,7 @@ void VertexManager::ReleaseResources()
 
 void VertexManager::SendDataToOpenGLArray(const float* verts, size_t verts_size, const Layout& l)
 {
-	glBindVertexArray(m_VAO);
+	BindVertexArray();
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_STATIC_DRAW);
@@ -81,7 +83,7 @@ void VertexManager::SendDataToOpenGLArray(const float* verts, size_t verts_size,
 void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_size, const uint32_t* indices, size_t indices_size,
 	const Layout& l)
 {
-	glBindVertexArray(m_VAO);
+	BindVertexArray();
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_STATIC_DRAW);
@@ -119,7 +121,11 @@ void VertexManager::ClearBuffers()
 
 void VertexManager::BindVertexArray() const
 {
-	glBindVertexArray(m_VAO);
+	if (s_VaoBinding != m_VAO)
+	{
+		glBindVertexArray(m_VAO);
+		s_VaoBinding = m_VAO;
+	}
 }
 
 bool VertexManager::CheckStrideValidity(const Layout& l)

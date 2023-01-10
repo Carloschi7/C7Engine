@@ -65,4 +65,6 @@ private:
 	size_t m_StrideLength;
 	bool m_SuccesfullyLoaded;
 	bool m_HasIndices;
+
+	static uint32_t s_VaoBinding;
 };
