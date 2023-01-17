@@ -1,7 +1,7 @@
 #include "Shader.h"
 
-uint32_t Shader::s_UniformBuffer = 0;
 std::atomic<uint32_t> Shader::s_CurrentlyBoundProgram = 0;
+std::atomic<uint32_t> Shader::s_CurrentlyBoundUniformBuffer = 0;
 
 Shader::Shader(const std::string& filepath)
 {
@@ -36,6 +36,7 @@ Shader::Shader(Shader&& shd) noexcept
 
 Shader::~Shader()
 {
+	DeleteUniformBuffers();
 	glDeleteProgram(m_programID);
 }
 
@@ -83,38 +84,45 @@ bool Shader::IsUniformDefined(const std::string& UniformName) const
 	return (glGetUniformLocation(m_programID, UniformName.c_str()) != -1);
 }
 
-void Shader::GenUniformBuffer(uint32_t size, uint32_t binding_point)
-{
-	if (s_UniformBuffer != 0)
-		DeleteUniformBuffer();
-
-	glGenBuffers(1, &s_UniformBuffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, s_UniformBuffer);
-	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	glBindBufferRange(GL_UNIFORM_BUFFER, binding_point, s_UniformBuffer, 0, size);
-}
-
-void Shader::DeleteUniformBuffer()
-{
-	glDeleteBuffers(1, &s_UniformBuffer);
-	s_UniformBuffer = 0;
-}
-
-void Shader::SendDataToUniformBuffer(uint32_t size, uint32_t offset, const void* data)
-{
-	glBindBuffer(GL_UNIFORM_BUFFER, s_UniformBuffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-//Sets a binding point for an uniform block defined in the shader
-void Shader::SetUniformBindingPoint(const std::string& UniformBlockName, uint32_t binding_point)
+uint32_t Shader::GenUniformBuffer(const std::string& block_name, uint32_t size, uint32_t binding_point)
 {
 	Use();
-	uint32_t block_adress = glGetUniformBlockIndex(m_programID, UniformBlockName.c_str());
-	glUniformBlockBinding(m_programID, block_adress, binding_point);
+	uint32_t& new_buffer = m_UniformBuffers.emplace_back();
+
+	//Generate a buffer and allocate the desired space
+	glGenBuffers(1, &new_buffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, new_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+
+	//Bind the uniform block to the requested binding point...
+	uint32_t block_index = glGetUniformBlockIndex(m_programID, block_name.c_str());
+	glUniformBlockBinding(m_programID, block_index, binding_point);
+
+	//And link the binding point to the GPU buffer
+	glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, new_buffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	return m_UniformBuffers.size() - 1;
+}
+
+void Shader::DeleteUniformBuffers()
+{
+	for (uint32_t i = 0; i < m_UniformBuffers.size(); i++)
+		glDeleteBuffers(1, &m_UniformBuffers[i]);
+
+	m_UniformBuffers.clear();
+}
+
+void Shader::SendDataToUniformBuffer(uint32_t ub_local_index, uint32_t size, uint32_t offset, const void* data)
+{
+	uint32_t buf = m_UniformBuffers[ub_local_index];
+	if (buf != s_CurrentlyBoundUniformBuffer)
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBuffers[ub_local_index]);
+		s_CurrentlyBoundUniformBuffer = buf;
+	}
+	
+	glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
 }
 
 void Shader::ClearUniformCache()

@@ -18,11 +18,15 @@ public:
 	~Texture();
 
 	void Bind(unsigned int slot = 0) const;
+	//Useful if the texture has been temporarily unbound
+	static void ForceBind(unsigned int slot = 0);
 	uint32_t ID() const { return m_TextureID; }
 private:
 	unsigned char* m_Data;
 	uint32_t m_TextureID;
 	int32_t m_Width, m_Height, m_BPP;
+
+	static uint32_t s_CurrentlyBoundTex;
 };
 
 class CubeMap

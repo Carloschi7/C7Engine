@@ -26,13 +26,20 @@ public:
 	void Uniform1i(int i, const std::string& UniformName);
 	void Uniform1f(float i, const std::string& UniformName);
 	bool IsUniformDefined(const std::string& UniformName) const;
-	void SetUniformBindingPoint(const std::string& UniformBlockName, uint32_t binding_point);
 	void ClearUniformCache();
 
-	//Beta
-	static void GenUniformBuffer(uint32_t size, uint32_t binding_point);
-	static void DeleteUniformBuffer();
-	static void SendDataToUniformBuffer(uint32_t size, uint32_t offset, const void* data);
+	//Uniform buffer utilities(Beta)
+
+	//@returns the index of the generated buffer in the vector
+	uint32_t GenUniformBuffer(const std::string& block_name, uint32_t size, uint32_t binding_point);
+	void DeleteUniformBuffers();
+	/*
+	*	@param retval of GenUniformBuffer
+	*	@param size of the data
+	*	@param offset of the data
+	*	@param actual data
+	*/
+	void SendDataToUniformBuffer(uint32_t ub_local_index, uint32_t size, uint32_t offset, const void* data);
 private:
 	void LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs);
 	int32_t GetUniformLocation(const std::string& UniformName) const;
@@ -40,9 +47,10 @@ private:
 	void CheckShaderCompileStatus(uint32_t shader, GLenum ShaderType);
 private:
 	uint32_t m_programID;
-	static uint32_t s_UniformBuffer;
+	std::vector<uint32_t> m_UniformBuffers;
 	//Uniform cache
 	mutable std::unordered_map<std::string, int32_t> m_UniformCache;
 	//Static var used to make Use function way faster
 	static std::atomic<uint32_t> s_CurrentlyBoundProgram;
+	static std::atomic<uint32_t> s_CurrentlyBoundUniformBuffer;
 };
