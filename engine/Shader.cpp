@@ -99,10 +99,20 @@ uint32_t Shader::GenUniformBuffer(const std::string& block_name, uint32_t size, 
 	glUniformBlockBinding(m_programID, block_index, binding_point);
 
 	//And link the binding point to the GPU buffer
-	glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, new_buffer);
+	glBindBufferRange(GL_UNIFORM_BUFFER, binding_point, new_buffer, 0, size);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	return m_UniformBuffers.size() - 1;
+}
+
+void Shader::BindUniformBuffer(uint32_t ub_local_index)
+{
+	uint32_t buf = m_UniformBuffers[ub_local_index];
+	if (buf != s_CurrentlyBoundUniformBuffer)
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBuffers[ub_local_index]);
+		s_CurrentlyBoundUniformBuffer = buf;
+	}
 }
 
 void Shader::DeleteUniformBuffers()
@@ -115,14 +125,14 @@ void Shader::DeleteUniformBuffers()
 
 void Shader::SendDataToUniformBuffer(uint32_t ub_local_index, uint32_t size, uint32_t offset, const void* data)
 {
-	uint32_t buf = m_UniformBuffers[ub_local_index];
-	if (buf != s_CurrentlyBoundUniformBuffer)
-	{
-		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBuffers[ub_local_index]);
-		s_CurrentlyBoundUniformBuffer = buf;
-	}
-	
+	BindUniformBuffer(ub_local_index);
 	glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
+}
+
+void Shader::SetUniformBufferRange(uint32_t ub_local_index, uint32_t binding, uint32_t size, uint32_t offset)
+{
+	BindUniformBuffer(ub_local_index);
+	glBindBufferRange(GL_UNIFORM_BUFFER, binding, m_UniformBuffers[ub_local_index], offset, size);
 }
 
 void Shader::ClearUniformCache()

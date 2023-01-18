@@ -40,7 +40,9 @@ public:
 	*	@param actual data
 	*/
 	void SendDataToUniformBuffer(uint32_t ub_local_index, uint32_t size, uint32_t offset, const void* data);
+	void SetUniformBufferRange(uint32_t ub_local_index, uint32_t binding, uint32_t size, uint32_t offset);
 private:
+	void BindUniformBuffer(uint32_t ub_local_index);
 	void LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs);
 	int32_t GetUniformLocation(const std::string& UniformName) const;
 	int SetupShader(std::string& source, GLenum ShaderType);
