@@ -34,7 +34,8 @@ VertexManager::VertexManager(VertexManager&& vm) noexcept :
 	m_HasIndices(std::exchange(vm.m_HasIndices, 0)),
 	m_SuccesfullyLoaded(std::exchange(vm.m_SuccesfullyLoaded, 0)),
 	m_ValuesCount(std::exchange(vm.m_ValuesCount, 0)),
-	m_StrideLength(std::exchange(vm.m_StrideLength, 0))
+	m_StrideLength(std::exchange(vm.m_StrideLength, 0)),
+	m_AdditionalBuffers(std::move(vm.m_AdditionalBuffers))
 {
 }
 
@@ -43,6 +44,9 @@ VertexManager::~VertexManager()
 	glDeleteBuffers(1, &m_VBO);
 	glDeleteBuffers(1, &m_EBO);
 	glDeleteBuffers(1, &m_VAO);
+
+	for (uint32_t i : m_AdditionalBuffers)
+		glDeleteBuffers(1, &m_AdditionalBuffers[i]);
 }
 
 void VertexManager::ReleaseResources()
@@ -111,6 +115,26 @@ void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_si
 	m_SuccesfullyLoaded = true;
 	m_ValuesCount = verts_size / sizeof(float);
 	m_StrideLength = l.GetAttributes()[0].stride / sizeof(float);
+}
+
+void VertexManager::PushInstancedAttribute(const void* verts, size_t verts_size, const Layout& l, uint32_t divisor_index)
+{
+	BindVertexArray();
+
+	uint32_t& buffer = m_AdditionalBuffers.emplace_back();
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
+
+	
+	for (const auto& elem : l.GetAttributes())
+	{
+		glEnableVertexAttribArray(m_AttribCount);
+		glVertexAttribPointer(m_AttribCount, elem.count, elem.type, elem.bNormalized, elem.stride, (void*)elem.offset);
+
+		//Mark the data as instanced
+		glVertexAttribDivisor(m_AttribCount++, divisor_index);
+	}
 }
 
 void VertexManager::ClearBuffers()

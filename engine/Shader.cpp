@@ -28,7 +28,9 @@ Shader::Shader(const std::string& filepath)
 	glDeleteShader(fs);
 }
 
-Shader::Shader(Shader&& shd) noexcept
+Shader::Shader(Shader&& shd) noexcept :
+	m_UniformBuffers(std::move(shd.m_UniformBuffers)),
+	m_UniformCache(std::move(shd.m_UniformCache))
 {
 	this->m_programID = shd.m_programID;
 	shd.m_programID = 0;

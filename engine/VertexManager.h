@@ -36,9 +36,15 @@ public:
 	~VertexManager();
 	void ReleaseResources();
 
+	//Recommended for pushing initial static data
 	void SendDataToOpenGLArray(const float* verts, size_t verts_size, const Layout& l);
 	void SendDataToOpenGLElements(const float* verts, size_t verts_size, const uint32_t* indices, size_t indices_size,
 		const Layout& l);
+	//Pushes a new attribute that will go alongside the static data. Can tweak the divisor to make one
+	//attribute the same for the current drawcall(divisor_index = number of drawcalls that will us the attribute,
+	//starting from the first one obviously)
+	//Recommended for perframe-modified data
+	void PushInstancedAttribute(const void* verts, size_t verts_size, const Layout& l, uint32_t divisor_index);
 	void ClearBuffers();
 
 	void BindVertexArray() const;
@@ -65,6 +71,9 @@ private:
 	size_t m_StrideLength;
 	bool m_SuccesfullyLoaded;
 	bool m_HasIndices;
+
+	//For extra instanced data
+	std::vector<uint32_t> m_AdditionalBuffers;
 
 	static uint32_t s_VaoBinding;
 };
