@@ -3,7 +3,7 @@
 #include <vector>
 #include "GL/glew.h"
 
-struct _LayoutElem
+struct LayoutElement
 {
 	int32_t count;
 	GLenum type;
@@ -16,13 +16,13 @@ class Layout
 {
 public:
 	Layout() {}
-	Layout(const std::vector<_LayoutElem>& el) { vec = el; }
+	Layout(const std::vector<LayoutElement>& el) { vec = el; }
 
-	void PushAttribute(const _LayoutElem& attr) { vec.push_back(attr); }
+	void PushAttribute(const LayoutElement& attr) { vec.push_back(attr); }
 	void PopAttribute() { vec.pop_back(); }
-	const std::vector<_LayoutElem>& GetAttributes() const { return vec; }
+	const std::vector<LayoutElement>& GetAttributes() const { return vec; }
 private:
-	std::vector<_LayoutElem> vec;
+	std::vector<LayoutElement> vec;
 };
 
 class VertexManager
@@ -44,7 +44,10 @@ public:
 	//attribute the same for the current drawcall(divisor_index = number of drawcalls that will us the attribute,
 	//starting from the first one obviously)
 	//Recommended for perframe-modified data
-	void PushInstancedAttribute(const void* verts, size_t verts_size, const Layout& l, uint32_t divisor_index);
+	uint32_t PushInstancedAttribute(const void* verts, size_t verts_size, uint32_t attr_index, const LayoutElement& el);
+	//Very similar to PushInstanceAttribute but optimized for mat4 dynamic allocations
+	uint32_t PushInstancedMatrixBuffer(const void* verts, size_t verts_size, uint32_t attr_index);
+	void EditInstance(uint32_t vb_local_index, const void* verts, size_t verts_size, size_t offset);
 	void ClearBuffers();
 
 	void BindVertexArray() const;
@@ -63,6 +66,9 @@ public:
 	uint32_t GetAttribCount() const { return m_AttribCount; }
 	uint32_t GetValuesCount() const { return m_ValuesCount; }
 	size_t GetStrideLenght() const { return m_StrideLength; }
+private:
+	bool IsIntegerType(GLenum type) const;
+	void VertexAttribPointer(uint32_t attr_index, const LayoutElement& el);
 private:
 	uint32_t m_VAO, m_VBO, m_EBO;
 	uint32_t m_IndicesCount;

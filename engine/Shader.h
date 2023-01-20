@@ -41,6 +41,9 @@ public:
 	*/
 	void SendDataToUniformBuffer(uint32_t ub_local_index, uint32_t size, uint32_t offset, const void* data);
 	void SetUniformBufferRange(uint32_t ub_local_index, uint32_t binding, uint32_t size, uint32_t offset);
+
+	//Attribute utilities
+	int32_t GetAttributeLocation(const std::string& attr_name);
 private:
 	void BindUniformBuffer(uint32_t ub_local_index);
 	void LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs);

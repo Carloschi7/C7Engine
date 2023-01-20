@@ -72,8 +72,7 @@ void VertexManager::SendDataToOpenGLArray(const float* verts, size_t verts_size,
 	{
 		const auto& attr = l.GetAttributes()[i];
 		glEnableVertexAttribArray(i);
-		glVertexAttribPointer(i, attr.count, attr.type, attr.bNormalized, attr.stride,
-			(void*)attr.offset);
+		VertexAttribPointer(i, attr);
 	}
 
 	m_IndicesCount = verts_size / l.GetAttributes()[0].stride;
@@ -105,8 +104,7 @@ void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_si
 	{
 		const auto& attr = l.GetAttributes()[i];
 		glEnableVertexAttribArray(i);
-		glVertexAttribPointer(i, attr.count, attr.type, attr.bNormalized, attr.stride,
-			(void*)attr.offset);
+		VertexAttribPointer(i, attr);
 	}
 
 	m_IndicesCount = indices_size / sizeof(uint32_t);
@@ -117,8 +115,12 @@ void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_si
 	m_StrideLength = l.GetAttributes()[0].stride / sizeof(float);
 }
 
-void VertexManager::PushInstancedAttribute(const void* verts, size_t verts_size, const Layout& l, uint32_t divisor_index)
+
+uint32_t VertexManager::PushInstancedAttribute(const void* verts, size_t verts_size, uint32_t attr_index, const LayoutElement& el)
 {
+	if (attr_index == static_cast<uint32_t>(-1))
+		return static_cast<uint32_t>(-1);
+
 	BindVertexArray();
 
 	uint32_t& buffer = m_AdditionalBuffers.emplace_back();
@@ -126,15 +128,46 @@ void VertexManager::PushInstancedAttribute(const void* verts, size_t verts_size,
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
 
-	
-	for (const auto& elem : l.GetAttributes())
-	{
-		glEnableVertexAttribArray(m_AttribCount);
-		glVertexAttribPointer(m_AttribCount, elem.count, elem.type, elem.bNormalized, elem.stride, (void*)elem.offset);
+	//Map the attribute
+	glEnableVertexAttribArray(attr_index);
+	VertexAttribPointer(attr_index, el);
+	glVertexAttribDivisor(attr_index, 1);
 
-		//Mark the data as instanced
-		glVertexAttribDivisor(m_AttribCount++, divisor_index);
+	return buffer;
+}
+
+uint32_t VertexManager::PushInstancedMatrixBuffer(const void* verts, size_t verts_size, uint32_t attr_index)
+{
+	if (attr_index == static_cast<uint32_t>(-1))
+		return static_cast<uint32_t>(-1);
+
+	BindVertexArray();
+
+	uint32_t& buffer = m_AdditionalBuffers.emplace_back();
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
+
+	//We cant uniform a matrix all at once, we need to split it in 4 vec4
+	//A mat4 occupies 4 attribute indexes in the shader, each one containing a vec4
+	for (uint32_t i = 0; i < 4; i++)
+	{
+		glEnableVertexAttribArray(attr_index + i);
+		glVertexAttribPointer(attr_index + i, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 16, (void*)(sizeof(float) * 4 * i));
+		//One matrix per drawn instance
+		glVertexAttribDivisor(attr_index + i, 1);
 	}
+
+	return buffer;
+}
+
+void VertexManager::EditInstance(uint32_t vb_local_index, const void* verts, size_t verts_size, size_t offset)
+{
+	if (vb_local_index >= m_AdditionalBuffers.size())
+		return;
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_AdditionalBuffers[vb_local_index]);
+	glBufferSubData(GL_ARRAY_BUFFER, offset, verts_size, verts);
 }
 
 void VertexManager::ClearBuffers()
@@ -199,6 +232,20 @@ float* VertexManager::GetRawAttribute(uint32_t begin, uint32_t end) const
 
 	::operator delete(ptr);
 	return res;
+}
+
+bool VertexManager::IsIntegerType(GLenum type) const
+{
+	return type == GL_BYTE || type == GL_UNSIGNED_BYTE || type == GL_SHORT ||
+		type == GL_UNSIGNED_SHORT || type == GL_INT || type == GL_UNSIGNED_INT;
+}
+
+void VertexManager::VertexAttribPointer(uint32_t attr_index, const LayoutElement& el)
+{
+	if (IsIntegerType(el.type))
+		glVertexAttribIPointer(attr_index, el.count, el.type, el.stride, (void*)el.offset);
+	else
+		glVertexAttribPointer(attr_index, el.count, el.type, el.bNormalized, el.stride, (void*)el.offset);
 }
 
 

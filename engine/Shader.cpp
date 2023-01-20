@@ -107,6 +107,12 @@ uint32_t Shader::GenUniformBuffer(const std::string& block_name, uint32_t size, 
 	return m_UniformBuffers.size() - 1;
 }
 
+int32_t Shader::GetAttributeLocation(const std::string& attr_name)
+{
+	Use();
+	return glGetAttribLocation(m_programID, attr_name.c_str());
+}
+
 void Shader::BindUniformBuffer(uint32_t ub_local_index)
 {
 	uint32_t buf = m_UniformBuffers[ub_local_index];
