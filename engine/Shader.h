@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <atomic>
+#include <vector>
 #include "GL/glew.h"
 
 #include "glm/glm.hpp"
