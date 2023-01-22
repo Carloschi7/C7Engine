@@ -46,7 +46,7 @@ VertexManager::~VertexManager()
 	glDeleteBuffers(1, &m_VAO);
 
 	for (uint32_t i : m_AdditionalBuffers)
-		glDeleteBuffers(1, &m_AdditionalBuffers[i]);
+		glDeleteBuffers(1, &i);
 }
 
 void VertexManager::ReleaseResources()
