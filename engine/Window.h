@@ -25,7 +25,7 @@ public:
 
 	void Update() const;
 	void Destroy();
-	void ClearScreen() const;
+	static void ClearScreen(uint32_t flags);
 	void AttachWndToCurrentContext() const;
 	void DetachWndFromContext() const;
 	bool IsKeyboardEvent(const InputEvent& ie) const;

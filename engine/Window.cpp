@@ -66,9 +66,9 @@ void Window::Destroy()
 	if (m_Monitor) delete m_Monitor;
 }
 
-void Window::ClearScreen() const
+void Window::ClearScreen(uint32_t flags)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(flags);
 }
 
 void Window::AttachWndToCurrentContext() const
