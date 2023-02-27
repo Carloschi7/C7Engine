@@ -2,6 +2,80 @@
 #include <iostream>
 #include <utility>
 
+void InputState::Update(const Window* window)
+{
+	m_OldState = m_CurrentState;
+
+	//Printable keys
+	for (uint16_t i = 32; i <= 162; i++)
+		m_CurrentState.printable_keys[i - 32] = window->IsKeyboardEvent({ i, GLFW_PRESS });
+	
+	//Function keys
+	for (uint16_t i = 256; i <= 348; i++)
+		m_CurrentState.function_keys[i - 256] = window->IsKeyboardEvent({ i, GLFW_PRESS });
+
+	//Mouse keys
+	for (uint16_t i = 0; i <= 7; i++)
+		m_CurrentState.mouse_keys[i] = window->IsMouseEvent({ i, GLFW_PRESS });
+}
+
+bool InputState::IsKeyPressed(uint16_t key) const
+{
+	switch (_GetKeyType(key))
+	{
+	case KeyType::Printable:
+		return m_CurrentState.printable_keys[key - 32] && !m_OldState.printable_keys[key - 32];
+	case KeyType::Function:
+		return m_CurrentState.function_keys[key - 256] && !m_OldState.function_keys[key - 256];
+	case KeyType::Mouse:
+		return m_CurrentState.mouse_keys[key] && !m_OldState.mouse_keys[key];
+	}
+
+	return false;
+}
+
+bool InputState::IsKeyHeld(uint16_t key) const
+{
+	switch (_GetKeyType(key))
+	{
+	case KeyType::Printable:
+		return m_CurrentState.printable_keys[key - 32] && m_OldState.printable_keys[key - 32];
+	case KeyType::Function:
+		return m_CurrentState.function_keys[key - 256] && m_OldState.function_keys[key - 256];
+	case KeyType::Mouse:
+		return m_CurrentState.mouse_keys[key] && m_OldState.mouse_keys[key];
+	}
+
+	return false;
+}
+
+bool InputState::IsKeyReleased(uint16_t key) const
+{
+	switch (_GetKeyType(key))
+	{
+	case KeyType::Printable:
+		return !m_CurrentState.printable_keys[key - 32] && m_OldState.printable_keys[key - 32];
+	case KeyType::Function:
+		return !m_CurrentState.function_keys[key - 256] && m_OldState.function_keys[key - 256];
+	case KeyType::Mouse:
+		return !m_CurrentState.mouse_keys[key] && m_OldState.mouse_keys[key];
+	}
+
+	return false;
+}
+
+KeyType InputState::_GetKeyType(uint16_t key) const
+{
+	if (key < 8)
+		return KeyType::Mouse;
+	if (key >= 32 && key <= 162)
+		return KeyType::Printable;
+	if (key >= 256 && key <= 348)
+		return KeyType::Function;
+
+	return KeyType::None;
+}
+
 double Window::s_MouseWheelY = 0.0;
 
 Window::Window(uint32_t width, uint32_t height, const char* title, bool bFullscreen)
@@ -55,6 +129,11 @@ void Window::Update() const
 	glfwSwapBuffers(m_Window);
 }
 
+void Window::UpdateKeys()
+{
+	m_InputState.Update(this);
+}
+
 void Window::Destroy()
 {
 	if (m_Window)
@@ -91,6 +170,21 @@ bool Window::IsMouseEvent(const InputEvent& ie) const
 	return (glfwGetMouseButton(m_Window, ie.Key()) == ie.State());
 }
 
+bool Window::IsKeyPressed(uint16_t key) const
+{
+	return m_InputState.IsKeyPressed(key);
+}
+
+bool Window::IsKeyHeld(uint16_t key) const
+{
+	return m_InputState.IsKeyHeld(key);
+}
+
+bool Window::IsKeyReleased(uint16_t key) const
+{
+	return m_InputState.IsKeyReleased(key);
+}
+
 bool Window::IsMouseWheelUp() const
 {
 	return s_MouseWheelY > 0.0;
@@ -115,3 +209,7 @@ bool Window::ShouldClose() const
 {
 	return glfwWindowShouldClose(m_Window); 
 }
+
+
+
+
