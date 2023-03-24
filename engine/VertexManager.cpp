@@ -167,7 +167,17 @@ void VertexManager::EditInstance(uint32_t vb_local_index, const void* verts, siz
 		return;
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_AdditionalBuffers[vb_local_index]);
-	glBufferSubData(GL_ARRAY_BUFFER, offset, verts_size, verts);
+	void* my_buf = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+	if (offset == 0)
+	{
+		std::memcpy(my_buf, verts, verts_size);
+	}
+	else
+	{
+		const void* buf = static_cast<const uint8_t*>(verts) + offset;
+		std::memcpy(my_buf, buf, verts_size);
+	}
+	glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
 void VertexManager::ClearBuffers()

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <map>
 #include "GL/glew.h"
 
 struct LayoutElement
@@ -47,6 +48,7 @@ public:
 	uint32_t PushInstancedAttribute(const void* verts, size_t verts_size, uint32_t attr_index, const LayoutElement& el);
 	//Very similar to PushInstanceAttribute but optimized for mat4 dynamic allocations
 	uint32_t PushInstancedMatrixBuffer(const void* verts, size_t verts_size, uint32_t attr_index);
+	//May require to wait until the gpu is done processing the info
 	void EditInstance(uint32_t vb_local_index, const void* verts, size_t verts_size, size_t offset);
 	void ClearBuffers();
 
