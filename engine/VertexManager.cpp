@@ -209,7 +209,7 @@ bool VertexManager::CheckStrideValidity(const Layout& l)
 	return true;
 }
 
-//Must be deallocated manually
+//Returns a copy
 float* VertexManager::GetRawBuffer() const
 {
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
@@ -242,6 +242,33 @@ float* VertexManager::GetRawAttribute(uint32_t begin, uint32_t end) const
 
 	::operator delete(ptr);
 	return res;
+}
+
+void* VertexManager::InstancedAttributePointer(uint32_t buf_index)
+{
+	if (buf_index >= m_AdditionalBuffers.size())
+		return nullptr;
+
+	auto iter = m_BufferPointers.find(buf_index);
+	if (iter != m_BufferPointers.end())
+		return iter->second;
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_AdditionalBuffers[buf_index]);
+	void* buf = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+	m_BufferPointers.insert({ buf_index, buf });
+	return buf;
+}
+
+void VertexManager::UnmapAttributePointer(uint32_t buf_index)
+{
+	//Already unmapped
+	auto iter = m_BufferPointers.find(buf_index);
+	if (m_BufferPointers.find(buf_index) == m_BufferPointers.end())
+		return;
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_AdditionalBuffers[buf_index]);
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	m_BufferPointers.erase(iter);
 }
 
 bool VertexManager::IsIntegerType(GLenum type) const

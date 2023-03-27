@@ -59,6 +59,9 @@ public:
 
 	float* GetRawBuffer() const;
 	float* GetRawAttribute(uint32_t begin, uint32_t end) const;
+	//Returns a mapped pointer of an instanced attribute
+	void* InstancedAttributePointer(uint32_t buf_index);
+	void UnmapAttributePointer(uint32_t buf_index);
 
 public:
 	uint32_t GetVertexArray() const { return m_VAO; }
@@ -82,6 +85,7 @@ private:
 
 	//For extra instanced data
 	std::vector<uint32_t> m_AdditionalBuffers;
+	std::map<uint32_t, void*> m_BufferPointers;
 
 	static uint32_t s_VaoBinding;
 };
