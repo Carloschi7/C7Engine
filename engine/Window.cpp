@@ -210,6 +210,16 @@ bool Window::ShouldClose() const
 	return glfwWindowShouldClose(m_Window); 
 }
 
+void Window::EnableCursor()
+{
+	glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+void Window::DisableCursor()
+{
+	glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
 
 
 

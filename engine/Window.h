@@ -79,6 +79,8 @@ public:
 	void GetCursorCoord(double& x, double& y) const;
 	void SetVsync(bool true_or_false) const;
 	bool ShouldClose() const;
+	void EnableCursor();
+	void DisableCursor();
 
 	inline uint32_t Width() const { return m_Width; }
 	inline uint32_t Height() const { return m_Height; }
