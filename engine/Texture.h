@@ -12,7 +12,7 @@ enum class TextureFilter {Linear = 0, Nearest};
 class Texture
 {
 public:
-	Texture(const char* filepath, bool flipaxis = false, TextureFilter fmt = TextureFilter::Linear);
+	Texture(const char* filepath, bool flipaxis = false, TextureFilter fmt = TextureFilter::Linear, uint8_t binding = 0);
 	Texture(const Texture&) = delete;
 	Texture(Texture&& tex) noexcept;
 	~Texture();

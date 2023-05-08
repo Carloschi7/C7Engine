@@ -19,6 +19,8 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/Texture.cpp
 	engine/VertexManager.h 
 	engine/VertexManager.cpp
+	engine/TextRenderer.h
+	engine/TextRenderer.cpp
 	engine/Window.h 
 	engine/Window.cpp
 	application/Application.h)
@@ -50,6 +52,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/Dependencies/stbi
 	${PROJECT_SOURCE_DIR}/Dependencies/GLFW
 	${PROJECT_SOURCE_DIR}/Dependencies/GLEW)
+
+file(COPY assets/textures DESTINATION assets)
+file(COPY assets/shaders DESTINATION assets)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE C7MACRO_ENGINE_PATH="${CMAKE_CURRENT_LIST_DIR}")
 
 #This is a preprocessor instruction required by glew to build as a static library
 #check the header glew.h for further informations

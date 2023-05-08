@@ -13,6 +13,7 @@ struct LayoutElement
 	size_t offset;
 };
 
+//Example of an attribute structure => { 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0 }
 class Layout
 {
 public:

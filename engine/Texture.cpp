@@ -5,9 +5,10 @@
 
 uint32_t Texture::s_CurrentlyBoundTex = 0;
 
-Texture::Texture(const char* filepath, bool flipaxis, TextureFilter fmt)
+Texture::Texture(const char* filepath, bool flipaxis, TextureFilter fmt, uint8_t binding)
 {
 	glGenTextures(1, &m_TextureID);
+	glActiveTexture(GL_TEXTURE0 + binding);
 	glBindTexture(GL_TEXTURE_2D, m_TextureID);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
