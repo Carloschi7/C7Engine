@@ -27,11 +27,6 @@ TextRenderer::TextRenderer(uint32_t texture_binding) :
 	m_VertexManager = std::make_shared<VertexManager>(verts, sizeof(verts), lyt);
 	m_TextBitmap = std::make_shared<Texture>(texture_path.c_str(), true, TextureFilter::Nearest, 10);
 	m_Shader = std::make_shared<Shader>(shader_path);
-
-	//Uniform static matrices
-	/*m_Shader->UniformMat4f(glm::mat4(1.0f), "proj");
-	m_Shader->UniformMat4f(glm::mat4(1.0f), "view");
-	m_Shader->UniformMat4f(glm::mat4(1.0f), "model");*/
 }
 
 TextRenderer::~TextRenderer()
