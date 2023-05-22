@@ -1,4 +1,5 @@
 #include "VertexManager.h"
+#include <utility>
 #include <cstring>
 
 uint32_t VertexManager::s_VaoBinding = 0;
