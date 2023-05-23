@@ -45,7 +45,7 @@ void TextRenderer::PrintString(const std::string& str, const glm::mat4& model)
 
 	m_Shader->Use();
 	m_VertexManager->BindVertexArray();
-	m_Shader->Uniform1i(10, "bitmap");
+	m_Shader->Uniform1i(m_TextureBinding, "bitmap");
 	m_Shader->UniformMat4f(model, "model");
 	m_Shader->Uniform1f(m_Stride * static_cast<float>(str[0] - '0'), "xoffset");
 
