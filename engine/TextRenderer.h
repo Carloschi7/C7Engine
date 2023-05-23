@@ -21,6 +21,6 @@ private:
 	std::shared_ptr<Texture> m_TextBitmap;
 
 	//Draw data
-	float m_Stride, m_CharWidth, m_Start;
+	float m_Stride, m_CharWidth, m_Start, m_SpacingOfY;
 	glm::vec2 m_NumStart, m_NumEnd;
 };

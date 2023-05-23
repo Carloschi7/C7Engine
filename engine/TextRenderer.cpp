@@ -7,8 +7,9 @@ TextRenderer::TextRenderer(uint32_t texture_binding) :
 	m_Stride = 0.0555f;
 	m_CharWidth = 0.05f;
 	m_Start = 0.055f;
-	m_NumStart = { m_Start, 0.75f };
-	m_NumEnd = { m_Start + m_CharWidth, 0.65f};
+	m_SpacingOfY = -0.127f;
+	m_NumStart = { m_Start, 0.88f }; // .13f average offset
+	m_NumEnd = { m_Start + m_CharWidth, 0.78f};
 
 	//Load resources
 	float verts[]{
@@ -39,15 +40,20 @@ void TextRenderer::PrintString(const std::string& str, const glm::mat4& model)
 	if (str.empty())
 		return;
 
-	for (char c : str)
-		if (c < '0' || c > '9')
-			return;
+	//White space is the first char
+	uint32_t base_char_index = static_cast<uint32_t>(' ');
 
 	m_Shader->Use();
 	m_VertexManager->BindVertexArray();
 	m_Shader->Uniform1i(m_TextureBinding, "bitmap");
 	m_Shader->UniformMat4f(model, "model");
-	m_Shader->Uniform1f(m_Stride * static_cast<float>(str[0] - '0'), "xoffset");
 
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	for(uint32_t i = 0; i < str.size(); i++){
+		uint32_t cur_char_index = static_cast<uint32_t>(str[i]) - base_char_index;
+		float xoffset = m_Stride * static_cast<float>(cur_char_index % 16);
+		float yoffset = m_SpacingOfY * static_cast<float>(cur_char_index / 16);
+		m_Shader->Uniform1f(xoffset, "xoffset");
+		m_Shader->Uniform1f(yoffset, "yoffset");
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	}	
 }

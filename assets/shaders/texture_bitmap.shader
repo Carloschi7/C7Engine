@@ -18,9 +18,10 @@ void main() {
 in vec2 TexCoord;
 uniform sampler2D bitmap;
 uniform float xoffset;
+uniform float yoffset;
 out vec4 FragColor;
 
 void main() {
-	vec2 coords = vec2(TexCoord.x + xoffset, TexCoord.y);
+	vec2 coords = vec2(TexCoord.x + xoffset, TexCoord.y + yoffset);
 	FragColor = texture(bitmap, coords);
 }
