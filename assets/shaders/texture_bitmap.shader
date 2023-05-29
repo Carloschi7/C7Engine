@@ -4,12 +4,13 @@
 layout(location = 0) in vec2 pos;
 layout(location = 1) in vec2 tex_coord;
 
+uniform mat4 proj;
 uniform mat4 model;
 out vec2 TexCoord;
 
 void main() {
 	TexCoord = tex_coord;
-	gl_Position = model * vec4(pos, 0.0f, 1.0f);
+	gl_Position = proj * model * vec4(pos, 0.0f, 1.0f);
 }
 
 #shader fragment

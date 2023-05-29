@@ -13,7 +13,7 @@ public:
 	TextRenderer(uint32_t texture_binding);
 	~TextRenderer();
 
-	void PrintString(const std::string& str, const glm::mat4& model);
+	void DrawString(const std::string& str, glm::vec2 pos);
 private:
 	uint32_t m_TextureBinding;
 	std::shared_ptr<VertexManager> m_VertexManager;
