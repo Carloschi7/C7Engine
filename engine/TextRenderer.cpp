@@ -1,7 +1,7 @@
 #include "TextRenderer.h"
 #include <iostream>
 
-TextRenderer::TextRenderer(uint32_t texture_binding) :
+TextRenderer::TextRenderer(const glm::vec2& canvas_resolution, uint32_t texture_binding) :
 	m_TextureBinding(texture_binding)
 {
 	m_Stride = 0.0555f;
@@ -30,7 +30,7 @@ TextRenderer::TextRenderer(uint32_t texture_binding) :
 	m_Shader = std::make_shared<Shader>(shader_path);
 
 	//Uniforming proj matrix
-	glm::mat4 proj = glm::ortho(0.0f, 1920.0f, 1080.0f, 0.0f);
+	glm::mat4 proj = glm::ortho(0.0f, canvas_resolution.x, canvas_resolution.y, 0.0f);
 	m_Shader->UniformMat4f(proj, "proj");
 }
 
