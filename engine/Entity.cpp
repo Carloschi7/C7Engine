@@ -80,7 +80,7 @@ void Entity::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* p
 	//this GetAttribCount used in this way returns also the first attribute index unused
 	//And we do not need to increment it because we destroy the buffer every time this function gets called
 	glEnableVertexAttribArray(m_VertexManager->GetAttribCount());
-	glVertexAttribPointer(m_VertexManager->GetAttribCount(), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glVertexAttribPointer(m_VertexManager->GetAttribCount(), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), 0);
 
 	glVertexAttribDivisor(m_VertexManager->GetAttribCount(), 1);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -97,7 +97,7 @@ void Entity::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* p
 	glDeleteBuffers(1, &instancebuffer);
 }
 
-void Entity::Rotate(float fRadians, const glm::vec3& dir)
+void Entity::Rotate(f32 fRadians, const glm::vec3& dir)
 {
 	m_ModelMatrix = glm::rotate(m_ModelMatrix, fRadians, dir);
 }
@@ -113,7 +113,7 @@ void Entity::Scale(const glm::vec3& dir)
 	m_ModelMatrix = glm::scale(m_ModelMatrix, dir);
 }
 
-void Entity::Scale(float fScaleFactor)
+void Entity::Scale(f32 fScaleFactor)
 {
 	Scale(glm::vec3(fScaleFactor));
 }
@@ -124,7 +124,7 @@ void Entity::ResetPosition()
 	m_Position = glm::vec3(0.0f);
 }
 
-bool Entity::IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, float fRadius, float ratio_vertex_center)
+bool Entity::IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, f32 fRadius, f32 ratio_vertex_center)
 {
 	if (!m_Vertices) m_Vertices = (glm::vec3*)m_VertexManager->GetRawAttribute(0, 3);
 	std::vector<glm::vec3> vec3cache;
@@ -154,7 +154,7 @@ bool Entity::IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, float f
 		glm::vec3 translated = vertexpos - midray;
 
 		//Computing the view direction ray
-		float dist = glm::length(pos - translated);
+		f32 dist = glm::length(pos - translated);
 		glm::vec3 res = pos + dir * dist;
 
 		if (res.x >= translated.x - fRadius && res.y >= translated.y - fRadius && res.z >= translated.z - fRadius &&

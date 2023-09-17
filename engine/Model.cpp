@@ -86,7 +86,7 @@ void Model::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* po
 		//We enable the 3rd index because we have already used the 0,1,2 for respectively positions, normals
 		//and texture coordinates
 		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), 0);
 		
 		//Telling opengl that we want to load only one attribute on 3rd location (the offset) per instance
 		glVertexAttribDivisor(3, 1);
@@ -125,7 +125,7 @@ void Model::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* po
 }
 
 
-void Model::Rotate(float fRadians, const glm::vec3& dir)
+void Model::Rotate(f32 fRadians, const glm::vec3& dir)
 {
 	m_ModelMatrix = glm::rotate(m_ModelMatrix, fRadians, dir);
 }
@@ -141,7 +141,7 @@ void Model::Scale(const glm::vec3& dir)
 	m_ModelMatrix = glm::scale(m_ModelMatrix, dir);
 }
 
-void Model::Scale(float fScaleFactor)
+void Model::Scale(f32 fScaleFactor)
 {
 	Scale(glm::vec3(fScaleFactor));
 }
@@ -152,9 +152,9 @@ void Model::LoadExternalTexture(const std::string& texturepath, const std::strin
 	m_ExternalTextures.push_back(std::make_pair(std::move(tx), uniform));
 }
 
-float* Model::GetRawBuffer() const
+f32* Model::GetRawBuffer() const
 {
-	float* res, *cpy;
+	f32* res, *cpy;
 	long int ptr_dim = 0;
 	long int offset = 0;
 
@@ -163,7 +163,7 @@ float* Model::GetRawBuffer() const
 		ptr_dim += m.vm.GetValuesCount();
 	}
 
-	res = (float*)::operator new(ptr_dim * sizeof(float));
+	res = (f32*)::operator new(ptr_dim * sizeof(f32));
 	if (!res) 
 	{
 		std::cout << "Not enough memory for model ptr allocation\n";
@@ -179,16 +179,16 @@ float* Model::GetRawBuffer() const
 		}
 
 		cpy = m_Meshes[i].vm.GetRawBuffer();
-		memcpy(res + offset, cpy, m_Meshes[i].vm.GetValuesCount() * sizeof(float));
+		memcpy(res + offset, cpy, m_Meshes[i].vm.GetValuesCount() * sizeof(f32));
 		::operator delete(cpy);
 	}
 
 	return res;
 }
 
-float* Model::GetRawAttribute(u32 begin, u32 end) const
+f32* Model::GetRawAttribute(u32 begin, u32 end) const
 {
-	float* res, * cpy;
+	f32* res, * cpy;
 	long int ptr_dim = 0;
 	long int offset = 0;
 	u32 values_per_attrib;
@@ -202,7 +202,7 @@ float* Model::GetRawAttribute(u32 begin, u32 end) const
 		ptr_dim += m.vm.GetValuesCount() / m.vm.GetStrideLenght() * values_per_attrib;
 	}
 
-	res = (float*)::operator new(ptr_dim * sizeof(float));
+	res = (f32*)::operator new(ptr_dim * sizeof(f32));
 
 	if (!res)
 	{
@@ -219,7 +219,7 @@ float* Model::GetRawAttribute(u32 begin, u32 end) const
 		}
 
 		cpy = m_Meshes[i].vm.GetRawAttribute(begin, end);
-		memcpy(res + offset, cpy, m_Meshes[i].vm.GetValuesCount() / m_Meshes[i].vm.GetStrideLenght() * values_per_attrib * sizeof(float));
+		memcpy(res + offset, cpy, m_Meshes[i].vm.GetValuesCount() / m_Meshes[i].vm.GetStrideLenght() * values_per_attrib * sizeof(f32));
 		::operator delete(cpy);
 	}
 
@@ -238,7 +238,7 @@ u32 Model::GetValuesCount() const
 	return count;
 }
 
-bool Model::IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, float fRadius, float ratio_vertex_center, int to_jump)
+bool Model::IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, f32 fRadius, f32 ratio_vertex_center, int to_jump)
 {
 	if (!m_Vertices)
 	{
@@ -256,7 +256,7 @@ bool Model::IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, float fR
 		//Converting midray into a world space point
 		glm::vec3 translated = vertexpos - midray;
 
-		float dist = glm::length(pos - translated);
+		f32 dist = glm::length(pos - translated);
 		glm::vec3 res = pos + dir * dist;
 
 		if (res.x >= translated.x - fRadius && res.y >= translated.y - fRadius && res.z >= translated.z - fRadius &&
@@ -345,7 +345,7 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node)
 
 void Model::SetupMesh(const aiScene* scene, aiMesh* mesh)
 {
-	std::vector<float> vb;
+	std::vector<f32> vb;
 	std::vector<u32> ib;
 
 	//Loading the data into our vectors
@@ -392,11 +392,11 @@ void Model::SetupMesh(const aiScene* scene, aiMesh* mesh)
 
 	//Setting the layout and sending the data to OpenGL using the already defined VertexManager class
 	Layout layout;
-	layout.PushAttribute({ 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0 });
-	layout.PushAttribute({ 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 3 * sizeof(float) });
-	layout.PushAttribute({ 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 6 * sizeof(float) });
+	layout.PushAttribute({ 3, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), 0 });
+	layout.PushAttribute({ 3, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), 3 * sizeof(f32) });
+	layout.PushAttribute({ 2, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), 6 * sizeof(f32) });
 
-	VertexManager vm(&vb[0], vb.size() * sizeof(float), &ib[0], ib.size() * sizeof(u32), layout);
+	VertexManager vm(&vb[0], vb.size() * sizeof(f32), &ib[0], ib.size() * sizeof(u32), layout);
 	m_Meshes.push_back({ std::move(vm), {} });
 
 	//Materials (only loading diffuse textures for now)

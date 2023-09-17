@@ -12,7 +12,7 @@ TextRenderer::TextRenderer(const glm::vec2& canvas_resolution, u32 texture_bindi
 	m_NumEnd = { m_Start + m_CharWidth, 0.88f};
 
 	//Load resources
-	float verts[]{
+	f32 verts[]{
 		-0.5f, -0.5f, m_NumStart.x, m_NumEnd.y,
 		0.5f, -0.5f, m_NumEnd.x, m_NumEnd.y,
 		0.5f, 0.5f, m_NumEnd.x, m_NumStart.y,
@@ -23,8 +23,8 @@ TextRenderer::TextRenderer(const glm::vec2& canvas_resolution, u32 texture_bindi
 	std::string shader_path = std::string(C7MACRO_ENGINE_PATH) + "/assets/shaders/texture_bitmap.shader";
 
 	Layout lyt;
-	lyt.PushAttribute({ 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0 });
-	lyt.PushAttribute({ 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, sizeof(float) * 2});
+	lyt.PushAttribute({ 2, GL_FLOAT, GL_FALSE, sizeof(f32) * 4, 0 });
+	lyt.PushAttribute({ 2, GL_FLOAT, GL_FALSE, sizeof(f32) * 4, sizeof(f32) * 2});
 	m_VertexManager = std::make_shared<VertexManager>(verts, sizeof(verts), lyt);
 	m_TextBitmap = std::make_shared<Texture>(texture_path.c_str(), true, TextureFilter::Nearest, 10);
 	m_Shader = std::make_shared<Shader>(shader_path);
@@ -62,8 +62,8 @@ void TextRenderer::DrawString(const std::string& str, glm::vec2 pos)
 		m_Shader->UniformMat4f(glm::scale(model, glm::vec3(35.0f)), "model");
 
 		u32 cur_char_index = static_cast<u32>(str[i]) - base_char_index;
-		float xoffset = m_Stride * static_cast<float>(cur_char_index % 16);
-		float yoffset = m_SpacingOfY * static_cast<float>(cur_char_index / 16);
+		f32 xoffset = m_Stride * static_cast<f32>(cur_char_index % 16);
+		f32 yoffset = m_SpacingOfY * static_cast<f32>(cur_char_index / 16);
 		m_Shader->Uniform1f(xoffset, "xoffset");
 		m_Shader->Uniform1f(yoffset, "yoffset");
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

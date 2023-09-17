@@ -14,9 +14,9 @@ public:
 	void OnUserRun();
 private:
 	//3D applications utilities
-	static void KeyboardForCameraFun(const Window& window, Camera* camera, double time)
+	static void KeyboardForCameraFun(const Window& window, Camera* camera, f64 time)
 	{
-		float fScalar = 0.6f;
+		f32 fScalar = 0.6f;
 
 		if (window.IsKeyboardEvent({GLFW_KEY_W, GLFW_PRESS}))
 			camera->MoveTowardsFront(fScalar * time);
@@ -32,9 +32,9 @@ private:
 			camera->StrafeY(-fScalar * time);
 	}
 
-	static void MouseForCameraFun(const Window& window, Camera* camera, double x, double y, double dpi, double time)
+	static void MouseForCameraFun(const Window& window, Camera* camera, f64 x, f64 y, f64 dpi, f64 time)
 	{
-		double localx, localy;
+		f64 localx, localy;
 		window.GetCursorCoord(localx, localy);
 
 		camera->RotateX((localx - x) * dpi * time);

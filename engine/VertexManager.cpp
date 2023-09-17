@@ -13,13 +13,13 @@ VertexManager::VertexManager()
 	glGenVertexArrays(1, &m_VAO);
 }
 
-VertexManager::VertexManager(const float* verts, size_t verts_size, const Layout& l)
+VertexManager::VertexManager(const f32* verts, size_t verts_size, const Layout& l)
 	:VertexManager()
 {
 	SendDataToOpenGLArray(verts, verts_size, l);
 }
 
-VertexManager::VertexManager(const float* verts, size_t verts_size, const u32* indices, size_t indices_size,
+VertexManager::VertexManager(const f32* verts, size_t verts_size, const u32* indices, size_t indices_size,
 	const Layout& l)
 	: VertexManager()
 {
@@ -55,7 +55,7 @@ void VertexManager::ReleaseResources()
 	std::memset(this, 0, sizeof(VertexManager));
 }
 
-void VertexManager::SendDataToOpenGLArray(const float* verts, size_t verts_size, const Layout& l)
+void VertexManager::SendDataToOpenGLArray(const f32* verts, size_t verts_size, const Layout& l)
 {
 	BindVertexArray();
 
@@ -80,11 +80,11 @@ void VertexManager::SendDataToOpenGLArray(const float* verts, size_t verts_size,
 	m_AttribCount = l.GetAttributes().size();
 	m_HasIndices = false;
 	m_SuccesfullyLoaded = true;
-	m_ValuesCount = verts_size / sizeof(float);
-	m_StrideLength = l.GetAttributes()[0].stride / sizeof(float);
+	m_ValuesCount = verts_size / sizeof(f32);
+	m_StrideLength = l.GetAttributes()[0].stride / sizeof(f32);
 }
 
-void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_size, const u32* indices, size_t indices_size,
+void VertexManager::SendDataToOpenGLElements(const f32* verts, size_t verts_size, const u32* indices, size_t indices_size,
 	const Layout& l)
 {
 	BindVertexArray();
@@ -112,8 +112,8 @@ void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_si
 	m_AttribCount = l.GetAttributes().size();
 	m_HasIndices = true;
 	m_SuccesfullyLoaded = true;
-	m_ValuesCount = verts_size / sizeof(float);
-	m_StrideLength = l.GetAttributes()[0].stride / sizeof(float);
+	m_ValuesCount = verts_size / sizeof(f32);
+	m_StrideLength = l.GetAttributes()[0].stride / sizeof(f32);
 }
 
 
@@ -154,7 +154,7 @@ u32 VertexManager::PushInstancedMatrixBuffer(const void* verts, size_t verts_siz
 	for (u32 i = 0; i < 4; i++)
 	{
 		glEnableVertexAttribArray(attr_index + i);
-		glVertexAttribPointer(attr_index + i, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 16, (void*)(sizeof(float) * 4 * i));
+		glVertexAttribPointer(attr_index + i, 4, GL_FLOAT, GL_FALSE, sizeof(f32) * 16, (void*)(sizeof(f32) * 4 * i));
 		//One matrix per drawn instance
 		glVertexAttribDivisor(attr_index + i, 1);
 	}
@@ -211,26 +211,26 @@ bool VertexManager::CheckStrideValidity(const Layout& l)
 }
 
 //Returns a copy
-float* VertexManager::GetRawBuffer() const
+f32* VertexManager::GetRawBuffer() const
 {
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	float* data = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
-	float* ret = (float*)::operator new(m_ValuesCount * sizeof(float));
+	f32* data = (f32*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+	f32* ret = (f32*)::operator new(m_ValuesCount * sizeof(f32));
 
-	memcpy(ret, data, m_ValuesCount * sizeof(float));
+	memcpy(ret, data, m_ValuesCount * sizeof(f32));
 
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	return ret;
 }
 
 //Must be deallocated manually
-float* VertexManager::GetRawAttribute(u32 begin, u32 end) const
+f32* VertexManager::GetRawAttribute(u32 begin, u32 end) const
 {
 	if (begin >= m_StrideLength || end >= m_StrideLength || end <= begin) return nullptr;
 
-	float* ptr = GetRawBuffer();
+	f32* ptr = GetRawBuffer();
 	int elem_count = end - begin;
-	float* res = (float*)::operator new((m_ValuesCount / m_StrideLength) * elem_count * sizeof(float));
+	f32* res = (f32*)::operator new((m_ValuesCount / m_StrideLength) * elem_count * sizeof(f32));
 
 	for (int i = begin, j = 0; i < m_ValuesCount - (m_StrideLength - end); i += m_StrideLength)
 	{

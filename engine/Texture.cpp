@@ -75,7 +75,7 @@ void Texture::ForceBind(unsigned int slot)
 
 //CubeMap definitions
 
-CubeMap::CubeMap(const std::vector<std::string>& files, float fScalingFactor)
+CubeMap::CubeMap(const std::vector<std::string>& files, f32 fScalingFactor)
 	:m_Width(0), m_Height(0), m_TextureID(0), m_BPP(0), m_Data(nullptr)
 {
 	glGenTextures(1, &m_TextureID);
@@ -109,7 +109,7 @@ CubeMap::CubeMap(const std::vector<std::string>& files, float fScalingFactor)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	//Cubemap buffer data
-	float skyboxVertices[] = {
+	f32 skyboxVertices[] = {
 		// positions          
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
@@ -160,7 +160,7 @@ CubeMap::CubeMap(const std::vector<std::string>& files, float fScalingFactor)
 	}
 
 	Layout layout;
-	layout.PushAttribute({ 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0 });
+	layout.PushAttribute({ 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), 0 });
 	m_VertexManager.SendDataToOpenGLArray(skyboxVertices, sizeof(skyboxVertices), layout);
 }
 

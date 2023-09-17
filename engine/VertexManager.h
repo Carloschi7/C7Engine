@@ -14,7 +14,7 @@ struct LayoutElement
 	size_t offset;
 };
 
-//Example of an attribute structure => { 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0 }
+//Example of an attribute structure => { 3, GL_FLOAT, GL_FALSE, sizeof(f32) * 3, 0 }
 class Layout
 {
 public:
@@ -32,16 +32,16 @@ class VertexManager
 {
 public:
 	VertexManager();
-	VertexManager(const float* verts, size_t verts_size, const Layout& l);
-	VertexManager(const float* verts, size_t verts_size, const u32* indices, size_t indices_size,
+	VertexManager(const f32* verts, size_t verts_size, const Layout& l);
+	VertexManager(const f32* verts, size_t verts_size, const u32* indices, size_t indices_size,
 		const Layout& l);
 	VertexManager(VertexManager&& vm) noexcept;
 	~VertexManager();
 	void ReleaseResources();
 
 	//Recommended for pushing initial static data
-	void SendDataToOpenGLArray(const float* verts, size_t verts_size, const Layout& l);
-	void SendDataToOpenGLElements(const float* verts, size_t verts_size, const u32* indices, size_t indices_size,
+	void SendDataToOpenGLArray(const f32* verts, size_t verts_size, const Layout& l);
+	void SendDataToOpenGLElements(const f32* verts, size_t verts_size, const u32* indices, size_t indices_size,
 		const Layout& l);
 	//Pushes a new attribute that will go alongside the static data. Can tweak the divisor to make one
 	//attribute the same for the current drawcall(divisor_index = number of drawcalls that will us the attribute,
@@ -59,8 +59,8 @@ public:
 	bool HasIndices() const { return m_HasIndices; }
 	bool CheckStrideValidity(const Layout& l);
 
-	float* GetRawBuffer() const;
-	float* GetRawAttribute(u32 begin, u32 end) const;
+	f32* GetRawBuffer() const;
+	f32* GetRawAttribute(u32 begin, u32 end) const;
 	//Returns a mapped pointer of an instanced attribute
 	void* InstancedAttributePointer(u32 buf_index);
 	void UnmapAttributePointer(u32 buf_index);

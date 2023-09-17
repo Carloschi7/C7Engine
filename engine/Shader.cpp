@@ -75,7 +75,7 @@ void Shader::Uniform1i(int i, const std::string& UniformName)
 	glUniform1i(GetUniformLocation(UniformName), i);
 }
 
-void Shader::Uniform1f(float i, const std::string& UniformName)
+void Shader::Uniform1f(f32 i, const std::string& UniformName)
 {
 	Use();
 	glUniform1f(GetUniformLocation(UniformName), i);

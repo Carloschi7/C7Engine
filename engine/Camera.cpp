@@ -29,45 +29,45 @@ void Camera::SetVectors(const glm::vec3& pos, const glm::vec3& dir)
 	m_Front = dir;
 }
 
-void Camera::StrafeX(float fSpeed)
+void Camera::StrafeX(f32 fSpeed)
 {
 	position += glm::normalize(glm::cross(m_Front, glm::vec3(0.0f, 1.0f, 0.0f))) * fSpeed;
 }
 
-void Camera::StrafeY(float fSpeed)
+void Camera::StrafeY(f32 fSpeed)
 {
 	position += glm::vec3(0.0f, 1.0f, 0.0f) * fSpeed;
 }
 
-void Camera::MoveTowardsFront(float fSpeed)
+void Camera::MoveTowardsFront(f32 fSpeed)
 {
 	position += m_Front * fSpeed;
 }
 
-void Camera::RotateX(float fAngle)
+void Camera::RotateX(f32 fAngle)
 {
 	fAngleX += fAngle;
 	UpdateFrontCamera();
 }
 
-void Camera::RotateY(float fAngle)
+void Camera::RotateY(f32 fAngle)
 {
 	fAngleY += fAngle;
 	ClampAngleY();
 	UpdateFrontCamera();
 }
 
-void Camera::MoveX(float fSpeed)
+void Camera::MoveX(f32 fSpeed)
 {
 	position += glm::vec3(1.0f, 0.0f, 0.0f) * fSpeed * fZoom;
 }
 
-void Camera::MoveY(float fSpeed)
+void Camera::MoveY(f32 fSpeed)
 {
 	position += glm::vec3(0.0f, 1.0f, 0.0f) * fSpeed * fZoom;
 }
 
-void Camera::ProcessInput(const Window& window, double deltaTime)
+void Camera::ProcessInput(const Window& window, f64 deltaTime)
 {
 	if (keyfun)
 		keyfun(window, this, deltaTime);
@@ -84,7 +84,7 @@ void Camera::ProcessInput(const Window& window, double deltaTime)
 	}
 }
 
-void Camera::ProcessInput(const Window& window, double keyDeltaTime, double mouseDeltaTime)
+void Camera::ProcessInput(const Window& window, f64 keyDeltaTime, f64 mouseDeltaTime)
 {
 	if (keyfun) 
 		keyfun(window, this, keyDeltaTime);
@@ -137,7 +137,7 @@ const glm::vec3& Camera::GetFront() const
 	return m_Front;
 }
 
-void Camera::SetPerspectiveValues(float fAngle, float fAspect, float fNear, float fFar)
+void Camera::SetPerspectiveValues(f32 fAngle, f32 fAspect, f32 fNear, f32 fFar)
 {
 	assert(m_CameraType == CameraType::UNDEFINED);
 	m_CameraType = CameraType::PERSPECTIVE;
@@ -150,7 +150,7 @@ void Camera::SetPerspectiveValues(float fAngle, float fAspect, float fNear, floa
 	m_ProjMat = glm::perspective(fAngle, fAspect, fNear, fFar);
 }
 
-void Camera::SetOrthographicValues(float fLeft, float fRight, float fBottom, float fTop)
+void Camera::SetOrthographicValues(f32 fLeft, f32 fRight, f32 fBottom, f32 fTop)
 {
 	assert(m_CameraType == CameraType::UNDEFINED);
 	m_CameraType = CameraType::ORTHOGRAPHIC;
@@ -165,7 +165,7 @@ void Camera::SetOrthographicValues(float fLeft, float fRight, float fBottom, flo
 
 
 
-void Camera::Zoom(float fMultiplyRatio)
+void Camera::Zoom(f32 fMultiplyRatio)
 {
 	if (m_CameraType == CameraType::ORTHOGRAPHIC)
 	{
@@ -180,7 +180,7 @@ void Camera::Zoom(float fMultiplyRatio)
 	{
 		m_ProjParams.fAngle *= fMultiplyRatio;
 		fZoom *= fMultiplyRatio;
-		if (m_ProjParams.fAngle > glm::pi<float>()) m_ProjParams.fAngle = glm::pi<float>();
+		if (m_ProjParams.fAngle > glm::pi<f32>()) m_ProjParams.fAngle = glm::pi<f32>();
 		if (m_ProjParams.fAngle < 0.0f) m_ProjParams.fAngle = 0.0f;
 	}
 }

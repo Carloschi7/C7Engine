@@ -77,7 +77,7 @@ public:
 
 	bool IsMouseWheelUp() const;
 	bool IsMouseWheelDown() const;
-	void GetCursorCoord(double& x, double& y) const;
+	void GetCursorCoord(f64& x, f64& y) const;
 	void SetVsync(bool true_or_false) const;
 	bool ShouldClose() const;
 	void EnableCursor();
@@ -87,7 +87,7 @@ public:
 	inline u32 Height() const { return m_Height; }
 
 private: //Callbacks
-	static void ScrollCallback(GLFWwindow* window, double offsetx, double offsety)
+	static void ScrollCallback(GLFWwindow* window, f64 offsetx, f64 offsety)
 	{
 		//Just retrieving the offsety(mouse wheel scroll) parameter
 		s_MouseWheelY = offsety;
@@ -103,5 +103,5 @@ private:
 	bool m_Fullscreen;
 
 	//Callback variables
-	static double s_MouseWheelY;
+	static f64 s_MouseWheelY;
 };

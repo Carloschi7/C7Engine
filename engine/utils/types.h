@@ -12,8 +12,8 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
-static_assert(sizeof(float) == 4, "float is not 32-bit on this system");
-static_assert(sizeof(double) == 8, "double is not 64-bit on this system");
+static_assert(sizeof(float) == 4, "f32 is not 32-bit on this system");
+static_assert(sizeof(double) == 8, "f64 is not 64-bit on this system");
 
 typedef float f32;
 typedef double f64;

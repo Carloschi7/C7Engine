@@ -76,7 +76,7 @@ KeyType InputState::_GetKeyType(u16 key) const
 	return KeyType::None;
 }
 
-double Window::s_MouseWheelY = 0.0;
+f64 Window::s_MouseWheelY = 0.0;
 
 Window::Window(u32 width, u32 height, const char* title, bool bFullscreen)
 	:m_Width(width), m_Height(height), m_Fullscreen(bFullscreen), m_Monitor(nullptr)
@@ -195,7 +195,7 @@ bool Window::IsMouseWheelDown() const
 	return s_MouseWheelY < 0.0;
 }
 
-void Window::GetCursorCoord(double& x, double& y) const
+void Window::GetCursorCoord(f64& x, f64& y) const
 {
 	glfwGetCursorPos(m_Window, &x, &y);
 }

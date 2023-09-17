@@ -39,23 +39,23 @@ public:
 	*/
 	void DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* positions);
 
-	void Rotate(float fRadians, const glm::vec3& dir);
+	void Rotate(f32 fRadians, const glm::vec3& dir);
 	void Translate(const glm::vec3& dir);
 	void Scale(const glm::vec3& dir);
-	void Scale(float fScaleFactor);
+	void Scale(f32 fScaleFactor);
 
 	void LoadExternalTexture(const std::string& texturepath, const std::string& uniform);
 
 	const std::vector<Mesh>& GetMeshesInVM() const { return m_Meshes; }
 
 	//TODO: to be deleted by the user
-	float* GetRawBuffer() const;
-	float* GetRawAttribute(u32 begin, u32 end) const;
+	f32* GetRawBuffer() const;
+	f32* GetRawAttribute(u32 begin, u32 end) const;
 	u32 GetValuesCount() const;
 
 	//The variable to_jump is an optimization which states how many vertices have to be discarded between two evaluations,
 	//very useful for models with a large amount of vertices
-	bool IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, float fRadius, float ratio_vertex_center, int to_jump);
+	bool IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, f32 fRadius, f32 ratio_vertex_center, int to_jump);
 private:
 	//Utility function for instanced rendering
 	void LoadModelFromFile(const std::string& FilePath);

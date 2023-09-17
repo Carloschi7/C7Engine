@@ -9,7 +9,7 @@ class Camera;
 
 //Old style
 //typedef void (*KeyFun)(const Window&, Camera*);
-//typedef void (*MouseFun)(const Window&, Camera*, double, double, double, double);
+//typedef void (*MouseFun)(const Window&, Camera*, f64, f64, f64, f64);
 
 enum class CameraType
 {
@@ -19,8 +19,8 @@ enum class CameraType
 class Camera
 {
 public:
-	using KeyFun = std::function<void(const Window&, Camera*, double)>;
-	using MouseFun = std::function<void(const Window&, Camera*, double, double, double, double)>;
+	using KeyFun = std::function<void(const Window&, Camera*, f64)>;
+	using MouseFun = std::function<void(const Window&, Camera*, f64, f64, f64, f64)>;
 public:
 	Camera();
 	~Camera();
@@ -29,20 +29,20 @@ public:
 	/*FUNCTIONS FOR 3D PERSPECTIVE ENVIRONMENT*/
 
 	void SetVectors(const glm::vec3& pos, const glm::vec3& dir);
-	void StrafeX(float fSpeed);
-	void StrafeY(float fSpeed);
-	void MoveTowardsFront(float fSpeed);
-	void RotateX(float fAngle);
-	void RotateY(float fAngle);
-	void SetMouseScrollSpeed(float fDpi) { m_Dpi = fDpi; }
+	void StrafeX(f32 fSpeed);
+	void StrafeY(f32 fSpeed);
+	void MoveTowardsFront(f32 fSpeed);
+	void RotateX(f32 fAngle);
+	void RotateY(f32 fAngle);
+	void SetMouseScrollSpeed(f32 fDpi) { m_Dpi = fDpi; }
 
 	/*FUNCTIONS FOR 2D ORTHOGRAPHIC ENVIRONMENT*/
 
-	void MoveX(float fSpeed);
-	void MoveY(float fSpeed);
+	void MoveX(f32 fSpeed);
+	void MoveY(f32 fSpeed);
 
-	void ProcessInput(const Window& window, double deltaTime);
-	void ProcessInput(const Window& window, double keyDeltaTime, double mouseDeltaTime);
+	void ProcessInput(const Window& window, f64 deltaTime);
+	void ProcessInput(const Window& window, f64 keyDeltaTime, f64 mouseDeltaTime);
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
 	//Semi-deprecated
@@ -52,10 +52,10 @@ public:
 	const glm::mat4& GetProjMatrix() const;
 
 	//Projection matrix setup
-	void SetPerspectiveValues(float fAngle, float fAspect, float fNear, float fFar);
-	void SetOrthographicValues(float fLeft, float fRight, float fBottom, float fTop);
+	void SetPerspectiveValues(f32 fAngle, f32 fAspect, f32 fNear, f32 fFar);
+	void SetOrthographicValues(f32 fLeft, f32 fRight, f32 fBottom, f32 fTop);
 
-	void Zoom(float fMultiplyRatio);
+	void Zoom(f32 fMultiplyRatio);
 
 	//Global tools
 	inline void ResetPosition() { position = { 0.0f, 0.0f, 0.0f }; }
@@ -73,8 +73,8 @@ public:
 
 private:
 	//Variables for 3D camera, except position, which is used for both 3D and 2D
-	float fAngleX, fAngleY, fZoom;
-	double m_MouseX, m_MouseY, m_Dpi;
+	f32 fAngleX, fAngleY, fZoom;
+	f64 m_MouseX, m_MouseY, m_Dpi;
 	glm::vec3 m_Front;
 	glm::mat4 m_ProjMat;
 
@@ -86,11 +86,11 @@ private:
 	{
 		struct
 		{
-			float fAngle,fAspectRatio,fNear,fFar;
+			f32 fAngle,fAspectRatio,fNear,fFar;
 		};
 		struct
 		{
-			float fLeft, fRight, fBottom, fTop;
+			f32 fLeft, fRight, fBottom, fTop;
 		};
 	} m_ProjParams;
 	CameraType m_CameraType;

@@ -27,7 +27,7 @@ public:
 	void UniformVec3f(const glm::vec3& v, const std::string& UniformName);
 	void UniformVec4f(const glm::vec4& v, const std::string& UniformName);
 	void Uniform1i(int i, const std::string& UniformName);
-	void Uniform1f(float i, const std::string& UniformName);
+	void Uniform1f(f32 i, const std::string& UniformName);
 	bool IsUniformDefined(const std::string& UniformName) const;
 	void ClearUniformCache();
 

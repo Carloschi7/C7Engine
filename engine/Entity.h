@@ -34,13 +34,13 @@ public:
 	void DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* positions);
 	
 	void SetVertexManager(const VertexManager& vm);
-	void Rotate(float fRadians, const glm::vec3& dir);
+	void Rotate(f32 fRadians, const glm::vec3& dir);
 	void Translate(const glm::vec3& dir);
 	void Scale(const glm::vec3& dir);
-	void Scale(float fScaleFactor);
+	void Scale(f32 fScaleFactor);
 	void ResetPosition();
 
-	bool IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, float fRadius, float ratio_vertex_center);
+	bool IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, f32 fRadius, f32 ratio_vertex_center);
 
 	const glm::mat4& ModelMatrix() const;
 	const glm::vec3& GetPosition() const { return m_Position; }
