@@ -45,6 +45,7 @@ public:
 	void ProcessInput(const Window& window, double keyDeltaTime, double mouseDeltaTime);
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
+	//Semi-deprecated
 	const glm::vec3& GetPosition() const;
 	const glm::vec3& GetFront() const;
 	glm::mat4 GetViewMatrix() const;
@@ -57,7 +58,7 @@ public:
 	void Zoom(float fMultiplyRatio);
 
 	//Global tools
-	inline void ResetPosition() { m_Pos = { 0.0f, 0.0f, 0.0f }; }
+	inline void ResetPosition() { position = { 0.0f, 0.0f, 0.0f }; }
 	Camera& operator+=(const glm::vec3& vector);
 	Camera& operator-=(const glm::vec3& vector);
 	Camera& operator+=(const glm::vec2& vector);
@@ -67,11 +68,14 @@ private:
 	void UpdateFrontCamera();
 	void ClampAngleY();
 
+public:
+	glm::vec3 position;
+
 private:
-	//Variables for 3D camera, except m_Pos, which is used for both 3D and 2D
+	//Variables for 3D camera, except position, which is used for both 3D and 2D
 	float fAngleX, fAngleY, fZoom;
 	double m_MouseX, m_MouseY, m_Dpi;
-	glm::vec3 m_Pos, m_Front;
+	glm::vec3 m_Front;
 	glm::mat4 m_ProjMat;
 
 

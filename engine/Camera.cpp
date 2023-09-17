@@ -25,23 +25,23 @@ Camera::Camera(const glm::vec3& pos, const glm::vec3& dir)
 
 void Camera::SetVectors(const glm::vec3& pos, const glm::vec3& dir)
 {
-	m_Pos = pos;
+	position = pos;
 	m_Front = dir;
 }
 
 void Camera::StrafeX(float fSpeed)
 {
-	m_Pos += glm::normalize(glm::cross(m_Front, glm::vec3(0.0f, 1.0f, 0.0f))) * fSpeed;
+	position += glm::normalize(glm::cross(m_Front, glm::vec3(0.0f, 1.0f, 0.0f))) * fSpeed;
 }
 
 void Camera::StrafeY(float fSpeed)
 {
-	m_Pos += glm::vec3(0.0f, 1.0f, 0.0f) * fSpeed;
+	position += glm::vec3(0.0f, 1.0f, 0.0f) * fSpeed;
 }
 
 void Camera::MoveTowardsFront(float fSpeed)
 {
-	m_Pos += m_Front * fSpeed;
+	position += m_Front * fSpeed;
 }
 
 void Camera::RotateX(float fAngle)
@@ -59,12 +59,12 @@ void Camera::RotateY(float fAngle)
 
 void Camera::MoveX(float fSpeed)
 {
-	m_Pos += glm::vec3(1.0f, 0.0f, 0.0f) * fSpeed * fZoom;
+	position += glm::vec3(1.0f, 0.0f, 0.0f) * fSpeed * fZoom;
 }
 
 void Camera::MoveY(float fSpeed)
 {
-	m_Pos += glm::vec3(0.0f, 1.0f, 0.0f) * fSpeed * fZoom;
+	position += glm::vec3(0.0f, 1.0f, 0.0f) * fSpeed * fZoom;
 }
 
 void Camera::ProcessInput(const Window& window, double deltaTime)
@@ -86,7 +86,7 @@ void Camera::ProcessInput(const Window& window, double deltaTime)
 
 void Camera::ProcessInput(const Window& window, double keyDeltaTime, double mouseDeltaTime)
 {
-	if (keyfun)
+	if (keyfun) 
 		keyfun(window, this, keyDeltaTime);
 
 	if (mousefun)
@@ -116,9 +116,9 @@ glm::mat4 Camera::GetViewMatrix() const
 	switch (m_CameraType) 
 	{
 	case CameraType::ORTHOGRAPHIC:
-		return glm::translate(glm::mat4(1.0f), m_Pos);
+		return glm::translate(glm::mat4(1.0f), position);
 	case CameraType::PERSPECTIVE:
-		return glm::lookAt(m_Pos, m_Pos + m_Front, glm::vec3(0.0f, 1.0f, 0.0f));
+		return glm::lookAt(position, position + m_Front, glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 }
 
@@ -129,7 +129,7 @@ const glm::mat4& Camera::GetProjMatrix() const
 
 const glm::vec3& Camera::GetPosition() const
 {
-	return m_Pos;
+	return position;
 }
 
 const glm::vec3& Camera::GetFront() const
@@ -187,25 +187,25 @@ void Camera::Zoom(float fMultiplyRatio)
 
 Camera& Camera::operator+=(const glm::vec3& vector)
 {
-	m_Pos += vector;
+	position += vector;
 	return *this;
 }
 
 Camera& Camera::operator-=(const glm::vec3& vector)
 {
-	m_Pos -= vector;
+	position -= vector;
 	return *this;
 }
 
 Camera& Camera::operator+=(const glm::vec2& vector)
 {
-	m_Pos += glm::vec3(vector, 0.0f);
+	position += glm::vec3(vector, 0.0f);
 	return *this;
 }
 
 Camera& Camera::operator-=(const glm::vec2& vector)
 {
-	m_Pos -= glm::vec3(vector, 0.0f);
+	position -= glm::vec3(vector, 0.0f);
 	return *this;	
 }
 
