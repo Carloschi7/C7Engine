@@ -10,6 +10,8 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "utils/types.h"
+
 #define GLError "[OpenGL]: Error in file:" << __FILE__ << ", line:" << __LINE__ << "\n"
 
 class Shader
@@ -32,7 +34,7 @@ public:
 	//Uniform buffer utilities(Beta)
 
 	//@returns the index of the generated buffer in the vector
-	uint32_t GenUniformBuffer(const std::string& block_name, uint32_t size, uint32_t binding_point);
+	u32 GenUniformBuffer(const std::string& block_name, u32 size, u32 binding_point);
 	void DeleteUniformBuffers();
 	/*
 	*	@param retval of GenUniformBuffer
@@ -40,23 +42,23 @@ public:
 	*	@param offset of the data
 	*	@param actual data
 	*/
-	void SendDataToUniformBuffer(uint32_t ub_local_index, uint32_t size, uint32_t offset, const void* data);
-	void SetUniformBufferRange(uint32_t ub_local_index, uint32_t binding, uint32_t size, uint32_t offset);
+	void SendDataToUniformBuffer(u32 ub_local_index, u32 size, u32 offset, const void* data);
+	void SetUniformBufferRange(u32 ub_local_index, u32 binding, u32 size, u32 offset);
 
 	//Attribute utilities
-	int32_t GetAttributeLocation(const std::string& attr_name);
+	i32 GetAttributeLocation(const std::string& attr_name);
 private:
-	void BindUniformBuffer(uint32_t ub_local_index);
+	void BindUniformBuffer(u32 ub_local_index);
 	void LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs);
-	int32_t GetUniformLocation(const std::string& UniformName) const;
+	i32 GetUniformLocation(const std::string& UniformName) const;
 	int SetupShader(std::string& source, GLenum ShaderType);
-	void CheckShaderCompileStatus(uint32_t shader, GLenum ShaderType);
+	void CheckShaderCompileStatus(u32 shader, GLenum ShaderType);
 private:
-	uint32_t m_programID;
-	std::vector<uint32_t> m_UniformBuffers;
+	u32 m_programID;
+	std::vector<u32> m_UniformBuffers;
 	//Uniform cache
-	mutable std::unordered_map<std::string, int32_t> m_UniformCache;
+	mutable std::unordered_map<std::string, i32> m_UniformCache;
 	//Static var used to make Use function way faster
-	static std::atomic<uint32_t> s_CurrentlyBoundProgram;
-	static std::atomic<uint32_t> s_CurrentlyBoundUniformBuffer;
+	static std::atomic<u32> s_CurrentlyBoundProgram;
+	static std::atomic<u32> s_CurrentlyBoundUniformBuffer;
 };

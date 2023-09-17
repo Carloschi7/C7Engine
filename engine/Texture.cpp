@@ -4,9 +4,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-uint32_t Texture::s_CurrentlyBoundTex = 0;
+u32 Texture::s_CurrentlyBoundTex = 0;
 
-Texture::Texture(const char* filepath, bool flipaxis, TextureFilter fmt, uint8_t binding)
+Texture::Texture(const char* filepath, bool flipaxis, TextureFilter fmt, u8 binding)
 {
 	glGenTextures(1, &m_TextureID);
 	glActiveTexture(GL_TEXTURE0 + binding);
@@ -180,7 +180,7 @@ CubeMap::CubeMap(CubeMap&& right) noexcept
 {
 }
 
-void CubeMap::BindTexture(uint32_t slot)
+void CubeMap::BindTexture(u32 slot)
 {
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_TextureID);

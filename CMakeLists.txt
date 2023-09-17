@@ -23,6 +23,7 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/TextRenderer.cpp
 	engine/Window.h 
 	engine/Window.cpp
+	engine/utils/types.h
 	application/Application.h)
 
 

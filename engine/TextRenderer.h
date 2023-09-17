@@ -10,12 +10,12 @@
 class TextRenderer
 {
 public:
-	TextRenderer(const glm::vec2& canvas_resolution, uint32_t texture_binding);
+	TextRenderer(const glm::vec2& canvas_resolution, u32 texture_binding);
 	~TextRenderer();
 
 	void DrawString(const std::string& str, glm::vec2 pos);
 private:
-	uint32_t m_TextureBinding;
+	u32 m_TextureBinding;
 	std::shared_ptr<VertexManager> m_VertexManager;
 	std::shared_ptr<Shader> m_Shader;
 	std::shared_ptr<Texture> m_TextBitmap;

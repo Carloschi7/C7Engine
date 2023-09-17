@@ -1,7 +1,7 @@
 #include "Shader.h"
 
-std::atomic<uint32_t> Shader::s_CurrentlyBoundProgram = 0;
-std::atomic<uint32_t> Shader::s_CurrentlyBoundUniformBuffer = 0;
+std::atomic<u32> Shader::s_CurrentlyBoundProgram = 0;
+std::atomic<u32> Shader::s_CurrentlyBoundUniformBuffer = 0;
 
 Shader::Shader(const std::string& filepath)
 {
@@ -86,10 +86,10 @@ bool Shader::IsUniformDefined(const std::string& UniformName) const
 	return (glGetUniformLocation(m_programID, UniformName.c_str()) != -1);
 }
 
-uint32_t Shader::GenUniformBuffer(const std::string& block_name, uint32_t size, uint32_t binding_point)
+u32 Shader::GenUniformBuffer(const std::string& block_name, u32 size, u32 binding_point)
 {
 	Use();
-	uint32_t& new_buffer = m_UniformBuffers.emplace_back();
+	u32& new_buffer = m_UniformBuffers.emplace_back();
 
 	//Generate a buffer and allocate the desired space
 	glGenBuffers(1, &new_buffer);
@@ -97,7 +97,7 @@ uint32_t Shader::GenUniformBuffer(const std::string& block_name, uint32_t size, 
 	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 
 	//Bind the uniform block to the requested binding point...
-	uint32_t block_index = glGetUniformBlockIndex(m_programID, block_name.c_str());
+	u32 block_index = glGetUniformBlockIndex(m_programID, block_name.c_str());
 	glUniformBlockBinding(m_programID, block_index, binding_point);
 
 	//And link the binding point to the GPU buffer
@@ -107,15 +107,15 @@ uint32_t Shader::GenUniformBuffer(const std::string& block_name, uint32_t size, 
 	return m_UniformBuffers.size() - 1;
 }
 
-int32_t Shader::GetAttributeLocation(const std::string& attr_name)
+i32 Shader::GetAttributeLocation(const std::string& attr_name)
 {
 	Use();
 	return glGetAttribLocation(m_programID, attr_name.c_str());
 }
 
-void Shader::BindUniformBuffer(uint32_t ub_local_index)
+void Shader::BindUniformBuffer(u32 ub_local_index)
 {
-	uint32_t buf = m_UniformBuffers[ub_local_index];
+	u32 buf = m_UniformBuffers[ub_local_index];
 	if (buf != s_CurrentlyBoundUniformBuffer)
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBuffers[ub_local_index]);
@@ -125,19 +125,19 @@ void Shader::BindUniformBuffer(uint32_t ub_local_index)
 
 void Shader::DeleteUniformBuffers()
 {
-	for (uint32_t i = 0; i < m_UniformBuffers.size(); i++)
+	for (u32 i = 0; i < m_UniformBuffers.size(); i++)
 		glDeleteBuffers(1, &m_UniformBuffers[i]);
 
 	m_UniformBuffers.clear();
 }
 
-void Shader::SendDataToUniformBuffer(uint32_t ub_local_index, uint32_t size, uint32_t offset, const void* data)
+void Shader::SendDataToUniformBuffer(u32 ub_local_index, u32 size, u32 offset, const void* data)
 {
 	BindUniformBuffer(ub_local_index);
 	glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
 }
 
-void Shader::SetUniformBufferRange(uint32_t ub_local_index, uint32_t binding, uint32_t size, uint32_t offset)
+void Shader::SetUniformBufferRange(u32 ub_local_index, u32 binding, u32 size, u32 offset)
 {
 	BindUniformBuffer(ub_local_index);
 	glBindBufferRange(GL_UNIFORM_BUFFER, binding, m_UniformBuffers[ub_local_index], offset, size);
@@ -189,7 +189,7 @@ void Shader::LoadShadersFromFile(const std::string& File, std::string& vs, std::
 	fs = input[2].str();
 }
 
-int32_t Shader::GetUniformLocation(const std::string& UniformName) const
+i32 Shader::GetUniformLocation(const std::string& UniformName) const
 {
 	//Checking if the uniform is already stored in the cache
 	if (m_UniformCache.find(UniformName) != m_UniformCache.end())
@@ -217,7 +217,7 @@ int Shader::SetupShader(std::string& source, GLenum ShaderType)
 	return s;
 }
 
-void Shader::CheckShaderCompileStatus(uint32_t shader, GLenum ShaderType)
+void Shader::CheckShaderCompileStatus(u32 shader, GLenum ShaderType)
 {
 	int is_ok;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &is_ok);

@@ -1,7 +1,7 @@
 #include "FrameBuffer.h"
 #include "GL/glew.h"
 
-FrameBuffer::FrameBuffer(uint32_t width, uint32_t height, FrameBufferType type)
+FrameBuffer::FrameBuffer(u32 width, u32 height, FrameBufferType type)
 	:m_Type(type)
 {
 	glGenFramebuffers(1, &m_FrameBufferID);
@@ -110,7 +110,7 @@ void FrameBuffer::Bind()
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBufferID);
 }
 
-void FrameBuffer::BindFrameTexture(uint32_t slot)
+void FrameBuffer::BindFrameTexture(u32 slot)
 {
 	GLenum texture_type = (m_Type == FrameBufferType::DEPTH_CUBEMAP_ATTACHMENT) ? 
 		GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;

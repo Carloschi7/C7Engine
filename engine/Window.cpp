@@ -7,19 +7,19 @@ void InputState::Update(const Window* window)
 	m_OldState = m_CurrentState;
 
 	//Printable keys
-	for (uint16_t i = 32; i <= 162; i++)
+	for (u16 i = 32; i <= 162; i++)
 		m_CurrentState.printable_keys[i - 32] = window->IsKeyboardEvent({ i, GLFW_PRESS });
 	
 	//Function keys
-	for (uint16_t i = 256; i <= 348; i++)
+	for (u16 i = 256; i <= 348; i++)
 		m_CurrentState.function_keys[i - 256] = window->IsKeyboardEvent({ i, GLFW_PRESS });
 
 	//Mouse keys
-	for (uint16_t i = 0; i <= 7; i++)
+	for (u16 i = 0; i <= 7; i++)
 		m_CurrentState.mouse_keys[i] = window->IsMouseEvent({ i, GLFW_PRESS });
 }
 
-bool InputState::IsKeyPressed(uint16_t key) const
+bool InputState::IsKeyPressed(u16 key) const
 {
 	switch (_GetKeyType(key))
 	{
@@ -34,7 +34,7 @@ bool InputState::IsKeyPressed(uint16_t key) const
 	return false;
 }
 
-bool InputState::IsKeyHeld(uint16_t key) const
+bool InputState::IsKeyHeld(u16 key) const
 {
 	switch (_GetKeyType(key))
 	{
@@ -49,7 +49,7 @@ bool InputState::IsKeyHeld(uint16_t key) const
 	return false;
 }
 
-bool InputState::IsKeyReleased(uint16_t key) const
+bool InputState::IsKeyReleased(u16 key) const
 {
 	switch (_GetKeyType(key))
 	{
@@ -64,7 +64,7 @@ bool InputState::IsKeyReleased(uint16_t key) const
 	return false;
 }
 
-KeyType InputState::_GetKeyType(uint16_t key) const
+KeyType InputState::_GetKeyType(u16 key) const
 {
 	if (key < 8)
 		return KeyType::Mouse;
@@ -78,7 +78,7 @@ KeyType InputState::_GetKeyType(uint16_t key) const
 
 double Window::s_MouseWheelY = 0.0;
 
-Window::Window(uint32_t width, uint32_t height, const char* title, bool bFullscreen)
+Window::Window(u32 width, u32 height, const char* title, bool bFullscreen)
 	:m_Width(width), m_Height(height), m_Fullscreen(bFullscreen), m_Monitor(nullptr)
 {
 	if (m_Fullscreen)
@@ -145,7 +145,7 @@ void Window::Destroy()
 	if (m_Monitor) delete m_Monitor;
 }
 
-void Window::ClearScreen(uint32_t flags)
+void Window::ClearScreen(u32 flags)
 {
 	glClear(flags);
 }
@@ -170,17 +170,17 @@ bool Window::IsMouseEvent(const InputEvent& ie) const
 	return (glfwGetMouseButton(m_Window, ie.Key()) == ie.State());
 }
 
-bool Window::IsKeyPressed(uint16_t key) const
+bool Window::IsKeyPressed(u16 key) const
 {
 	return m_InputState.IsKeyPressed(key);
 }
 
-bool Window::IsKeyHeld(uint16_t key) const
+bool Window::IsKeyHeld(u16 key) const
 {
 	return m_InputState.IsKeyHeld(key);
 }
 
-bool Window::IsKeyReleased(uint16_t key) const
+bool Window::IsKeyReleased(u16 key) const
 {
 	return m_InputState.IsKeyReleased(key);
 }

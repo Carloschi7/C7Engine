@@ -67,9 +67,9 @@ void Model::Draw(Shader& shd)
 	}
 }
 
-void Model::DrawInstancedPositions(Shader& shd, uint32_t num_instances, glm::vec3* positions)
+void Model::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* positions)
 {
-	uint32_t* instancebuffers = new uint32_t[m_Meshes.size()];
+	u32* instancebuffers = new u32[m_Meshes.size()];
 
 	for (int i = 0; i < m_Meshes.size(); i++)
 	{
@@ -186,12 +186,12 @@ float* Model::GetRawBuffer() const
 	return res;
 }
 
-float* Model::GetRawAttribute(uint32_t begin, uint32_t end) const
+float* Model::GetRawAttribute(u32 begin, u32 end) const
 {
 	float* res, * cpy;
 	long int ptr_dim = 0;
 	long int offset = 0;
-	uint32_t values_per_attrib;
+	u32 values_per_attrib;
 
 	//8 is the stride lenght for every model
 	if (begin >= 8 || end >= 8 || end <= begin) return nullptr;
@@ -226,9 +226,9 @@ float* Model::GetRawAttribute(uint32_t begin, uint32_t end) const
 	return res;
 }
 
-uint32_t Model::GetValuesCount() const
+u32 Model::GetValuesCount() const
 {
-	uint32_t count = 0;
+	u32 count = 0;
 
 	for (const auto& m : m_Meshes)
 	{
@@ -291,7 +291,7 @@ void Model::LoadModelFromFile(const std::string& FilePath)
 
 void Model::LoadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::string& name, Mesh& m)
 {
-	uint32_t count = mat->GetTextureCount(type);
+	u32 count = mat->GetTextureCount(type);
 
 	for (int i = 0; i < count; i++)
 	{
@@ -346,7 +346,7 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node)
 void Model::SetupMesh(const aiScene* scene, aiMesh* mesh)
 {
 	std::vector<float> vb;
-	std::vector<uint32_t> ib;
+	std::vector<u32> ib;
 
 	//Loading the data into our vectors
 	for (int i = 0; i < mesh->mNumVertices; i++)
@@ -396,7 +396,7 @@ void Model::SetupMesh(const aiScene* scene, aiMesh* mesh)
 	layout.PushAttribute({ 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 3 * sizeof(float) });
 	layout.PushAttribute({ 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 6 * sizeof(float) });
 
-	VertexManager vm(&vb[0], vb.size() * sizeof(float), &ib[0], ib.size() * sizeof(uint32_t), layout);
+	VertexManager vm(&vb[0], vb.size() * sizeof(float), &ib[0], ib.size() * sizeof(u32), layout);
 	m_Meshes.push_back({ std::move(vm), {} });
 
 	//Materials (only loading diffuse textures for now)

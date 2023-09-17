@@ -2,7 +2,7 @@
 #include <utility>
 #include <cstring>
 
-uint32_t VertexManager::s_VaoBinding = 0;
+u32 VertexManager::s_VaoBinding = 0;
 
 VertexManager::VertexManager()
 	:m_IndicesCount(0), m_AttribCount(0), m_SuccesfullyLoaded(false), m_HasIndices(false), m_ValuesCount(0),
@@ -19,7 +19,7 @@ VertexManager::VertexManager(const float* verts, size_t verts_size, const Layout
 	SendDataToOpenGLArray(verts, verts_size, l);
 }
 
-VertexManager::VertexManager(const float* verts, size_t verts_size, const uint32_t* indices, size_t indices_size,
+VertexManager::VertexManager(const float* verts, size_t verts_size, const u32* indices, size_t indices_size,
 	const Layout& l)
 	: VertexManager()
 {
@@ -46,7 +46,7 @@ VertexManager::~VertexManager()
 	glDeleteBuffers(1, &m_EBO);
 	glDeleteBuffers(1, &m_VAO);
 
-	for (uint32_t i : m_AdditionalBuffers)
+	for (u32 i : m_AdditionalBuffers)
 		glDeleteBuffers(1, &i);
 }
 
@@ -84,7 +84,7 @@ void VertexManager::SendDataToOpenGLArray(const float* verts, size_t verts_size,
 	m_StrideLength = l.GetAttributes()[0].stride / sizeof(float);
 }
 
-void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_size, const uint32_t* indices, size_t indices_size,
+void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_size, const u32* indices, size_t indices_size,
 	const Layout& l)
 {
 	BindVertexArray();
@@ -108,7 +108,7 @@ void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_si
 		VertexAttribPointer(i, attr);
 	}
 
-	m_IndicesCount = indices_size / sizeof(uint32_t);
+	m_IndicesCount = indices_size / sizeof(u32);
 	m_AttribCount = l.GetAttributes().size();
 	m_HasIndices = true;
 	m_SuccesfullyLoaded = true;
@@ -117,14 +117,14 @@ void VertexManager::SendDataToOpenGLElements(const float* verts, size_t verts_si
 }
 
 
-uint32_t VertexManager::PushInstancedAttribute(const void* verts, size_t verts_size, uint32_t attr_index, const LayoutElement& el)
+u32 VertexManager::PushInstancedAttribute(const void* verts, size_t verts_size, u32 attr_index, const LayoutElement& el)
 {
-	if (attr_index == static_cast<uint32_t>(-1))
-		return static_cast<uint32_t>(-1);
+	if (attr_index == static_cast<u32>(-1))
+		return static_cast<u32>(-1);
 
 	BindVertexArray();
 
-	uint32_t& buffer = m_AdditionalBuffers.emplace_back();
+	u32& buffer = m_AdditionalBuffers.emplace_back();
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
@@ -137,21 +137,21 @@ uint32_t VertexManager::PushInstancedAttribute(const void* verts, size_t verts_s
 	return buffer;
 }
 
-uint32_t VertexManager::PushInstancedMatrixBuffer(const void* verts, size_t verts_size, uint32_t attr_index)
+u32 VertexManager::PushInstancedMatrixBuffer(const void* verts, size_t verts_size, u32 attr_index)
 {
-	if (attr_index == static_cast<uint32_t>(-1))
-		return static_cast<uint32_t>(-1);
+	if (attr_index == static_cast<u32>(-1))
+		return static_cast<u32>(-1);
 
 	BindVertexArray();
 
-	uint32_t& buffer = m_AdditionalBuffers.emplace_back();
+	u32& buffer = m_AdditionalBuffers.emplace_back();
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
 
 	//We cant uniform a matrix all at once, we need to split it in 4 vec4
 	//A mat4 occupies 4 attribute indexes in the shader, each one containing a vec4
-	for (uint32_t i = 0; i < 4; i++)
+	for (u32 i = 0; i < 4; i++)
 	{
 		glEnableVertexAttribArray(attr_index + i);
 		glVertexAttribPointer(attr_index + i, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 16, (void*)(sizeof(float) * 4 * i));
@@ -162,7 +162,7 @@ uint32_t VertexManager::PushInstancedMatrixBuffer(const void* verts, size_t vert
 	return buffer;
 }
 
-void VertexManager::EditInstance(uint32_t vb_local_index, const void* verts, size_t verts_size, size_t offset)
+void VertexManager::EditInstance(u32 vb_local_index, const void* verts, size_t verts_size, size_t offset)
 {
 	if (vb_local_index >= m_AdditionalBuffers.size())
 		return;
@@ -175,7 +175,7 @@ void VertexManager::EditInstance(uint32_t vb_local_index, const void* verts, siz
 	}
 	else
 	{
-		const void* buf = static_cast<const uint8_t*>(verts) + offset;
+		const void* buf = static_cast<const u8*>(verts) + offset;
 		std::memcpy(my_buf, buf, verts_size);
 	}
 	glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -224,7 +224,7 @@ float* VertexManager::GetRawBuffer() const
 }
 
 //Must be deallocated manually
-float* VertexManager::GetRawAttribute(uint32_t begin, uint32_t end) const
+float* VertexManager::GetRawAttribute(u32 begin, u32 end) const
 {
 	if (begin >= m_StrideLength || end >= m_StrideLength || end <= begin) return nullptr;
 
@@ -245,7 +245,7 @@ float* VertexManager::GetRawAttribute(uint32_t begin, uint32_t end) const
 	return res;
 }
 
-void* VertexManager::InstancedAttributePointer(uint32_t buf_index)
+void* VertexManager::InstancedAttributePointer(u32 buf_index)
 {
 	if (buf_index >= m_AdditionalBuffers.size())
 		return nullptr;
@@ -260,7 +260,7 @@ void* VertexManager::InstancedAttributePointer(uint32_t buf_index)
 	return buf;
 }
 
-void VertexManager::UnmapAttributePointer(uint32_t buf_index)
+void VertexManager::UnmapAttributePointer(u32 buf_index)
 {
 	//Already unmapped
 	auto iter = m_BufferPointers.find(buf_index);
@@ -278,7 +278,7 @@ bool VertexManager::IsIntegerType(GLenum type) const
 		type == GL_UNSIGNED_SHORT || type == GL_INT || type == GL_UNSIGNED_INT;
 }
 
-void VertexManager::VertexAttribPointer(uint32_t attr_index, const LayoutElement& el)
+void VertexManager::VertexAttribPointer(u32 attr_index, const LayoutElement& el)
 {
 	if (IsIntegerType(el.type))
 		glVertexAttribIPointer(attr_index, el.count, el.type, el.stride, (void*)el.offset);

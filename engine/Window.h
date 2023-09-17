@@ -1,5 +1,6 @@
 #pragma once
 #include "GLFW/glfw3.h"
+#include "utils/types.h"
 
 #ifndef C7_STATE_BUFFER_INTERVALS
 #	define C7_STATE_BUFFER_INTERVALS
@@ -16,14 +17,14 @@ enum class KeyType { None, Printable, Function, Mouse };
 class InputEvent
 {
 public:
-	InputEvent(int32_t key, int32_t state) : m_Key(key), m_State(state) {}
+	InputEvent(i32 key, i32 state) : m_Key(key), m_State(state) {}
 	~InputEvent() {}
 
-	inline int32_t Key() const { return m_Key; }
-	inline int32_t State() const { return m_State; }
+	inline i32 Key() const { return m_Key; }
+	inline i32 State() const { return m_State; }
 
 private:
-	int32_t m_Key, m_State;
+	i32 m_Key, m_State;
 };
 
 //Implements detection of a key being pressed, held down or released
@@ -33,12 +34,12 @@ public:
 	InputState() {}
 	void Update(const Window* window);
 
-	bool IsKeyPressed(uint16_t key) const;
-	bool IsKeyHeld(uint16_t key) const;
-	bool IsKeyReleased(uint16_t key) const;
+	bool IsKeyPressed(u16 key) const;
+	bool IsKeyHeld(u16 key) const;
+	bool IsKeyReleased(u16 key) const;
 
 private:
-	KeyType _GetKeyType(uint16_t key) const;
+	KeyType _GetKeyType(u16 key) const;
 private:
 	struct InternalInputState
 	{
@@ -53,7 +54,7 @@ private:
 class Window
 {
 public:
-	Window(uint32_t width, uint32_t height, const char* title, bool bFullscreen);
+	Window(u32 width, u32 height, const char* title, bool bFullscreen);
 	~Window();
 
 	Window(const Window&) = delete;
@@ -63,16 +64,16 @@ public:
 	void UpdateKeys();
 
 	void Destroy();
-	static void ClearScreen(uint32_t flags);
+	static void ClearScreen(u32 flags);
 	void AttachWndToCurrentContext() const;
 	void DetachWndFromContext() const;
 	//Directly access the GLFW API
 	bool IsKeyboardEvent(const InputEvent& ie) const;
 	bool IsMouseEvent(const InputEvent& ie) const;
 
-	bool IsKeyPressed(uint16_t key) const;
-	bool IsKeyHeld(uint16_t key) const;
-	bool IsKeyReleased(uint16_t key) const;
+	bool IsKeyPressed(u16 key) const;
+	bool IsKeyHeld(u16 key) const;
+	bool IsKeyReleased(u16 key) const;
 
 	bool IsMouseWheelUp() const;
 	bool IsMouseWheelDown() const;
@@ -82,8 +83,8 @@ public:
 	void EnableCursor();
 	void DisableCursor();
 
-	inline uint32_t Width() const { return m_Width; }
-	inline uint32_t Height() const { return m_Height; }
+	inline u32 Width() const { return m_Width; }
+	inline u32 Height() const { return m_Height; }
 
 private: //Callbacks
 	static void ScrollCallback(GLFWwindow* window, double offsetx, double offsety)
@@ -98,7 +99,7 @@ private:
 	GLFWmonitor* m_Monitor;
 	//Handles key states more accurately
 	InputState m_InputState;
-	uint32_t m_Width, m_Height;
+	u32 m_Width, m_Height;
 	bool m_Fullscreen;
 
 	//Callback variables

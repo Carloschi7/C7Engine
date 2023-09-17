@@ -31,7 +31,7 @@ public:
 	}
 
 	*/
-	void DrawInstancedPositions(Shader& shd, uint32_t num_instances, glm::vec3* positions);
+	void DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* positions);
 	
 	void SetVertexManager(const VertexManager& vm);
 	void Rotate(float fRadians, const glm::vec3& dir);

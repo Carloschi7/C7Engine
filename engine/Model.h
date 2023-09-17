@@ -37,7 +37,7 @@ public:
 	}
 
 	*/
-	void DrawInstancedPositions(Shader& shd, uint32_t num_instances, glm::vec3* positions);
+	void DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* positions);
 
 	void Rotate(float fRadians, const glm::vec3& dir);
 	void Translate(const glm::vec3& dir);
@@ -50,8 +50,8 @@ public:
 
 	//TODO: to be deleted by the user
 	float* GetRawBuffer() const;
-	float* GetRawAttribute(uint32_t begin, uint32_t end) const;
-	uint32_t GetValuesCount() const;
+	float* GetRawAttribute(u32 begin, u32 end) const;
+	u32 GetValuesCount() const;
 
 	//The variable to_jump is an optimization which states how many vertices have to be discarded between two evaluations,
 	//very useful for models with a large amount of vertices
@@ -67,7 +67,7 @@ private:
 	std::vector<Mesh> m_Meshes;
 	std::vector<Texture> m_Textures;
 	std::vector<std::pair<Texture, std::string>> m_ExternalTextures;
-	std::vector<std::pair<std::string, uint32_t>> m_Cache;
+	std::vector<std::pair<std::string, u32>> m_Cache;
 	glm::mat4 m_ModelMatrix;
 	std::string m_Directory;
 	glm::vec3 m_Position;

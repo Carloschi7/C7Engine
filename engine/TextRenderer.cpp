@@ -1,7 +1,7 @@
 #include "TextRenderer.h"
 #include <iostream>
 
-TextRenderer::TextRenderer(const glm::vec2& canvas_resolution, uint32_t texture_binding) :
+TextRenderer::TextRenderer(const glm::vec2& canvas_resolution, u32 texture_binding) :
 	m_TextureBinding(texture_binding)
 {
 	m_Stride = 0.0555f;
@@ -45,7 +45,7 @@ void TextRenderer::DrawString(const std::string& str, glm::vec2 pos)
 		return;
 
 	//White space is the first char in the bitmap texture
-	uint32_t base_char_index = static_cast<uint32_t>(' ');
+	u32 base_char_index = static_cast<u32>(' ');
 
 	m_Shader->Use();
 	m_VertexManager->BindVertexArray();
@@ -55,13 +55,13 @@ void TextRenderer::DrawString(const std::string& str, glm::vec2 pos)
 	//Account for the scale in the translation so that the input coordinates define the actual top_left pixel
 
 
-	for(uint32_t i = 0; i < str.size(); i++) {
+	for(u32 i = 0; i < str.size(); i++) {
 		//Prepare the model matrix for the character
 		glm::vec3 translation_vector = glm::vec3(pos.x + scaling_factor.x * i, pos.y, 0.0f) + scaling_factor / 2.0f;
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), translation_vector);
 		m_Shader->UniformMat4f(glm::scale(model, glm::vec3(35.0f)), "model");
 
-		uint32_t cur_char_index = static_cast<uint32_t>(str[i]) - base_char_index;
+		u32 cur_char_index = static_cast<u32>(str[i]) - base_char_index;
 		float xoffset = m_Stride * static_cast<float>(cur_char_index % 16);
 		float yoffset = m_SpacingOfY * static_cast<float>(cur_char_index / 16);
 		m_Shader->Uniform1f(xoffset, "xoffset");

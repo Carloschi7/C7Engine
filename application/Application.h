@@ -1,5 +1,6 @@
 #pragma once
 #include "MainIncl.h"
+#include "utils/types.h"
 #include <memory>
 #include <thread>
 

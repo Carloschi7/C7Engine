@@ -61,7 +61,7 @@ void Entity::Draw(Shader& shd)
 		glDrawArrays(GL_TRIANGLES, 0, m_VertexManager->GetIndicesCount());
 }
 
-void Entity::DrawInstancedPositions(Shader& shd, uint32_t num_instances, glm::vec3* positions)
+void Entity::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* positions)
 {
 	if (!m_VertexManager || !m_VertexManager->IsLoaded())
 	{
@@ -71,7 +71,7 @@ void Entity::DrawInstancedPositions(Shader& shd, uint32_t num_instances, glm::ve
 
 	m_VertexManager->BindVertexArray();
 
-	uint32_t instancebuffer;
+	u32 instancebuffer;
 	glGenBuffers(1, &instancebuffer);
 
 	glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
