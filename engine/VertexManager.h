@@ -7,7 +7,7 @@
 
 struct LayoutElement
 {
-	i32 count;
+	s32 count;
 	GLenum type;
 	GLboolean bNormalized;
 	size_t stride;

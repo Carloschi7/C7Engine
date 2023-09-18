@@ -46,18 +46,18 @@ public:
 	void SetUniformBufferRange(u32 ub_local_index, u32 binding, u32 size, u32 offset);
 
 	//Attribute utilities
-	i32 GetAttributeLocation(const std::string& attr_name);
+	s32 GetAttributeLocation(const std::string& attr_name);
 private:
 	void BindUniformBuffer(u32 ub_local_index);
 	void LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs);
-	i32 GetUniformLocation(const std::string& UniformName) const;
+	s32 GetUniformLocation(const std::string& UniformName) const;
 	int SetupShader(std::string& source, GLenum ShaderType);
 	void CheckShaderCompileStatus(u32 shader, GLenum ShaderType);
 private:
 	u32 m_programID;
 	std::vector<u32> m_UniformBuffers;
 	//Uniform cache
-	mutable std::unordered_map<std::string, i32> m_UniformCache;
+	mutable std::unordered_map<std::string, s32> m_UniformCache;
 	//Static var used to make Use function way faster
 	static std::atomic<u32> s_CurrentlyBoundProgram;
 	static std::atomic<u32> s_CurrentlyBoundUniformBuffer;

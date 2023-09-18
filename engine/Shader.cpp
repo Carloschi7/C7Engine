@@ -107,7 +107,7 @@ u32 Shader::GenUniformBuffer(const std::string& block_name, u32 size, u32 bindin
 	return m_UniformBuffers.size() - 1;
 }
 
-i32 Shader::GetAttributeLocation(const std::string& attr_name)
+s32 Shader::GetAttributeLocation(const std::string& attr_name)
 {
 	Use();
 	return glGetAttribLocation(m_programID, attr_name.c_str());
@@ -189,7 +189,7 @@ void Shader::LoadShadersFromFile(const std::string& File, std::string& vs, std::
 	fs = input[2].str();
 }
 
-i32 Shader::GetUniformLocation(const std::string& UniformName) const
+s32 Shader::GetUniformLocation(const std::string& UniformName) const
 {
 	//Checking if the uniform is already stored in the cache
 	if (m_UniformCache.find(UniformName) != m_UniformCache.end())

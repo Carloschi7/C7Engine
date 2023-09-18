@@ -17,14 +17,14 @@ enum class KeyType { None, Printable, Function, Mouse };
 class InputEvent
 {
 public:
-	InputEvent(i32 key, i32 state) : m_Key(key), m_State(state) {}
+	InputEvent(s32 key, s32 state) : m_Key(key), m_State(state) {}
 	~InputEvent() {}
 
-	inline i32 Key() const { return m_Key; }
-	inline i32 State() const { return m_State; }
+	inline s32 Key() const { return m_Key; }
+	inline s32 State() const { return m_State; }
 
 private:
-	i32 m_Key, m_State;
+	s32 m_Key, m_State;
 };
 
 //Implements detection of a key being pressed, held down or released

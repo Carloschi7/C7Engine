@@ -24,7 +24,7 @@ public:
 private:
 	unsigned char* m_Data;
 	u32 m_TextureID;
-	i32 m_Width, m_Height, m_BPP;
+	s32 m_Width, m_Height, m_BPP;
 
 	static u32 s_CurrentlyBoundTex;
 };
@@ -44,7 +44,7 @@ public:
 private:
 	unsigned char* m_Data;
 	u32 m_TextureID;
-	i32 m_Width, m_Height, m_BPP;
+	s32 m_Width, m_Height, m_BPP;
 
 	VertexManager m_VertexManager;
 };
