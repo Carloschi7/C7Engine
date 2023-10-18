@@ -7,7 +7,7 @@ call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
 mkdir build
 pushd build
 cmake ..
-msbuild C7Engine.sln
+msbuild C7Engine.sln /property:Configuration=Release
 popd
 
 
