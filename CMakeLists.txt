@@ -64,5 +64,5 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE C7MACRO_ENGINE_PATH="${CMAKE_
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLEW_STATIC)
 
 #Setting the default c++ version to c++17
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
