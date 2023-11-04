@@ -26,7 +26,7 @@ TextRenderer::TextRenderer(const glm::vec2& canvas_resolution, u32 texture_bindi
 	lyt.PushAttribute({ 2, GL_FLOAT, GL_FALSE, sizeof(f32) * 4, 0 });
 	lyt.PushAttribute({ 2, GL_FLOAT, GL_FALSE, sizeof(f32) * 4, sizeof(f32) * 2});
 	m_VertexManager = std::make_shared<VertexManager>(verts, sizeof(verts), lyt);
-	m_TextBitmap = std::make_shared<Texture>(texture_path.c_str(), true, TextureFilter::Nearest, 10);
+	m_TextBitmap = std::make_shared<Texture>(texture_path.c_str(), true, TextureFilter::Nearest, m_TextureBinding);
 	m_Shader = std::make_shared<Shader>(shader_path);
 
 	//Uniforming proj matrix
