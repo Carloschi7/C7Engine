@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <fstream>
 #include "GL/glew.h"
 #include "VertexManager.h"
 
@@ -8,6 +9,7 @@
 
 //Defines how a texture is loaded
 enum class TextureFilter {Linear = 0, Nearest};
+enum class TexFormat : u8 {Rgb8 = 0, Rgba8, DepthComponentf32};
 
 class Texture
 {
@@ -48,3 +50,6 @@ private:
 
 	VertexManager m_VertexManager;
 };
+
+void DumpTexture(const std::string& filepath, const void* data, u32 width, u32 height, TexFormat format);
+void DumpTexture_PPM(std::ofstream& file, const void* data, u32 width, u32 height, TexFormat format);

@@ -1,5 +1,6 @@
 #include "Texture.h"
 #include <utility>
+#include <string>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -189,4 +190,82 @@ void CubeMap::BindTexture(u32 slot)
 void CubeMap::BindVertexArray() const
 {
 	glBindVertexArray(m_VertexManager.GetVertexArray());
+}
+
+void DumpTexture(const std::string& filepath, const void* data, u32 width, u32 height, TexFormat format)
+{
+	std::ofstream file(filepath, std::ios::out);
+
+	std::string extension = filepath.substr(filepath.find_last_of('.'));
+	//Only format implemented yet
+	if (extension == ".ppm") {
+		DumpTexture_PPM(file, data, width, height, format);
+	}
+	file.close();
+}
+
+void DumpTexture_PPM(std::ofstream& file, const void* data, u32 width, u32 height, TexFormat format)
+{
+	file << "P3\n";
+	file << std::to_string(width) << " " << std::to_string(height) << "\n";
+	//64 level of colors per channel
+	file << "255\n";
+
+	//Initializing pointers that will be used depending on the texture format
+	const uint8_t* u8_data = static_cast<const uint8_t*>(data);
+	const float* f32_data = static_cast<const float*>(data);
+
+	switch (format)
+	{
+	case TexFormat::Rgb8:
+
+		for (uint32_t i = 0; i < height; i++)
+		{
+			for (uint32_t j = 0; j < width; j++)
+			{
+				std::string vals[3];
+				for (int k = 0; k < 3; k++)
+				{
+					uint32_t index = i * (width * 3) + (j * 3) + k;
+					vals[k] = std::to_string(static_cast<uint32_t>(u8_data[index]));
+				}
+
+				file << vals[0] << " " << vals[1] << " " << vals[2] << "\n";
+			}
+		}
+
+		break;
+	case TexFormat::Rgba8:
+		//Alpha channel gets ignored
+		for (uint32_t i = 0; i < height; i++)
+		{
+			for (uint32_t j = 0; j < width; j++)
+			{
+				std::string vals[3];
+				for (int k = 0; k < 3; k++)
+				{
+					uint32_t index = i * (width * 4) + (j * 4) + k;
+					vals[k] = std::to_string(static_cast<uint32_t>(u8_data[index]));
+				}
+
+				file << vals[0] << " " << vals[1] << " " << vals[2] << "\n";
+			}
+		}
+
+		break;
+	case TexFormat::DepthComponentf32:
+
+		for (uint32_t i = 0; i < height; i++)
+		{
+			for (uint32_t j = 0; j < width; j++)
+			{
+				uint32_t val = static_cast<uint32_t>(f32_data[i * width + j] * 255.0f);
+				std::string str = std::to_string(val);
+				file << str << " " << str << " " << str << "  ";
+			}
+			file << "\n";
+		}
+
+		break;
+	};
 }
