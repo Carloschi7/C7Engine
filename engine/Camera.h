@@ -43,11 +43,15 @@ public:
 
 	void ProcessInput(const Window& window, f64 deltaTime);
 	void ProcessInput(const Window& window, f64 keyDeltaTime, f64 mouseDeltaTime);
+	void UpdateMousePosition(const Window& window);
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
 	//Semi-deprecated
 	const glm::vec3& GetPosition() const;
 	const glm::vec3& GetFront() const;
+	//Computes the orthogonal-up vector from the m_Front, can be useful to computed
+	//relative rotated vectors to the current player view
+	const glm::vec3 ComputeRelativeUp();
 	glm::mat4 GetViewMatrix() const;
 	const glm::mat4& GetProjMatrix() const;
 
@@ -66,6 +70,7 @@ public:
 
 private:
 	void UpdateFrontCamera();
+	void UpdateRelativeUp();
 	void ClampAngleY();
 
 public:

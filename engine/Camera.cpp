@@ -101,6 +101,11 @@ void Camera::ProcessInput(const Window& window, f64 keyDeltaTime, f64 mouseDelta
 	}
 }
 
+void Camera::UpdateMousePosition(const Window& window)
+{
+	window.GetCursorCoord(m_MouseX, m_MouseY);
+}
+
 void Camera::SetKeyboardFunction(const KeyFun& kf)
 {
 	keyfun = kf;
@@ -135,6 +140,15 @@ const glm::vec3& Camera::GetPosition() const
 const glm::vec3& Camera::GetFront() const
 {
 	return m_Front;
+}
+
+const glm::vec3 Camera::ComputeRelativeUp()
+{
+	glm::vec3 result;
+	result.x = -glm::sin(fAngleY) * glm::sin(fAngleX);
+	result.y = glm::cos(fAngleY);
+	result.z = glm::cos(fAngleX) * glm::sin(fAngleY);
+	return result;
 }
 
 void Camera::SetPerspectiveValues(f32 fAngle, f32 fAspect, f32 fNear, f32 fFar)
@@ -211,9 +225,16 @@ Camera& Camera::operator-=(const glm::vec2& vector)
 
 void Camera::UpdateFrontCamera()
 {
-	m_Front.x = sinf(fAngleX) * cosf(fAngleY);
-	m_Front.y = sinf(fAngleY);
-	m_Front.z = -cosf(fAngleX) * cosf(fAngleY);
+	m_Front.x = glm::sin(fAngleX) * glm::cos(fAngleY);
+	m_Front.y = glm::sin(fAngleY);
+	m_Front.z = -glm::cos(fAngleX) * glm::cos(fAngleY);
+}
+
+void Camera::UpdateRelativeUp()
+{
+	m_RelativeUp.x = -glm::sin(fAngleY) * glm::sin(fAngleX);
+	m_RelativeUp.y = glm::cos(fAngleY);
+	m_RelativeUp.z = glm::cos(fAngleX) * glm::sin(fAngleY);
 }
 
 void Camera::ClampAngleY()
