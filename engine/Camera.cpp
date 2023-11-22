@@ -48,7 +48,6 @@ void Camera::RotateX(f32 fAngle)
 {
 	fAngleX += fAngle;
 	UpdateFrontCamera();
-	ComputeRelativeUp();
 }
 
 void Camera::RotateY(f32 fAngle)
@@ -149,7 +148,6 @@ const glm::vec3 Camera::ComputeRelativeUp()
 	result.x = -glm::sin(fAngleY) * glm::sin(fAngleX);
 	result.y = glm::cos(fAngleY);
 	result.z = glm::cos(fAngleX) * glm::sin(fAngleY);
-	std::printf("%f\n", glm::dot(result, m_Front));
 	return result;
 }
 
