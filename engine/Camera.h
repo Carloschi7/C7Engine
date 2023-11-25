@@ -47,8 +47,10 @@ public:
 	void SetKeyboardFunction(const KeyFun& kf);
 	void SetMouseFunction(const MouseFun& mf);
 	//Semi-deprecated
-	const glm::vec3& GetPosition() const;
-	const glm::vec3& GetFront() const;
+	inline const glm::vec3& GetPosition() const { return position; }
+	inline const glm::vec3& GetFront() const { return m_Front; }
+	inline const f32 RotationX() const { return fAngleX; }
+	inline const f32 RotationY() const { return fAngleY; }
 	//Computes the orthogonal-up vector from the m_Front, can be useful to computed
 	//relative rotated vectors to the current player view
 	const glm::vec3 ComputeRelativeUp();
@@ -70,7 +72,6 @@ public:
 
 private:
 	void UpdateFrontCamera();
-	void UpdateRelativeUp();
 	void ClampAngleY();
 
 public:

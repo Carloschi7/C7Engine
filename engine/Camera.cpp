@@ -132,16 +132,6 @@ const glm::mat4& Camera::GetProjMatrix() const
 	return m_ProjMat;
 }
 
-const glm::vec3& Camera::GetPosition() const
-{
-	return position;
-}
-
-const glm::vec3& Camera::GetFront() const
-{
-	return m_Front;
-}
-
 const glm::vec3 Camera::ComputeRelativeUp()
 {
 	glm::vec3 result;
