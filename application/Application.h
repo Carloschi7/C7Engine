@@ -51,7 +51,9 @@ private:
 	std::vector<Texture> m_Textures;
 	std::vector<CubeMap> m_CubeMaps;
 	std::vector<Shader> m_Shaders;
+#ifndef NO_ASSIMP
 	std::vector<Model> m_Models;
+#endif
 	std::vector<FrameBuffer> m_CustomFrameBuffers;
 	//Different working threads, can be used for logic, rendering, ...
 	std::vector<std::thread> m_AppThreads;

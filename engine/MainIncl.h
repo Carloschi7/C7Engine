@@ -4,7 +4,9 @@
 #include "Camera.h"
 #include "Entity.h"
 #include "FrameBuffer.h"
-#include "Model.h"
+#ifndef NO_ASSIMP
+	#include "Model.h"
+#endif
 #include "Shader.h"
 #include "Texture.h"
 #include "VertexManager.h"

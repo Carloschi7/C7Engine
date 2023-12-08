@@ -3,6 +3,12 @@ cmake_minimum_required(VERSION 3.12)
 project(C7Engine)
 set(CMAKE_GENERATOR_PLATFORM x86)
 
+if(NOT ASSIMP_USED)
+	set(OPTIONAL_MODEL_FILES)
+else()
+	set(OPTIONAL_MODEL_FILES engine/Model.h engine/Model.cpp)
+endif()
+
 set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/Camera.h 
 	engine/Camera.cpp
@@ -11,8 +17,7 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/FrameBuffer.h 
 	engine/FrameBuffer.cpp
 	engine/MainIncl.h
-	engine/Model.h 
-	engine/Model.cpp
+	${OPTIONAL_MODEL_FILES}
 	engine/Shader.h 
 	engine/Shader.cpp
 	engine/Texture.h 
@@ -59,6 +64,10 @@ file(COPY assets/textures DESTINATION assets)
 file(COPY assets/shaders DESTINATION assets)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE C7MACRO_ENGINE_PATH="${CMAKE_CURRENT_LIST_DIR}")
+#Define a macro that wont include assimp files
+if(NOT ASSIMP_USED)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC NO_ASSIMP)
+endif()
 
 #This is a preprocessor instruction required by glew to build as a static library
 #check the header glew.h for further informations
