@@ -33,8 +33,7 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	application/Application.h)
 
 
-string(SUBSTRING "${CMAKE_GENERATOR}" 0 13 VISUAL_STUDIO_DEF)
-if("${VISUAL_STUDIO_DEF}" STREQUAL "Visual Studio")
+if(MSVC)
 
 	add_library(${PROJECT_NAME} STATIC ${C7ENGINE_SOURCE_FILES})
 	
@@ -45,11 +44,13 @@ if("${VISUAL_STUDIO_DEF}" STREQUAL "Visual Studio")
 		${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/x64/glew32sd.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib)
 
-else() #for now only linux ubuntu
+elseif(LINUX)
 	set(UBUNTU_LIB_PATH /usr/lib/x86_64-linux-gnu)
 	add_library(${PROJECT_NAME} SHARED ${C7ENGINE_SOURCE_FILES})
 	target_link_libraries(${PROJECT_NAME} glfw GLEW ${UBUNTU_LIB_PATH}/libGL.so
 		${UBUNTU_LIB_PATH}/libassimp.so)
+else()
+	message(FATAL_ERROR "OS currently not supported")
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
