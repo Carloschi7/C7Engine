@@ -45,10 +45,12 @@ if(MSVC)
 		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib)
 
 elseif(LINUX)
-	set(UBUNTU_LIB_PATH /usr/lib/x86_64-linux-gnu)
+	#This was tested on some ubuntu distro, i am not exactly sure if the paths are the same
+	#for each distro
+	set(LINUX_LIB_PATH /usr/lib/x86_64-linux-gnu)
 	add_library(${PROJECT_NAME} SHARED ${C7ENGINE_SOURCE_FILES})
-	target_link_libraries(${PROJECT_NAME} glfw GLEW ${UBUNTU_LIB_PATH}/libGL.so
-		${UBUNTU_LIB_PATH}/libassimp.so)
+	target_link_libraries(${PROJECT_NAME} glfw GLEW ${LINUX_LIB_PATH}/libGL.so
+		${LINUX_LIB_PATH}/libassimp.so)
 else()
 	message(FATAL_ERROR "OS currently not supported")
 endif()
