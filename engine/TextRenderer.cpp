@@ -1,6 +1,15 @@
 #include "TextRenderer.h"
 #include <iostream>
 
+std::string GetPath(const char* path)
+{
+#ifndef SOLUTION_PATH
+	return std::string(path);
+#else
+	return std::string(SOLUTION_PATH) + path;
+#endif
+}
+
 TextRenderer::TextRenderer(const glm::vec2& canvas_resolution, u32 texture_binding) :
 	m_TextureBinding(texture_binding)
 {
@@ -19,8 +28,9 @@ TextRenderer::TextRenderer(const glm::vec2& canvas_resolution, u32 texture_bindi
 		-0.5f, 0.5f, m_NumStart.x, m_NumStart.y,
 	};
 
-	std::string texture_path = std::string(C7MACRO_ENGINE_PATH) + "/assets/textures/text_bitmap.png";
-	std::string shader_path = std::string(C7MACRO_ENGINE_PATH) + "/assets/shaders/texture_bitmap.shader";
+
+	std::string texture_path = GetPath("assets/textures/text_bitmap.png");
+	std::string shader_path	 = GetPath("assets/shaders/texture_bitmap.shader");
 
 	Layout lyt;
 	lyt.PushAttribute({ 2, GL_FLOAT, GL_FALSE, sizeof(f32) * 4, 0 });

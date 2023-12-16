@@ -66,7 +66,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 file(COPY assets/textures DESTINATION assets)
 file(COPY assets/shaders DESTINATION assets)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE C7MACRO_ENGINE_PATH="${CMAKE_CURRENT_LIST_DIR}")
+if(NOT DEFINED STANDALONE)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE SOLUTION_PATH="${CMAKE_CURRENT_LIST_DIR}/")
+endif()
 #Define a macro that wont include assimp files
 if(NOT ASSIMP_USED)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC NO_ASSIMP)
