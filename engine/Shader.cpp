@@ -57,6 +57,12 @@ void Shader::UniformMat4f(const glm::mat4& mat, const std::string& UniformName)
 	glUniformMatrix4fv(GetUniformLocation(UniformName), 1, GL_FALSE, &mat[0][0]);
 }
 
+void Shader::UniformVec2f(const glm::vec2& v, const std::string& UniformName)
+{
+	Use();
+	glUniform2f(GetUniformLocation(UniformName), v.x, v.y);
+}
+
 void Shader::UniformVec3f(const glm::vec3& v, const std::string& UniformName)
 {
 	Use();

@@ -24,6 +24,7 @@ public:
 	
 	void Use() const;
 	void UniformMat4f(const glm::mat4& mat, const std::string& UniformName);
+	void UniformVec2f(const glm::vec2& v, const std::string& UniformName);
 	void UniformVec3f(const glm::vec3& v, const std::string& UniformName);
 	void UniformVec4f(const glm::vec4& v, const std::string& UniformName);
 	void Uniform1i(int i, const std::string& UniformName);
