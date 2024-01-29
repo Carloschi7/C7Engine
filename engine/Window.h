@@ -85,6 +85,7 @@ public:
 
 	inline u32 Width() const { return m_Width; }
 	inline u32 Height() const { return m_Height; }
+	inline GLFWwindow* _Handle() { return m_Window; }
 
 private: //Callbacks
 	static void ScrollCallback(GLFWwindow* window, f64 offsetx, f64 offsety)
