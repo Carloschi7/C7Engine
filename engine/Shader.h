@@ -23,6 +23,7 @@ public:
 	Shader(Shader&& shd) noexcept;
 	~Shader();
 	
+	void Load(const std::string& filepath);
 	void Use() const;
 	void UniformMat4f(const glm::mat4& mat, const std::string& UniformName);
 	void UniformVec2f(const glm::vec2& v, const std::string& UniformName);

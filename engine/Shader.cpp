@@ -9,6 +9,26 @@ Shader::Shader() : is_loaded(false), m_programID(-1)
 
 Shader::Shader(const std::string& filepath)
 {
+	Load(filepath);
+}
+
+Shader::Shader(Shader&& shd) noexcept :
+	m_UniformBuffers(std::move(shd.m_UniformBuffers)),
+	m_UniformCache(std::move(shd.m_UniformCache))
+{
+	this->is_loaded = shd.is_loaded;
+	this->m_programID = shd.m_programID;
+	shd.m_programID = 0;
+}
+
+Shader::~Shader()
+{
+	DeleteUniformBuffers();
+	glDeleteProgram(m_programID);
+}
+
+void Shader::Load(const std::string& filepath)
+{
 	m_programID = glCreateProgram();
 
 	unsigned int vs, gs, fs;
@@ -30,21 +50,6 @@ Shader::Shader(const std::string& filepath)
 	glDeleteShader(vs);
 	if (IsGeomShaderDefined) glDeleteShader(gs);
 	glDeleteShader(fs);
-}
-
-Shader::Shader(Shader&& shd) noexcept :
-	m_UniformBuffers(std::move(shd.m_UniformBuffers)),
-	m_UniformCache(std::move(shd.m_UniformCache))
-{
-	this->is_loaded = shd.is_loaded;
-	this->m_programID = shd.m_programID;
-	shd.m_programID = 0;
-}
-
-Shader::~Shader()
-{
-	DeleteUniformBuffers();
-	glDeleteProgram(m_programID);
 }
 
 void Shader::Use() const

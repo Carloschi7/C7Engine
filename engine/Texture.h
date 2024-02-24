@@ -14,16 +14,19 @@ enum class TexFormat : u8 {Rgb8 = 0, Rgba8, DepthComponentf32};
 class Texture
 {
 public:
+	Texture();
 	Texture(const char* filepath, bool flipaxis = false, TextureFilter fmt = TextureFilter::Linear, u8 binding = 0);
 	Texture(const Texture&) = delete;
 	Texture(Texture&& tex) noexcept;
 	~Texture();
 
+	void Load(const char* filepath, bool flipaxis = false, TextureFilter fmt = TextureFilter::Linear, u8 binding = 0);
 	void Bind(unsigned int slot = 0) const;
 	//Useful if the texture has been temporarily unbound
 	static void ForceBind(unsigned int slot = 0);
 	u32 ID() const { return m_TextureID; }
 private:
+	bool is_loaded;
 	unsigned char* m_Data;
 	u32 m_TextureID;
 	s32 m_Width, m_Height, m_BPP;
