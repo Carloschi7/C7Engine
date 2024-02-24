@@ -3,13 +3,17 @@
 std::atomic<u32> Shader::s_CurrentlyBoundProgram = 0;
 std::atomic<u32> Shader::s_CurrentlyBoundUniformBuffer = 0;
 
+Shader::Shader() : is_loaded(false), m_programID(-1)
+{
+}
+
 Shader::Shader(const std::string& filepath)
 {
 	m_programID = glCreateProgram();
 
 	unsigned int vs, gs, fs;
 	std::string VertShader, GeomShader, FragShader;
-	LoadShadersFromFile(filepath, VertShader, GeomShader, FragShader);
+	is_loaded = LoadShadersFromFile(filepath, VertShader, GeomShader, FragShader);
 	bool IsGeomShaderDefined = !GeomShader.empty();
 
 	vs = SetupShader(VertShader, GL_VERTEX_SHADER);
@@ -32,6 +36,7 @@ Shader::Shader(Shader&& shd) noexcept :
 	m_UniformBuffers(std::move(shd.m_UniformBuffers)),
 	m_UniformCache(std::move(shd.m_UniformCache))
 {
+	this->is_loaded = shd.is_loaded;
 	this->m_programID = shd.m_programID;
 	shd.m_programID = 0;
 }
@@ -44,6 +49,7 @@ Shader::~Shader()
 
 void Shader::Use() const
 {
+	assert(is_loaded);
 	if (m_programID != s_CurrentlyBoundProgram)
 	{
 		glUseProgram(m_programID);
@@ -154,13 +160,15 @@ void Shader::ClearUniformCache()
 	m_UniformCache.clear();
 }
 
-void Shader::LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs)
+bool Shader::LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs)
 {
 	std::ifstream str(File);
 	if (!str.is_open())
 	{
 		std::cout << "could not open the file; (function):" << __FUNCTION__
 			<< "(line):" << __LINE__ << std::endl;
+
+		return false;
 	}
 
 	std::stringstream input[3];
@@ -193,6 +201,7 @@ void Shader::LoadShadersFromFile(const std::string& File, std::string& vs, std::
 	vs = input[0].str();
 	gs = input[1].str();
 	fs = input[2].str();
+	return true;
 }
 
 s32 Shader::GetUniformLocation(const std::string& UniformName) const

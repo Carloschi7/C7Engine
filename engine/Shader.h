@@ -17,6 +17,7 @@
 class Shader
 {
 public:
+	Shader();
 	Shader(const std::string& filepath);
 	Shader(const Shader&) = delete;
 	Shader(Shader&& shd) noexcept;
@@ -50,11 +51,12 @@ public:
 	s32 GetAttributeLocation(const std::string& attr_name);
 private:
 	void BindUniformBuffer(u32 ub_local_index);
-	void LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs);
+	bool LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs);
 	s32 GetUniformLocation(const std::string& UniformName) const;
 	int SetupShader(std::string& source, GLenum ShaderType);
 	void CheckShaderCompileStatus(u32 shader, GLenum ShaderType);
 private:
+	bool is_loaded;
 	u32 m_programID;
 	std::vector<u32> m_UniformBuffers;
 	//Uniform cache
