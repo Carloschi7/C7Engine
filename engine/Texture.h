@@ -24,7 +24,8 @@ public:
 	void Bind(unsigned int slot = 0) const;
 	//Useful if the texture has been temporarily unbound
 	static void ForceBind(unsigned int slot = 0);
-	u32 ID() const { return m_TextureID; }
+	inline u32 ID() const { return m_TextureID; }
+	inline bool IsLoaded() const { return is_loaded; }
 private:
 	bool is_loaded;
 	unsigned char* m_Data;
