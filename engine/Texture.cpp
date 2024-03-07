@@ -28,6 +28,9 @@ Texture::Texture(Texture&& tex) noexcept :
 
 Texture::~Texture()
 {
+	if (!is_loaded)
+		return;
+
 	glDeleteTextures(1, &m_TextureID);
 	if (m_Data) stbi_image_free(m_Data);
 }
