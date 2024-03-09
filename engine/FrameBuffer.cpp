@@ -1,11 +1,19 @@
 #include "FrameBuffer.h"
 #include "GL/glew.h"
 
-FrameBuffer::FrameBuffer(u32 width, u32 height, FrameBufferType type)
-	:m_Type(type)
+FrameBuffer::FrameBuffer() : is_loaded{ false }, m_Type{ FrameBufferType::COLOR_ATTACHMENT },
+	m_FrameBufferID{ 0 }, m_RenderBufferID{ 0 }, m_FrameBufferTextureID{ 0 }
+{
+}
+
+FrameBuffer::FrameBuffer(u32 width, u32 height, FrameBufferType type) : FrameBuffer()
+{
+	Load(width, height, type);
+}
+
+void FrameBuffer::Load(u32 width, u32 height, FrameBufferType type)
 {
 	glGenFramebuffers(1, &m_FrameBufferID);
-
 	glGenTextures(1, &m_FrameBufferTextureID);
 
 	switch (m_Type)
@@ -84,6 +92,7 @@ FrameBuffer::FrameBuffer(u32 width, u32 height, FrameBufferType type)
 
 	//Setting the drawing functions back to the main FrameBuffer (the screen by default)
 	FrameBuffer::BindDefault();
+	is_loaded = true;
 }
 
 FrameBuffer::FrameBuffer(FrameBuffer&& right) noexcept
