@@ -15,6 +15,7 @@ void FrameBuffer::Load(u32 width, u32 height, FrameBufferType type)
 {
 	glGenFramebuffers(1, &m_FrameBufferID);
 	glGenTextures(1, &m_FrameBufferTextureID);
+	m_Type = type;
 
 	switch (m_Type)
 	{
