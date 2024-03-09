@@ -21,6 +21,7 @@ public:
 	~Texture();
 
 	void Load(const char* filepath, bool flipaxis = false, TextureFilter fmt = TextureFilter::Linear, u8 binding = 0);
+	void GetWidthAndHeight(s32& width, s32& height);
 	void Bind(unsigned int slot = 0) const;
 	//Useful if the texture has been temporarily unbound
 	static void ForceBind(unsigned int slot = 0);

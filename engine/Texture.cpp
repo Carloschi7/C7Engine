@@ -74,6 +74,14 @@ void Texture::Load(const char* filepath, bool flipaxis, TextureFilter fmt, u8 bi
 	}
 }
 
+void Texture::GetWidthAndHeight(s32& width, s32& height)
+{
+	u32 mip_level = 0;
+	Bind();
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, mip_level, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, mip_level, GL_TEXTURE_HEIGHT, &height);
+}
+
 void Texture::Bind(unsigned int slot) const
 {
 	assert(is_loaded);
