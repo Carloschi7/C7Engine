@@ -78,7 +78,7 @@ void Texture::GetWidthAndHeight(s32& width, s32& height)
 {
 	u32 mip_level = 0;
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 5);
+	glBindTexture(GL_TEXTURE_2D, m_TextureID);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
 }
