@@ -72,15 +72,15 @@ void Texture::Load(const char* filepath, bool flipaxis, TextureFilter fmt, u8 bi
 	}
 }
 
-void Texture::GetWidthAndHeight(s32* width, s32* height)
+glm::ivec2 Texture::GetWidthAndHeight()
 {
-	if (!width || !height)
-		return;
-
+	glm::ivec2 ret{0};
 	u32 mip_level = 0;
+
 	Bind();
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, height);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ret.x);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &ret.y);
+	return ret;
 }
 
 void Texture::Bind(unsigned int slot) const

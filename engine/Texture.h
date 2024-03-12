@@ -4,6 +4,7 @@
 #include <fstream>
 #include "GL/glew.h"
 #include "VertexManager.h"
+#include <glm/glm.hpp>
 
 #define GLError "[OpenGL]: Error in file:" << __FILE__ << ", line:" << __LINE__ << "\n"
 
@@ -21,7 +22,7 @@ public:
 	~Texture();
 
 	void Load(const char* filepath, bool flipaxis = false, TextureFilter fmt = TextureFilter::Linear, u8 binding = 0);
-	void GetWidthAndHeight(s32* width, s32* height);
+	glm::ivec2 GetWidthAndHeight();
 	void Bind(unsigned int slot = 0) const;
 	inline u32 ID() const { return m_TextureID; }
 	inline bool IsLoaded() const { return is_loaded; }
