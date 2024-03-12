@@ -21,10 +21,8 @@ public:
 	~Texture();
 
 	void Load(const char* filepath, bool flipaxis = false, TextureFilter fmt = TextureFilter::Linear, u8 binding = 0);
-	void GetWidthAndHeight(s32& width, s32& height);
+	void GetWidthAndHeight(s32* width, s32* height);
 	void Bind(unsigned int slot = 0) const;
-	//Useful if the texture has been temporarily unbound
-	static void ForceBind(unsigned int slot = 0);
 	inline u32 ID() const { return m_TextureID; }
 	inline bool IsLoaded() const { return is_loaded; }
 private:
@@ -32,8 +30,6 @@ private:
 	unsigned char* m_Data;
 	u32 m_TextureID;
 	s32 m_Width, m_Height, m_BPP;
-
-	static u32 s_CurrentlyBoundTex;
 };
 
 class CubeMap

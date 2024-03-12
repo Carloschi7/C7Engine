@@ -6,8 +6,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-u32 Texture::s_CurrentlyBoundTex = 0;
-
 Texture::Texture() : is_loaded(false)
 {
 }
@@ -74,34 +72,25 @@ void Texture::Load(const char* filepath, bool flipaxis, TextureFilter fmt, u8 bi
 	}
 }
 
-void Texture::GetWidthAndHeight(s32& width, s32& height)
+void Texture::GetWidthAndHeight(s32* width, s32* height)
 {
+	if (!width || !height)
+		return;
+
 	u32 mip_level = 0;
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_TextureID);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+	Bind();
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, height);
 }
 
 void Texture::Bind(unsigned int slot) const
 {
 	assert(is_loaded);
-	if (s_CurrentlyBoundTex == m_TextureID)
-		return;
-
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, m_TextureID);
-	s_CurrentlyBoundTex = m_TextureID;
-}
-
-void Texture::ForceBind(unsigned int slot)
-{
-	glActiveTexture(GL_TEXTURE0 + slot);
-	glBindTexture(GL_TEXTURE_2D, s_CurrentlyBoundTex);
 }
 
 //CubeMap definitions
-
 CubeMap::CubeMap(const std::vector<std::string>& files, f32 fScalingFactor)
 	:m_Width(0), m_Height(0), m_TextureID(0), m_BPP(0), m_Data(nullptr)
 {
