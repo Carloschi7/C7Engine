@@ -21,6 +21,8 @@ if "%2" == "STANDALONE" (
 ) else (
 	cmake -DASSIMP_USED=%assimp_used% ..
 )
+
+msbuild C7Engine.sln /property:Configuration=Debug
 msbuild C7Engine.sln /property:Configuration=Release
 popd
 

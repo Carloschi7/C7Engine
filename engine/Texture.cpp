@@ -1,15 +1,40 @@
 #include "Texture.h"
 #include <utility>
 #include <string>
+#include <cassert>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
 #include "VertexManager.h"
 
-u32 Texture::s_CurrentlyBoundTex = 0;
+Texture::Texture() : is_loaded(false)
+{
+}
 
 Texture::Texture(const char* filepath, bool flipaxis, TextureFilter fmt, u8 binding)
+{
+	Load(filepath, flipaxis, fmt, binding);
+}
+
+Texture::Texture(Texture&& tex) noexcept :
+	m_Width(std::exchange(tex.m_Width, 0)),
+	m_Height(std::exchange(tex.m_Height, 0)),
+	m_BPP(std::exchange(tex.m_BPP, 0)),
+	m_Data(std::exchange(tex.m_Data, nullptr)),
+	m_TextureID(std::exchange(tex.m_TextureID, 0))
+{
+}
+
+Texture::~Texture()
+{
+	if (!is_loaded)
+		return;
+
+	glDeleteTextures(1, &m_TextureID);
+	if (m_Data) stbi_image_free(m_Data);
+}
+
+void Texture::Load(const char* filepath, bool flipaxis, TextureFilter fmt, u8 binding)
 {
 	glGenTextures(1, &m_TextureID);
 	glActiveTexture(GL_TEXTURE0 + binding);
@@ -29,55 +54,44 @@ Texture::Texture(const char* filepath, bool flipaxis, TextureFilter fmt, u8 bind
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		break;
 	}
-	
+
 
 	stbi_set_flip_vertically_on_load(flipaxis);
 	m_Data = stbi_load(filepath, &m_Width, &m_Height, &m_BPP, 4);
 
 	if (m_Data)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, 
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, m_Data);
+
+		is_loaded = true;
 	}
 	else
 	{
 		std::cout << GLError << "Failed to load texture\n";
+		is_loaded = false;
 	}
 }
 
-Texture::Texture(Texture&& tex) noexcept :
-	m_Width(std::exchange(tex.m_Width, 0)),
-	m_Height(std::exchange(tex.m_Height, 0)),
-	m_BPP(std::exchange(tex.m_BPP, 0)),
-	m_Data(std::exchange(tex.m_Data, nullptr)),
-	m_TextureID(std::exchange(tex.m_TextureID, 0))
+glm::ivec2 Texture::GetWidthAndHeight()
 {
-}
+	glm::ivec2 ret{0};
+	u32 mip_level = 0;
 
-Texture::~Texture()
-{
-	glDeleteTextures(1, &m_TextureID);
-	if (m_Data) stbi_image_free(m_Data);
+	Bind();
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ret.x);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &ret.y);
+	return ret;
 }
 
 void Texture::Bind(unsigned int slot) const
 {
-	if (s_CurrentlyBoundTex == m_TextureID)
-		return;
-
+	assert(is_loaded);
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, m_TextureID);
-	s_CurrentlyBoundTex = m_TextureID;
-}
-
-void Texture::ForceBind(unsigned int slot)
-{
-	glActiveTexture(GL_TEXTURE0 + slot);
-	glBindTexture(GL_TEXTURE_2D, s_CurrentlyBoundTex);
 }
 
 //CubeMap definitions
-
 CubeMap::CubeMap(const std::vector<std::string>& files, f32 fScalingFactor)
 	:m_Width(0), m_Height(0), m_TextureID(0), m_BPP(0), m_Data(nullptr)
 {

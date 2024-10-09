@@ -1,12 +1,21 @@
 #include "FrameBuffer.h"
 #include "GL/glew.h"
 
-FrameBuffer::FrameBuffer(u32 width, u32 height, FrameBufferType type)
-	:m_Type(type)
+FrameBuffer::FrameBuffer() : is_loaded{ false }, m_Type{ FrameBufferType::COLOR_ATTACHMENT },
+	m_FrameBufferID{ 0 }, m_RenderBufferID{ 0 }, m_FrameBufferTextureID{ 0 }
+{
+}
+
+FrameBuffer::FrameBuffer(u32 width, u32 height, FrameBufferType type) : FrameBuffer()
+{
+	Load(width, height, type);
+}
+
+void FrameBuffer::Load(u32 width, u32 height, FrameBufferType type)
 {
 	glGenFramebuffers(1, &m_FrameBufferID);
-
 	glGenTextures(1, &m_FrameBufferTextureID);
+	m_Type = type;
 
 	switch (m_Type)
 	{
@@ -16,7 +25,7 @@ FrameBuffer::FrameBuffer(u32 width, u32 height, FrameBufferType type)
 
 		//Setting up local framebuffer texture
 		glBindTexture(GL_TEXTURE_2D, m_FrameBufferTextureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -84,6 +93,7 @@ FrameBuffer::FrameBuffer(u32 width, u32 height, FrameBufferType type)
 
 	//Setting the drawing functions back to the main FrameBuffer (the screen by default)
 	FrameBuffer::BindDefault();
+	is_loaded = true;
 }
 
 FrameBuffer::FrameBuffer(FrameBuffer&& right) noexcept
