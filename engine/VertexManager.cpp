@@ -2,7 +2,7 @@
 #include <utility>
 #include <cstring>
 
-u32 VertexManager::s_VaoBinding = 0;
+u32 current_vao_binding;
 
 VertexManager::VertexManager()
 	:m_IndicesCount(0), m_AttribCount(0), m_SuccesfullyLoaded(false), m_HasIndices(false), m_ValuesCount(0),
@@ -189,11 +189,11 @@ void VertexManager::ClearBuffers()
 
 void VertexManager::BindVertexArray() const
 {
-	if (s_VaoBinding != m_VAO)
-	{
-		glBindVertexArray(m_VAO);
-		s_VaoBinding = m_VAO;
-	}
+	if (current_vao_binding == m_VAO)
+		return;
+	
+	glBindVertexArray(m_VAO);
+	current_vao_binding = m_VAO;
 }
 
 bool VertexManager::CheckStrideValidity(const Layout& l)

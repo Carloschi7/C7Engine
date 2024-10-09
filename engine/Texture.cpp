@@ -5,6 +5,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "VertexManager.h"
+
 u32 Texture::s_CurrentlyBoundTex = 0;
 
 Texture::Texture(const char* filepath, bool flipaxis, TextureFilter fmt, u8 binding)
@@ -82,14 +84,13 @@ CubeMap::CubeMap(const std::vector<std::string>& files, f32 fScalingFactor)
 	glGenTextures(1, &m_TextureID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_TextureID);
 
-	stbi_set_flip_vertically_on_load(true);
 	for (int i = 0; i < files.size(); i++)
 	{
 		m_Data = stbi_load(files[i].c_str(), &m_Width, &m_Height, &m_BPP, 3);
 
 		if (m_Data)
 		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8,
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
 				m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_Data);
 
 			
@@ -110,7 +111,7 @@ CubeMap::CubeMap(const std::vector<std::string>& files, f32 fScalingFactor)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	//Cubemap buffer data
-	f32 skyboxVertices[] = {
+	float skyboxVertices[] = {
 		// positions          
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
@@ -189,7 +190,13 @@ void CubeMap::BindTexture(u32 slot)
 
 void CubeMap::BindVertexArray() const
 {
+	extern u32 current_vao_binding;
+	u32 vao = m_VertexManager.GetVertexArray();
+	if (current_vao_binding == vao)
+		return;
+
 	glBindVertexArray(m_VertexManager.GetVertexArray());
+	current_vao_binding = vao;
 }
 
 void DumpTexture(const std::string& filepath, const void* data, u32 width, u32 height, TexFormat format)

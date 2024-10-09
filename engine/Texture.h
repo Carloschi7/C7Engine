@@ -51,5 +51,16 @@ private:
 	VertexManager m_VertexManager;
 };
 
+/*
+*	USAGE EXAMPLE
+* 	if (window->IsKeyboardEvent({ GLFW_KEY_M, GLFW_PRESS })) {
+		f32* buf = new float[texture_width * texture_height];
+		std::memset(buf, 0, texture_width * texture_height * sizeof(f32));
+		texture.Bind();
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, buf);
+		DumpTexture("output.ppm", buf, texture_width, texture_height, TexFormat::Rgb8);
+		delete[] buf;
+	}
+*/
 void DumpTexture(const std::string& filepath, const void* data, u32 width, u32 height, TexFormat format);
 void DumpTexture_PPM(std::ofstream& file, const void* data, u32 width, u32 height, TexFormat format);

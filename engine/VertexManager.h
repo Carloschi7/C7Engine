@@ -88,6 +88,4 @@ private:
 	//For extra instanced data
 	std::vector<u32> m_AdditionalBuffers;
 	std::map<u32, void*> m_BufferPointers;
-
-	static u32 s_VaoBinding;
 };
