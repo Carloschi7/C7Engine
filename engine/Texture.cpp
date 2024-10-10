@@ -204,7 +204,7 @@ void CubeMap::BindTexture(u32 slot)
 
 void CubeMap::BindVertexArray() const
 {
-	extern u32 current_vao_binding;
+	extern std::atomic<u32> current_vao_binding;
 	u32 vao = m_VertexManager.GetVertexArray();
 	if (current_vao_binding == vao)
 		return;

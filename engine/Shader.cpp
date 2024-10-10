@@ -1,7 +1,6 @@
 #include "Shader.h"
 
-std::atomic<u32> Shader::s_CurrentlyBoundProgram = 0;
-std::atomic<u32> Shader::s_CurrentlyBoundUniformBuffer = 0;
+
 
 Shader::Shader() : is_loaded(false), m_programID(-1)
 {
@@ -54,11 +53,12 @@ void Shader::Load(const std::string& filepath)
 
 void Shader::Use() const
 {
+	extern std::atomic<u32> currently_bound_program;
 	assert(is_loaded);
-	if (m_programID != s_CurrentlyBoundProgram)
+	if (m_programID != currently_bound_program)
 	{
 		glUseProgram(m_programID);
-		s_CurrentlyBoundProgram = m_programID;
+		currently_bound_program = m_programID;
 	}
 }
 
@@ -132,11 +132,12 @@ s32 Shader::GetAttributeLocation(const std::string& attr_name)
 
 void Shader::BindUniformBuffer(u32 ub_local_index)
 {
+	extern std::atomic<u32> currently_bound_uniform_buffer;
 	u32 buf = m_UniformBuffers[ub_local_index];
-	if (buf != s_CurrentlyBoundUniformBuffer)
+	if (buf != currently_bound_uniform_buffer)
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBuffers[ub_local_index]);
-		s_CurrentlyBoundUniformBuffer = buf;
+		currently_bound_uniform_buffer = buf;
 	}
 }
 

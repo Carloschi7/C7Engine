@@ -12,6 +12,7 @@ endif()
 set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/Camera.h 
 	engine/Camera.cpp
+	engine/CurrentBindings.cpp
 	engine/Entity.h 
 	engine/Entity.cpp
 	engine/FrameBuffer.h 

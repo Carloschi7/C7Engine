@@ -62,7 +62,4 @@ private:
 	std::vector<u32> m_UniformBuffers;
 	//Uniform cache
 	mutable std::unordered_map<std::string, s32> m_UniformCache;
-	//Static var used to make Use function way faster
-	static std::atomic<u32> s_CurrentlyBoundProgram;
-	static std::atomic<u32> s_CurrentlyBoundUniformBuffer;
 };
