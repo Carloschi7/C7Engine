@@ -13,6 +13,8 @@
 #include "VertexManager.h"
 #include "Window.h"
 #include <functional>
+#include <format>
+
 
 #define FlushErrors() while(glGetError() != GL_NO_ERROR)
 #define ER(x) FlushErrors();\
@@ -22,9 +24,9 @@ while(GLenum e = glGetError())\
 	std::cout << "Error at line " << __LINE__ << ": " << e << std::endl;\
 }
 
-#define log(x) std::cout << x;
+#define log_message(msg, ...) std::cout << std::format(msg, __VA_ARGS__);
 #define assert(x, msg) if(!(x)) {\
-        log("[ASSERTION FAILED]: " << __FILE__ << " " << __LINE__ << '\n' << msg);\
+        log_message("[ASSERTION FAILED]: in file: {}, on line: {}, msg: {}", __FILE__, __LINE__, msg);\
         *(int*)0 = 0;\
     }
 

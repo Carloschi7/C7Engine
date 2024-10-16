@@ -185,8 +185,8 @@ ShaderSource Shader::LoadShadersFromFile(const std::string& file)
     auto get_next_line = [](FILE* file, char* buffer) ->FileParseResult {
         char ch;
         FileParseResult res = {};
-        while((ch = fgetc(file)) != '\n'){
-            if(ch == EOF){
+        while((ch = fgetc(file)) != '\n') {
+            if(ch == EOF) {
                 res.is_eof = true;
                 break;
             }
@@ -198,7 +198,7 @@ ShaderSource Shader::LoadShadersFromFile(const std::string& file)
         return res;
     };
 
-    auto string_compare = [](const char* str1, const char* str2, u32 size) -> bool {
+    auto strings_match = [](const char* str1, const char* str2, u32 size) -> bool {
         for(u32 i = 0; i < size; i++) {
             if(str1[i] != str2[i]) {
                 return false;
@@ -212,22 +212,22 @@ ShaderSource Shader::LoadShadersFromFile(const std::string& file)
     std::string* current_shader_source = nullptr;
     FileParseResult parse_result = {};
 
-    char vertex_shader_signature[] = "#shader vertex";
+    char vertex_shader_signature[]   = "#shader vertex";
     char geometry_shader_signature[] = "#shader geometry";
     char fragment_shader_signature[] = "#shader fragment";
 
     while(!parse_result.is_eof) {
         parse_result = get_next_line(file_handle, current_line);
 
-        if(string_compare(current_line, vertex_shader_signature, sizeof(vertex_shader_signature) - 1)) {
+        if(strings_match(current_line, vertex_shader_signature, sizeof(vertex_shader_signature) - 1)) {
             current_shader_source = &shader_source.vertex_shader_source;
             continue;
         }
-        if(string_compare(current_line, geometry_shader_signature, sizeof(geometry_shader_signature) - 1)) {
+        if(strings_match(current_line, geometry_shader_signature, sizeof(geometry_shader_signature) - 1)) {
             current_shader_source = &shader_source.geometry_shader_source;
             continue;
         }
-        if(string_compare(current_line, fragment_shader_signature, sizeof(fragment_shader_signature) - 1)) {
+        if(strings_match(current_line, fragment_shader_signature, sizeof(fragment_shader_signature) - 1)) {
             current_shader_source = &shader_source.fragment_shader_source;
             continue;
         }
