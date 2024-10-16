@@ -14,7 +14,7 @@ struct LayoutElement
 	size_t offset;
 };
 
-//Example of an attribute structure => { 3, GL_FLOAT, GL_FALSE, sizeof(f32) * 3, 0 }
+//TODO (C7): make this obsolete pls
 class Layout
 {
 public:
@@ -26,6 +26,22 @@ public:
 	const std::vector<LayoutElement>& GetAttributes() const { return vec; }
 private:
 	std::vector<LayoutElement> vec;
+};
+
+struct VertexLayout
+{
+    void add_attribute(const LayoutElement& element){
+        if(!elements){
+            elements = new LayoutElement[5];
+            max_elements = 5;
+        }
+
+        elements[max_elements++] = element;
+    }
+
+    u32 current_slot = 0;
+    u32 max_elements = 0;
+    LayoutElement* elements = nullptr;
 };
 
 class VertexManager

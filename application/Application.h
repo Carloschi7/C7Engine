@@ -19,17 +19,17 @@ private:
 		f32 fScalar = 0.6f;
 
 		if (window.IsKeyboardEvent({GLFW_KEY_W, GLFW_PRESS}))
-			camera->MoveTowardsFront(fScalar * time);
+			camera->MoveTowardsFront(fScalar * (f32)time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_S, GLFW_PRESS }))
-			camera->MoveTowardsFront(-fScalar * time);
+			camera->MoveTowardsFront(-fScalar * (f32)time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_A, GLFW_PRESS }))
-			camera->StrafeX(-fScalar * time);
+			camera->StrafeX(-fScalar * (f32)time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_D, GLFW_PRESS }))
-			camera->StrafeX(fScalar * time);
+			camera->StrafeX(fScalar * (f32)time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_E, GLFW_PRESS }))
-			camera->StrafeY(fScalar * time);
+			camera->StrafeY(fScalar * (f32)time);
 		if (window.IsKeyboardEvent({ GLFW_KEY_C, GLFW_PRESS }))
-			camera->StrafeY(-fScalar * time);
+			camera->StrafeY(-fScalar * (f32)time);
 	}
 
 	static void MouseForCameraFun(const Window& window, Camera* camera, f64 x, f64 y, f64 dpi, f64 time)

@@ -12,6 +12,7 @@
 #include "Texture.h"
 #include "VertexManager.h"
 #include "Window.h"
+#include <functional>
 
 #define FlushErrors() while(glGetError() != GL_NO_ERROR)
 #define ER(x) FlushErrors();\
@@ -20,3 +21,30 @@ while(GLenum e = glGetError())\
 {\
 	std::cout << "Error at line " << __LINE__ << ": " << e << std::endl;\
 }
+
+#define log(x) std::cout << x;
+#define assert(x, msg) if(!(x)) {\
+        log("[ASSERTION FAILED]: " << __FILE__ << " " << __LINE__ << '\n' << msg);\
+        *(int*)0 = 0;\
+    }
+
+#ifndef defer
+
+struct DeferObject
+{
+	template<class... _Args, std::enable_if_t<std::is_constructible_v<std::function<void()>, _Args...>, int>  = 0>
+	DeferObject(_Args&&... args) :_func(std::forward<_Args>(args)...) {}
+	DeferObject(std::function<void()> func) : _func(func) {}
+	~DeferObject() {
+		_func();
+	}
+
+	std::function<void()> _func;
+};
+
+#define STR(x) #x
+#define CONCAT(a, b, c) a##b##c
+#define CONCAT_WITH(name, line) CONCAT(name, line)
+#define defer DeferObject CONCAT_WITH(__internal_defer_obj_, __LINE__) = [&]()
+
+#endif

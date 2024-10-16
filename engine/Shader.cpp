@@ -31,23 +31,26 @@ void Shader::Load(const std::string& filepath)
 	m_programID = glCreateProgram();
 
 	unsigned int vs, gs, fs;
-	std::string VertShader, GeomShader, FragShader;
-	is_loaded = LoadShadersFromFile(filepath, VertShader, GeomShader, FragShader);
-	bool IsGeomShaderDefined = !GeomShader.empty();
+	auto shader_source = LoadShadersFromFile(filepath);
+	is_loaded = shader_source.initialized;
 
-	vs = SetupShader(VertShader, GL_VERTEX_SHADER);
-	if (IsGeomShaderDefined) gs = SetupShader(GeomShader, GL_GEOMETRY_SHADER);
-	fs = SetupShader(FragShader, GL_FRAGMENT_SHADER);
+	if(!is_loaded) return;
+
+	bool geometry_shader_defined = !shader_source.geometry_shader_source.empty();
+
+	vs = SetupShader(shader_source.vertex_shader_source, GL_VERTEX_SHADER);
+	if (geometry_shader_defined) gs = SetupShader(shader_source.geometry_shader_source, GL_GEOMETRY_SHADER);
+	fs = SetupShader(shader_source.fragment_shader_source, GL_FRAGMENT_SHADER);
 
 	glAttachShader(m_programID, vs);
-	if (IsGeomShaderDefined) glAttachShader(m_programID, gs);
+	if (geometry_shader_defined) glAttachShader(m_programID, gs);
 	glAttachShader(m_programID, fs);
 
 	glLinkProgram(m_programID);
 	glValidateProgram(m_programID);
 
 	glDeleteShader(vs);
-	if (IsGeomShaderDefined) glDeleteShader(gs);
+	if (geometry_shader_defined) glDeleteShader(gs);
 	glDeleteShader(fs);
 }
 
@@ -166,48 +169,79 @@ void Shader::ClearUniformCache()
 	m_UniformCache.clear();
 }
 
-bool Shader::LoadShadersFromFile(const std::string& File, std::string& vs, std::string& gs, std::string& fs)
+ShaderSource Shader::LoadShadersFromFile(const std::string& file)
 {
-	std::ifstream str(File);
-	if (!str.is_open())
-	{
-		std::cout << "could not open the file; (function):" << __FUNCTION__
-			<< "(line):" << __LINE__ << std::endl;
+    ShaderSource shader_source = {};
+    FILE* file_handle = nullptr;
+    fopen_s(&file_handle, file.c_str(), "r");
 
-		return false;
-	}
+    if(!file_handle){
+        shader_source.initialized = false;
+        return shader_source;
+    }
 
-	std::stringstream input[3];
-	int index = -1;
-	std::string line;
-	while (std::getline(str, line))
-	{
-		if (line.find("#shader vertex") != std::string::npos)
-		{
-			index = 0;
-			continue;
-		}
+    const u32 max_chars_on_the_same_line = 512;
 
-		if (line.find("#shader geometry") != std::string::npos)
-		{
-			index = 1;
-			continue;
-		}
+    auto get_next_line = [](FILE* file, char* buffer) ->FileParseResult {
+        char ch;
+        FileParseResult res = {};
+        while((ch = fgetc(file)) != '\n'){
+            if(ch == EOF){
+                res.is_eof = true;
+                break;
+            }
 
-		if (line.find("#shader fragment") != std::string::npos)
-		{
-			index = 2;
-			continue;
-		}
+            assert(res.index < max_chars_on_the_same_line, "shader lines are too long");
+            buffer[res.index++] = ch;
+        }
 
-		input[index] << line << "\n";
+        return res;
+    };
 
-	}
+    auto string_compare = [](const char* str1, const char* str2, u32 size) -> bool {
+        for(u32 i = 0; i < size; i++) {
+            if(str1[i] != str2[i]) {
+                return false;
+            }
+        }
 
-	vs = input[0].str();
-	gs = input[1].str();
-	fs = input[2].str();
-	return true;
+        return true;
+    };
+
+    char current_line[max_chars_on_the_same_line] = {};
+    std::string* current_shader_source = nullptr;
+    FileParseResult parse_result = {};
+
+    char vertex_shader_signature[] = "#shader vertex";
+    char geometry_shader_signature[] = "#shader geometry";
+    char fragment_shader_signature[] = "#shader fragment";
+
+    while(!parse_result.is_eof) {
+        parse_result = get_next_line(file_handle, current_line);
+
+        if(string_compare(current_line, vertex_shader_signature, sizeof(vertex_shader_signature) - 1)) {
+            current_shader_source = &shader_source.vertex_shader_source;
+            continue;
+        }
+        if(string_compare(current_line, geometry_shader_signature, sizeof(geometry_shader_signature) - 1)) {
+            current_shader_source = &shader_source.geometry_shader_source;
+            continue;
+        }
+        if(string_compare(current_line, fragment_shader_signature, sizeof(fragment_shader_signature) - 1)) {
+            current_shader_source = &shader_source.fragment_shader_source;
+            continue;
+        }
+
+        assert(current_shader_source, "the pointer should be defined by now, check the shader implementation");
+
+        if(parse_result.index != 0) {
+            current_shader_source->append(current_line, parse_result.index);
+            current_shader_source->append("\n", 1);
+        }
+    }
+
+    shader_source.initialized = true;
+    return shader_source;
 }
 
 s32 Shader::GetUniformLocation(const std::string& UniformName) const
@@ -246,7 +280,7 @@ void Shader::CheckShaderCompileStatus(u32 shader, GLenum ShaderType)
 	{
 		char ErrorMsg[400];
 		glGetShaderInfoLog(shader, 400, nullptr, ErrorMsg);
-		
+
 		std::string ShaderName;
 		switch (ShaderType)
 		{
