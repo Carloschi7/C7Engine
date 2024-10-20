@@ -1,7 +1,7 @@
-# C7Engine
+# C7Engine - 2024/2025 rewrite
 Mini library used to process basic 2D/3D rendering (uses OpenGL)
 
-## Building on Windows + Visual Studio 
+## Building on Windows + Visual Studio
 
 For now the engine on Windows is only available in 32bits due to some problems during development,
 this will be fixed soon
@@ -27,7 +27,7 @@ Steps with GUI: ("C:/Engine" will be just a placeholder dir, feel free to use a 
 
 
 
-3)Click Configure and set the project platform to Win32 when the popup window appears (this step is fundamental, 
+3)Click Configure and set the project platform to Win32 when the popup window appears (this step is fundamental,
 	because a x64 Visual Studio project won't link against 32 bit libs), then click Generate
 
 
