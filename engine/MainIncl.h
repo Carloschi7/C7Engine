@@ -58,7 +58,7 @@ struct MakeCallable
     }
 };
 
-MakeCallable __make_callable_util;
+inline MakeCallable __make_callable_util;
 
 #define STRINGIFY(x) #x
 #define CONCAT(a, b) a##b
