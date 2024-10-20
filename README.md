@@ -1,4 +1,4 @@
-# C7Engine -- 2022/2023 Minecraft Clone version
+# C7Engine -- 2024/2025 rewrite
 Mini library used to process basic 2D/3D rendering (uses OpenGL)
 
 ## Building on Windows + Visual Studio
