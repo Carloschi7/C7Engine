@@ -2,6 +2,7 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include "GL/glew.h"
 #include "Shader.h"
 #include "VertexManager.h"
@@ -32,7 +33,7 @@ public:
 
 	*/
 	void DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* positions);
-	
+
 	void SetVertexManager(const VertexManager& vm);
 	void Rotate(f32 fRadians, const glm::vec3& dir);
 	void Translate(const glm::vec3& dir);

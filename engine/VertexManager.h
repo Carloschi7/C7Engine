@@ -28,21 +28,32 @@ private:
 	std::vector<LayoutElement> vec;
 };
 
-struct VertexLayout
+namespace gfx
 {
-    void add_attribute(const LayoutElement& element){
-        if(!elements){
-            elements = new LayoutElement[5];
-            max_elements = 5;
-        }
+    //TODO(C7) implemented in the new engine version
+    struct SimpleMesh;
 
-        elements[max_elements++] = element;
-    }
+    SimpleMesh create_mesh(const f32* verts, u32 verts_size);
+    SimpleMesh create_mesh_and_push_attributes(const f32* verts, u32 verts_size, const LayoutElement* elements, u32 elements_size);
+    SimpleMesh create_mesh_with_indices(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size);
+    SimpleMesh create_mesh_with_indices_and_push_attributes(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size,
+        const LayoutElement* elements, u32 elements_size);
+    void       push_mesh_attribute(SimpleMesh* mesh, LayoutElement& element);
+    void       cleanup_mesh(SimpleMesh* mesh);
 
-    u32 current_slot = 0;
-    u32 max_elements = 0;
-    LayoutElement* elements = nullptr;
-};
+    /*
+
+    TARGET USAGE:
+
+        auto triangle_mesh = create_mesh(verts, sizeof(verts));
+        defer {
+            cleanup_mesh(&triangle_mesh);
+        };
+
+        push_mesh_attribute(&triangle_mesh, {2, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), 0});
+        push_mesh_attribute(&triangle_mesh, {2, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), 2 * sizeof(f32)});
+    */
+}
 
 class VertexManager
 {

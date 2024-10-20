@@ -192,7 +192,7 @@ void VertexManager::BindVertexArray() const
 	extern std::atomic<u32> current_vao_binding;
 	if (current_vao_binding == m_VAO)
 		return;
-	
+
 	glBindVertexArray(m_VAO);
 	current_vao_binding = m_VAO;
 }

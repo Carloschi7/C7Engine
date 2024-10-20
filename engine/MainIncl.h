@@ -12,7 +12,6 @@
 #include "Texture.h"
 #include "VertexManager.h"
 #include "Window.h"
-#include <functional>
 #include <format>
 
 
@@ -24,7 +23,12 @@ while(GLenum e = glGetError())\
 	std::cout << "Error at line " << __LINE__ << ": " << e << std::endl;\
 }
 
-#define log_message(msg, ...) std::cout << std::format(msg, __VA_ARGS__);
+#define log_message(msg, ...) std::cout << std::format(msg, __VA_ARGS__)
+
+#ifdef assert
+#   undef assert
+#endif
+
 #define assert(x, msg) if(!(x)) {\
         log_message("[ASSERTION FAILED]: in file: {}, on line: {}, msg: {}", __FILE__, __LINE__, msg);\
         *(int*)0 = 0;\
@@ -32,21 +36,34 @@ while(GLenum e = glGetError())\
 
 #ifndef defer
 
-struct DeferObject
-{
-	template<class... _Args, std::enable_if_t<std::is_constructible_v<std::function<void()>, _Args...>, int>  = 0>
-	DeferObject(_Args&&... args) :_func(std::forward<_Args>(args)...) {}
-	DeferObject(std::function<void()> func) : _func(func) {}
-	~DeferObject() {
-		_func();
-	}
+//If defer is already defined, the implementation should be very similar
 
-	std::function<void()> _func;
+template<class T>
+struct Callable
+{
+    Callable(T&& _func) : func(_func) {}
+    ~Callable() {func();}
+
+    const T func;
 };
 
-#define STR(x) #x
-#define CONCAT(a, b, c) a##b##c
-#define CONCAT_WITH(name, line) CONCAT(name, line)
-#define defer DeferObject CONCAT_WITH(__internal_defer_obj_, __LINE__) = [&]()
+//This exist as a mean to provide the clean defer call defer{}; without
+//having to put up with multiple closing bracklets
+struct MakeCallable
+{
+    template<class T>
+    Callable<T> operator<<(T&& lambda)
+    {
+        return Callable<T>(std::forward<T>(lambda));
+    }
+};
+
+MakeCallable __make_callable_util;
+
+#define STRINGIFY(x) #x
+#define CONCAT(a, b) a##b
+#define CONCAT_WITH(a, b) CONCAT(a, b)
+#define defer auto CONCAT_WITH(callable_, __LINE__) = __make_callable_util << [&]()
+
 
 #endif

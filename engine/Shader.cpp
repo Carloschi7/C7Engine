@@ -236,6 +236,7 @@ ShaderSource Shader::LoadShadersFromFile(const std::string& file)
 
         if(parse_result.index != 0) {
             current_shader_source->append(current_line, parse_result.index);
+            //We dont wanna write the \0 aswell otherwise OpenGL will load the shader improperly
             current_shader_source->append("\n", 1);
         }
     }
