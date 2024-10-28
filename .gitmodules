@@ -1,0 +1,3 @@
+[sumbmodule "assimp"]
+    path = Dependencies/assimp
+    url = https://github.com/assimp/assimp.git
