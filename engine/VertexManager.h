@@ -9,7 +9,7 @@ struct LayoutElement
 {
 	s32 count;
 	GLenum type;
-	GLboolean bNormalized;
+	GLboolean normalized;
 	size_t stride;
 	size_t offset;
 };
@@ -31,15 +31,24 @@ private:
 namespace gfx
 {
     //TODO(C7) implemented in the new engine version
-    struct SimpleMesh;
+    struct VertexMesh
+    {
+        u32 vertex_buffer;
+        u32 index_buffer;
+        u32 vertex_array;
 
-    SimpleMesh create_mesh(const f32* verts, u32 verts_size);
-    SimpleMesh create_mesh_and_push_attributes(const f32* verts, u32 verts_size, const LayoutElement* elements, u32 elements_size);
-    SimpleMesh create_mesh_with_indices(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size);
-    SimpleMesh create_mesh_with_indices_and_push_attributes(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size,
-        const LayoutElement* elements, u32 elements_size);
-    void       push_mesh_attribute(SimpleMesh* mesh, LayoutElement& element);
-    void       cleanup_mesh(SimpleMesh* mesh);
+        u32 indices_count;
+    };
+
+    VertexMesh create_mesh(const f32* verts, u32 verts_size);
+    VertexMesh create_mesh_and_push_attributes(const f32* verts, u32 verts_size, const LayoutElement* attributes, u32 attributes_size);
+    VertexMesh create_mesh_with_indices(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size);
+    VertexMesh create_mesh_with_indices_and_push_attributes(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size, const LayoutElement* attributes, u32 attributes_size);
+    void       push_mesh_attributes(VertexMesh* mesh, const LayoutElement* attributes, u32 attributes_size, u32 staring_index = 0);
+    void       bind_vertex_buffer(const VertexMesh& mesh);
+    void       bind_index_buffer(const VertexMesh& mesh);
+    void       bind_vertex_array(const VertexMesh& mesh);
+    void       cleanup_mesh(VertexMesh* mesh);
 
     /*
 
@@ -55,6 +64,7 @@ namespace gfx
     */
 }
 
+//Not obsolete yet, creating a new API which will attempt to be more solid
 class VertexManager
 {
 public:

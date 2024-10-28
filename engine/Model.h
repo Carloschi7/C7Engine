@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 
+#define ASSIMP_STATIC_LIB
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -9,6 +11,48 @@
 #include "Shader.h"
 #include "VertexManager.h"
 #include "Texture.h"
+
+namespace gfx
+{
+    static constexpr u32 max_bone_movement_per_vertex = 4;
+
+    struct ModelData
+    {
+        VertexMesh mesh_data;
+        u32 mesh_count;
+        u32 vertex_weight_buffer;
+        //INFO: we try to store all vertex/index data in a single vertex/index buffer,
+        //then we render all the meshes in separate drawcalls depeding on their offsets
+        //in the global buffer
+        u32* vertex_divisors;
+        u32* index_divisors;
+
+        //TODO(C7) probably also rewriting texture is better
+        Texture* textures;
+
+        bool initialized;
+    };
+
+    struct VertexWeight
+    {
+        u32 vertex_id;
+        u32 bone_count;
+        u32 bone_id[max_bone_movement_per_vertex];
+        f32 bone_weight[max_bone_movement_per_vertex];
+    };
+
+	ModelData model_create(const char* filepath, bool load_textures);
+	void model_load_textures(ModelData& data, std::string* texture_locations, u32 locations_count);
+	void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform);
+	void model_get_count_of_vertices_and_indices(const aiScene* scene, u32* num_vertices, u32* num_indices);
+	bool model_mesh_has_weights(const aiMesh* mesh);
+	void model_print_tree_transformations(const aiNode* node, const std::string& tabspace = "");
+
+	void model_parse_bones(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count);
+
+	void model_cleanup(ModelData* mesh);
+}
+
 
 struct Mesh
 {

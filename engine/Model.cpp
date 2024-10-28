@@ -1,4 +1,283 @@
+#include "MainIncl.h"
 #include "Model.h"
+
+namespace gfx
+{
+
+	ModelData model_create(const char* filepath, bool load_textures)
+	{
+		//ATM using assimp to load the model, prob writing my own parser soon
+		ModelData model_data = {};
+
+		Assimp::Importer importer;
+		u32 assimp_flags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_LimitBoneWeights;
+		const aiScene* scene = importer.ReadFile(filepath, assimp_flags);
+
+        //TEMP(DEBUG)
+        model_print_tree_transformations(scene->mRootNode);
+
+		defer {
+		    importer.FreeScene();
+		};
+
+		if (!scene) {
+			log_message("the given model was not found by the loader\n");
+			model_data.initialized = false;
+			return model_data;
+		}
+
+		//TEMP: loading just the first mesh
+		model_data.mesh_count = scene->mNumMeshes;
+
+
+		u32 vertices_count = 0;
+		u32 indices_count = 0;
+		const u32 vertex_stride = 8;
+
+		model_get_count_of_vertices_and_indices(scene, &vertices_count, &indices_count);
+
+        f32* vertices = new f32[vertices_count * vertex_stride];
+        VertexWeight* vertices_weight = new VertexWeight[vertices_count];
+        std::memset(vertices_weight, 0, vertices_count * sizeof(VertexWeight));
+		u32* indices = new u32[indices_count * 3];
+
+        model_data.vertex_divisors = new u32[scene->mNumMeshes];
+        model_data.index_divisors = new u32[scene->mNumMeshes];
+
+		defer {
+				delete[] vertices;
+				delete[] indices;
+				delete[] vertices_weight;
+		};
+
+        u32 vertices_parsed_so_far = 0;
+        u32 indices_parsed_so_far  = 0;
+
+
+		for (u32 i = 0; i < model_data.mesh_count; i++) {
+			const aiMesh* mesh = scene->mMeshes[i];
+
+
+            bool has_normals = mesh->mNormals;
+            bool has_tex_coords = mesh->mTextureCoords[0];
+            aiVector3D zero_vector = { 0.0f, 0.0f, 0.0f };
+
+			for (u32 j = 0; j < mesh->mNumVertices; j++) {
+				const u32 base_index = (vertices_parsed_so_far + j) * vertex_stride;
+
+				auto vec = mesh->mVertices[j];
+				vertices[base_index + 0] = vec.x;
+				vertices[base_index + 1] = vec.y;
+				vertices[base_index + 2] = vec.z;
+
+				vec = has_normals ? mesh->mNormals[j] : zero_vector;
+				vertices[base_index + 3] = vec.x;
+				vertices[base_index + 4] = vec.y;
+				vertices[base_index + 5] = vec.z;
+
+				vec = has_tex_coords ? mesh->mTextureCoords[0][j] : zero_vector;
+				vertices[base_index + 6] = vec.x;
+				vertices[base_index + 7] = vec.y;
+			}
+
+            u32 current_mesh_indices = 0;
+			for (u32 j = 0; j < mesh->mNumFaces; j++) {
+				const aiFace& face = mesh->mFaces[j];
+				for (u32 k = 0; k < face.mNumIndices; k++) {
+				    const u32 relative_index = (indices_parsed_so_far + j * 3) + k;
+					indices[relative_index] = face.mIndices[k];
+				}
+				current_mesh_indices += face.mNumIndices;
+			}
+
+            if(model_mesh_has_weights(mesh)) {
+                VertexWeight* vertices_weight_current = vertices_weight + vertices_parsed_so_far;
+                model_parse_bones(mesh, vertices_weight_current, mesh->mNumVertices);
+    			std::sort(vertices_weight_current, vertices_weight_current + mesh->mNumVertices,
+    			[](const VertexWeight& first, const VertexWeight& second) {return first.vertex_id < second.vertex_id;});
+			}
+
+			model_data.vertex_divisors[i] = vertices_parsed_so_far;
+			model_data.index_divisors[i]  = current_mesh_indices;
+
+			vertices_parsed_so_far += mesh->mNumVertices;
+			indices_parsed_so_far  += current_mesh_indices;
+		}
+		model_data.mesh_data.indices_count = indices_count;
+
+		//Position, normals, texcoords
+		LayoutElement attributes[3] = {
+			{ 3, GL_FLOAT, GL_FALSE, vertex_stride * sizeof(f32), 0 },
+			{ 3, GL_FLOAT, GL_FALSE, vertex_stride * sizeof(f32), 3 * sizeof(f32) },
+			{ 2, GL_FLOAT, GL_FALSE, vertex_stride * sizeof(f32), 6 * sizeof(f32) },
+		};
+
+		LayoutElement weight_attributes[3] = {
+			{ 1, GL_UNSIGNED_INT, 0, sizeof(VertexWeight), offsetof(VertexWeight, bone_count) },
+			{ 4, GL_UNSIGNED_INT, 0, sizeof(VertexWeight), offsetof(VertexWeight, bone_id) },
+			{ 4, GL_FLOAT, GL_FALSE, sizeof(VertexWeight), offsetof(VertexWeight, bone_weight) },
+		};
+
+        model_data.mesh_data = gfx::create_mesh_with_indices_and_push_attributes(vertices, vertices_count * vertex_stride * sizeof(f32),
+            indices, indices_count * sizeof(u32), attributes, sizeof(attributes));
+
+        glGenBuffers(1, &model_data.vertex_weight_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, model_data.vertex_weight_buffer);
+        glBufferData(GL_ARRAY_BUFFER, vertices_count * sizeof(VertexWeight), vertices_weight, GL_STATIC_DRAW);
+
+        push_mesh_attributes(&model_data.mesh_data, weight_attributes, sizeof(weight_attributes), 3);
+        //Default texture loading might not work depending on where the textures are stored
+        if(load_textures) {
+            model_data.textures = new Texture[scene->mNumMeshes];
+            std::string filepath_str(filepath);
+            std::string current_working_dir;
+
+            {
+                bool backslash_defined = filepath_str.find_last_of('\\');
+                bool forwardslash_defined = filepath_str.find_last_of('/');
+
+                assert(backslash_defined || forwardslash_defined, "invalid path syntax");
+
+                if (backslash_defined) {
+                    current_working_dir = filepath_str.substr(0, filepath_str.find_last_of('\\'));
+                }
+
+                if (forwardslash_defined) {
+                    current_working_dir = filepath_str.substr(0, filepath_str.find_last_of('/'));
+                }
+            }
+
+            for(u32 i = 0; i < scene->mNumMaterials; i++) {
+                const aiMaterial* material = scene->mMaterials[i];
+
+                if(material->GetTextureCount(aiTextureType_UNKNOWN) > 0) {
+                    aiString path;
+                    if(material->GetTexture(aiTextureType_UNKNOWN, 0, &path, 0, 0, 0, 0, 0) == AI_SUCCESS) {
+                        log_message("{}: {}\n", i, path.data);
+                        std::string loading_path = current_working_dir + path.C_Str();
+                        //TODO(C7) find and load these textures
+                        model_data.textures[i].Load(loading_path.c_str());
+                    }
+                }
+            }
+        }
+
+        model_data.initialized = true;
+        return model_data;
+    }
+
+    //Load textures from a custom position
+    void model_load_textures(ModelData& data, std::string* texture_locations, u32 locations_count)
+    {
+        assert(texture_locations, "the variable needs to be defined in this scope\n");
+        //TODO(C7)
+    }
+
+    void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform)
+    {
+        assert(model.initialized, "the model needs to be initialized\n");
+        bind_vertex_array(model.mesh_data);
+        bind_index_buffer(model.mesh_data);
+
+        u32 indices_drawn = 0;
+        for(u32 i = 0; i < model.mesh_count; i++) {
+            shader.Uniform1i(0, std::string(diffuse_uniform));
+
+            glDrawElementsBaseVertex(GL_TRIANGLES, model.index_divisors[i], GL_UNSIGNED_INT,
+                (void*)(sizeof(u32) * indices_drawn), model.vertex_divisors[i]);
+
+            indices_drawn += model.index_divisors[i];
+        }
+    }
+
+    void model_get_count_of_vertices_and_indices(const aiScene* scene, u32* num_vertices, u32* num_indices)
+    {
+        assert(num_vertices && num_indices, "these pointers need to be defined in this scope");
+
+        *num_vertices = 0;
+        *num_indices = 0;
+
+        for(u32 i = 0; i < scene->mNumMeshes; i++) {
+            const aiMesh* mesh = scene->mMeshes[i];
+            (*num_vertices) += mesh->mNumVertices;
+            for(u32 j = 0; j < mesh->mNumFaces; j++) {
+                (*num_indices) += mesh->mFaces[j].mNumIndices;
+            }
+        }
+    }
+
+    bool model_mesh_has_weights(const aiMesh* mesh)
+    {
+        for(u32 i = 0; i < mesh->mNumBones; i++) {
+            if(mesh->mBones[i]->mNumWeights > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void model_print_tree_transformations(const aiNode* node, const std::string& tabspace)
+    {
+        log_message("{}mesh name: {}, mesh children count: {}, mesh transformation matrix;\n",
+            tabspace, node->mName.C_Str(), node->mNumChildren);
+
+        auto& mtx = node->mTransformation;
+        log_message("{}[{}, {}, {}, {}]\n", tabspace, mtx[0][0], mtx[0][1], mtx[0][2], mtx[0][3]);
+        log_message("{}[{}, {}, {}, {}]\n", tabspace, mtx[1][0], mtx[1][1], mtx[1][2], mtx[1][3]);
+        log_message("{}[{}, {}, {}, {}]\n", tabspace, mtx[2][0], mtx[2][1], mtx[2][2], mtx[2][3]);
+        log_message("{}[{}, {}, {}, {}]\n\n", tabspace, mtx[3][0], mtx[3][1], mtx[3][2], mtx[3][3]);
+
+        std::string new_tabspace = tabspace + "    ";
+        for(u32 i = 0; i < node->mNumChildren; i++) {
+            model_print_tree_transformations(node->mChildren[i], new_tabspace);
+        }
+    }
+
+    void model_parse_bones(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count)
+    {
+        assert(mesh, "this variable needs to be defined in this scope");
+
+        auto find_element = [](VertexWeight* data, u32 count, u32 vertex_id) -> s32 {
+            for(s32 i = 0; i < count; i++) {
+                if(data[i].vertex_id == vertex_id)
+                    return i;
+            }
+
+            return -1;
+        };
+
+        u32 count = 0;
+        for(u32 i = 0; i < mesh->mNumBones; i++) {
+            for(u32 j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
+                auto weight = mesh->mBones[i]->mWeights[j];
+                s32 element_index = find_element(weight_data, weight_count, weight.mVertexId);
+                auto& vertex_weight = (element_index != -1) ? weight_data[element_index] : weight_data[count++];
+
+                assert(count <= weight_count, "range specified too small");
+                if(vertex_weight.bone_count == max_bone_movement_per_vertex - 1) continue;
+
+                vertex_weight.vertex_id = weight.mVertexId;
+                u32 idx = vertex_weight.bone_count++;
+                vertex_weight.bone_id[idx] = i;
+                vertex_weight.bone_weight[idx] = weight.mWeight;
+            }
+        }
+    }
+
+	void model_cleanup(ModelData* model)
+	{
+	    assert(model, "model needs to be defined in this scope");
+	    cleanup_mesh(&model->mesh_data);
+	    glDeleteBuffers(1, &model->vertex_weight_buffer);
+	    delete[] model->vertex_divisors;
+	    delete[] model->index_divisors;
+
+	    if(model->textures) {
+	        delete[] model->textures;
+	    }
+	}
+}
 
 Model::Model(const std::string& FilePath, bool fliptextureaxis)
 	:m_ModelMatrix(1.0f), m_Vertices(nullptr), m_Position(0.0f)
@@ -46,7 +325,7 @@ void Model::Draw(Shader& shd)
 			glActiveTexture(GL_TEXTURE0 + j);
 			glBindTexture(GL_TEXTURE_2D, m_Meshes[i].textureids[j]);
 			std::string uniformname = "texture" + std::to_string(j + 1);
-			
+
 			if (shd.IsUniformDefined(uniformname))
 				shd.Uniform1i(j, uniformname);
 		}
@@ -87,7 +366,7 @@ void Model::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* po
 		//and texture coordinates
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), 0);
-		
+
 		//Telling opengl that we want to load only one attribute on 3rd location (the offset) per instance
 		glVertexAttribDivisor(3, 1);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -164,12 +443,12 @@ f32* Model::GetRawBuffer() const
 	}
 
 	res = (f32*)::operator new(ptr_dim * sizeof(f32));
-	if (!res) 
+	if (!res)
 	{
 		std::cout << "Not enough memory for model ptr allocation\n";
 		return nullptr;
 	}
-	
+
 	for (int i = 0; i < m_Meshes.size(); i++)
 	{
 		offset = 0;
@@ -264,7 +543,7 @@ bool Model::IsIntersectedBy(const glm::vec3& pos, const glm::vec3& dir, f32 fRad
 		{
 			return true;
 		}
-		
+
 	}
 
 	return false;
@@ -299,7 +578,7 @@ void Model::LoadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::
 		mat->GetTexture(type, i, &texture_folder_name);
 
 		std::string texpath = m_Directory + '\\' + std::string(texture_folder_name.C_Str());
-		
+
 		bool bTextureLoaded = false;
 
 		for (auto& str : m_Cache)
@@ -312,7 +591,7 @@ void Model::LoadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::
 				bTextureLoaded = true;
 			}
 		}
-		
+
 		if (!bTextureLoaded)
 		{
 			//We load the texture and then we push into the m_Cache vector a copy of the texture

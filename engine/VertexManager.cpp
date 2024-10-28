@@ -1,7 +1,122 @@
 #include "VertexManager.h"
+#include "MainIncl.h"
 #include <utility>
 #include <cstring>
 
+
+namespace gfx
+{
+    VertexMesh create_mesh(const f32* verts, u32 verts_size)
+    {
+        VertexMesh mesh = {};
+
+        glGenBuffers(1, &mesh.vertex_buffer);
+        glGenVertexArrays(1, &mesh.vertex_array);
+
+        glBindVertexArray(mesh.vertex_array);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_buffer);
+        glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_STATIC_DRAW);
+
+        return mesh;
+    }
+
+    VertexMesh create_mesh_and_push_attributes(const f32* verts, u32 verts_size, const LayoutElement* attributes, u32 attributes_size)
+    {
+        VertexMesh mesh = create_mesh(verts, verts_size);
+        push_mesh_attributes(&mesh, attributes, attributes_size);
+
+        return mesh;
+    }
+
+    VertexMesh create_mesh_with_indices(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size)
+    {
+        VertexMesh mesh = {};
+
+        glGenBuffers(1, &mesh.vertex_buffer);
+        glGenBuffers(1, &mesh.index_buffer);
+        glGenVertexArrays(1, &mesh.vertex_array);
+
+        glBindVertexArray(mesh.vertex_array);
+
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_buffer);
+        glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.index_buffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
+
+        mesh.indices_count = indices_size / sizeof(indices[0]);
+        return mesh;
+    }
+
+    VertexMesh create_mesh_with_indices_and_push_attributes(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size,
+        const LayoutElement* attributes, u32 attributes_size)
+    {
+        VertexMesh mesh = create_mesh_with_indices(verts, verts_size, indices, indices_size);
+        push_mesh_attributes(&mesh, attributes, attributes_size);
+
+        return mesh;
+    }
+    void push_mesh_attributes(VertexMesh* mesh, const LayoutElement* attributes, u32 attributes_size, u32 starting_index)
+    {
+        assert(mesh, "the mesh needs to be defined in this scope");
+        glBindVertexArray(mesh->vertex_array);
+
+        //Putting ints types at the beginning cause they are the most used
+        u32 integer_types[] = {GL_UNSIGNED_INT, GL_INT, GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT};
+
+        const u32 integer_types_count = sizeof(integer_types) / sizeof(integer_types[0]);
+
+        u32 attributes_count = attributes_size / sizeof(attributes[0]);
+        for(u32 i = 0; i < attributes_count; i++) {
+            u32 attr_index = starting_index + i;
+            glEnableVertexAttribArray(attr_index);
+            const LayoutElement& attr = attributes[i];
+
+            bool integer_type_used = false;
+            for(u32 j = 0; j < integer_types_count; j++) {
+                if(integer_types[j] == attr.type){
+                    integer_type_used = true;
+                    break;
+                }
+            }
+
+            if(integer_type_used) {
+                glVertexAttribIPointer(attr_index, attr.count, attr.type, attr.stride, (void*)attr.offset);
+            } else {
+                glVertexAttribPointer(attr_index, attr.count, attr.type, attr.normalized, attr.stride, (void*)attr.offset);
+            }
+        }
+    }
+
+    void bind_vertex_buffer(const VertexMesh& mesh)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_buffer);
+    }
+
+    void bind_index_buffer(const VertexMesh& mesh)
+    {
+        assert(mesh.indices_count != 0, "index buffer was not allocated on construction");
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.index_buffer);
+    }
+
+    void bind_vertex_array(const VertexMesh& mesh)
+    {
+        glBindVertexArray(mesh.vertex_array);
+    }
+
+    void cleanup_mesh(VertexMesh* mesh)
+    {
+        assert(mesh, "the mesh needs to be defined in this scope");
+
+    	glDeleteBuffers(1, &mesh->vertex_buffer);
+    	if(mesh->indices_count != 0) {
+    	   glDeleteBuffers(1, &mesh->index_buffer);
+        }
+    	glDeleteVertexArrays(1, &mesh->vertex_array);
+    }
+
+    //TODO(C7) add instanced attributes definitions
+}
 
 VertexManager::VertexManager()
 	:m_IndicesCount(0), m_AttribCount(0), m_SuccesfullyLoaded(false), m_HasIndices(false), m_ValuesCount(0),
@@ -284,7 +399,7 @@ void VertexManager::VertexAttribPointer(u32 attr_index, const LayoutElement& el)
 	if (IsIntegerType(el.type))
 		glVertexAttribIPointer(attr_index, el.count, el.type, el.stride, (void*)el.offset);
 	else
-		glVertexAttribPointer(attr_index, el.count, el.type, el.bNormalized, el.stride, (void*)el.offset);
+		glVertexAttribPointer(attr_index, el.count, el.type, el.normalized, el.stride, (void*)el.offset);
 }
 
 
