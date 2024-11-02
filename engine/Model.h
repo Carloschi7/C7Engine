@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#define ASSIMP_STATIC_LIB
+//#define ASSIMP_STATIC_LIB
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
