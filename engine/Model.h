@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include <map>
 
 #define ASSIMP_STATIC_LIB
 
@@ -12,6 +11,7 @@
 #include "Shader.h"
 #include "VertexManager.h"
 #include "Texture.h"
+#include "utils/types.h"
 
 namespace gfx
 {
@@ -20,7 +20,9 @@ namespace gfx
 	struct BoneInfo
     {
     	std::string name;
-		glm::mat4 final_transformation = glm::mat4(0.0f);
+    	u32 id;
+    	glm::mat4 local_transformation;
+		glm::mat4 final_transformation;
 		bool initialized = false;
     };
 
@@ -53,14 +55,15 @@ namespace gfx
 	ModelData model_create(const char* filepath, bool load_textures);
 	void model_load_textures(ModelData& data, std::string* texture_locations, u32 locations_count);
 	void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform);
-	void model_get_count_of_vertices_and_indices(const aiScene* scene, u32* num_vertices, u32* num_indices);
+	void model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices, u32* num_bones);
 	bool model_mesh_has_weights(const aiMesh* mesh);
-	void model_map_bone_names_to_id(const aiScene* scene, std::map<std::string, u32>& bone_names_to_id);
+	void model_map_bone_names_to_id(const aiScene* scene, std::vector<BoneInfo>& bones_transformations);
+	s32  model_find_bone_info(const BoneInfo* data, u32 size, std::string& name);
 
-	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, std::map<std::string, u32>& bone_names_to_id,
-		std::vector<BoneInfo>& vec, const glm::mat4& parent_transform = glm::mat4(1.0f));
+	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, std::vector<BoneInfo>& vec,
+		const glm::mat4& parent_transform = glm::mat4(1.0f));
 	void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
-		const std::map<std::string, u32>& bone_names_to_id);
+		const std::vector<BoneInfo>& bones_transformations);
 	void model_cleanup(ModelData* mesh);
 
 	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix);

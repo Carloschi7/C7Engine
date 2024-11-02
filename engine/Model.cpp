@@ -27,9 +27,10 @@ namespace gfx
 		model_data.mesh_count = scene->mNumMeshes;
 		u32 vertices_count = 0;
 		u32 indices_count = 0;
+		u32 bones_count = 0;
 		const u32 vertex_stride = 8;
 
-		model_get_count_of_vertices_and_indices(scene, &vertices_count, &indices_count);
+		model_get_vertices_indices_bones_count(scene, &vertices_count, &indices_count, &bones_count);
 
 		f32* vertices = new f32[vertices_count * vertex_stride];
 		VertexWeight* vertices_weight = new VertexWeight[vertices_count];
@@ -49,8 +50,9 @@ namespace gfx
 		u32 indices_parsed_so_far  = 0;
 		u32 bones_incremental_idx  = 0;
 
-		std::map<std::string, u32> bone_names_to_id;
-		model_map_bone_names_to_id(scene, bone_names_to_id);
+		auto& bone_transformations = model_data.bone_transformations;
+		bone_transformations.resize(bones_count);
+		model_map_bone_names_to_id(scene, bone_transformations);
 
 		for (u32 i = 0; i < model_data.mesh_count; i++) {
 			const aiMesh* mesh = scene->mMeshes[i];
@@ -89,7 +91,7 @@ namespace gfx
 
             if(model_mesh_has_weights(mesh)) {
                 VertexWeight* vertices_weight_current = vertices_weight + vertices_parsed_so_far;
-                model_parse_weights(mesh, vertices_weight_current, mesh->mNumVertices, bone_names_to_id);
+                model_parse_weights(mesh, vertices_weight_current, mesh->mNumVertices, bone_transformations);
     			std::sort(vertices_weight_current, vertices_weight_current + mesh->mNumVertices,
     			[](const VertexWeight& first, const VertexWeight& second) {return first.vertex_id < second.vertex_id;});
 			}
@@ -103,11 +105,7 @@ namespace gfx
 		model_data.mesh_data.indices_count = indices_count;
 
 		//Parsing bone matrices
-		{
-			auto& bone_transformations = model_data.bone_transformations;
-			bone_transformations.resize(bone_names_to_id.size());
-			model_parse_bone_transformations(scene, scene->mRootNode, bone_names_to_id, bone_transformations);
-		}
+		model_parse_bone_transformations(scene, scene->mRootNode, bone_transformations);
 
 		//Position, normals, texcoords
 		LayoutElement attributes[3] = {
@@ -194,12 +192,16 @@ namespace gfx
         }
     }
 
-    void model_get_count_of_vertices_and_indices(const aiScene* scene, u32* num_vertices, u32* num_indices)
+	//INFO(C7): the num_bones count can contain some repeated bones because they are part
+	//of multiple vertices
+    void model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices,
+    	u32* num_bones)
     {
         assert(num_vertices && num_indices, "these pointers need to be defined in this scope");
 
         *num_vertices = 0;
         *num_indices = 0;
+        *num_bones = 0;
 
         for(u32 i = 0; i < scene->mNumMeshes; i++) {
             const aiMesh* mesh = scene->mMeshes[i];
@@ -207,6 +209,8 @@ namespace gfx
             for(u32 j = 0; j < mesh->mNumFaces; j++) {
                 (*num_indices) += mesh->mFaces[j].mNumIndices;
             }
+
+            (*num_bones) += mesh->mNumBones;
         }
     }
 
@@ -221,37 +225,40 @@ namespace gfx
         return false;
     }
 
-	void model_map_bone_names_to_id(const aiScene* scene, std::map<std::string, u32>& bone_names_to_id)
+	void model_map_bone_names_to_id(const aiScene* scene, std::vector<BoneInfo>& bones_transformations)
 	{
 		u32 unique_bone_index = 0;
 		for(u32 i = 0; i < scene->mNumMeshes; i++) {
 			for(u32 j = 0; j < scene->mMeshes[i]->mNumBones; j++) {
-				std::string bone_name(scene->mMeshes[i]->mBones[j]->mName.C_Str());
-				if(bone_names_to_id.find(bone_name) == bone_names_to_id.end()) {
-					bone_names_to_id[bone_name] = unique_bone_index++;
+				auto& bone = scene->mMeshes[i]->mBones[j];
+				std::string bone_name(bone->mName.C_Str());
+
+				auto& bones = bones_transformations;
+				s32 bone_index = model_find_bone_info(bones.data(), bones.size(), bone_name);
+				if(bone_index == -1) {
+					auto& transformation = bones_transformations[unique_bone_index];
+					transformation.name = bone_name;
+					transformation.id = unique_bone_index;
+					transformation.local_transformation = glm_mat_cast(bone->mOffsetMatrix);
+
+					unique_bone_index++;
 				}
 			}
 		}
 	}
 
-	//TODO this function is in the header, load the offset matrices in the main loop and get rid of this function
-	glm::mat4 model_find_bone_offset_matrix(const aiScene* scene, const std::string& bone_name)
+	s32 model_find_bone_info(const BoneInfo* data, u32 size, std::string& name)
 	{
-		for(u32 i = 0; i < scene->mNumMeshes; i++) {
-			for(u32 j = 0; j < scene->mMeshes[i]->mNumBones; j++) {
-				auto& bone = scene->mMeshes[i]->mBones[j];
-				std::string cur_name(bone->mName.C_Str());
-
-				if(cur_name == bone_name)
-					return glm_mat_cast(bone->mOffsetMatrix);
-			}
+		for(u32 i = 0; i < size; i++) {
+			if(data[i].name == name)
+				return i;
 		}
 
-		return glm::mat4(0.0f);
+		return -1;
 	}
 
-	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, std::map<std::string, u32>& bone_names_to_id,
-		std::vector<BoneInfo>& vec, const glm::mat4& parent_transform)
+	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, std::vector<BoneInfo>& vec,
+		const glm::mat4& parent_transform)
 	{
 		if(!node) return;
 		glm::mat4 current_transformation;
@@ -266,22 +273,20 @@ namespace gfx
 		}
 
 		std::string bone_name(node->mName.C_Str());
-		if(bone_names_to_id.find(bone_name) != bone_names_to_id.end()) {
-			u32 bone_index = bone_names_to_id[bone_name];
-			glm::mat4 bone_offset_matrix = model_find_bone_offset_matrix(scene, bone_name);
-
+		s32 bone_index = model_find_bone_info(vec.data(), vec.size(), bone_name);
+		if(bone_index != -1) {
 			auto& bone_info = vec[bone_index];
 			bone_info.name = bone_name;
-			bone_info.final_transformation = current_transformation * bone_offset_matrix;
+			bone_info.final_transformation = current_transformation * bone_info.local_transformation;
 			bone_info.initialized = true;
 		}
 
 		for(u32 i = 0; i < node->mNumChildren; i++)
-			model_parse_bone_transformations(scene, node->mChildren[i], bone_names_to_id, vec, current_transformation);
+			model_parse_bone_transformations(scene, node->mChildren[i], vec, current_transformation);
 	}
 
     void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
-		const std::map<std::string, u32>& bone_names_to_id)
+		const std::vector<BoneInfo>& bones_transformations)
     {
         assert(mesh, "this variable needs to be defined in this scope");
 
@@ -296,8 +301,15 @@ namespace gfx
 
         u32 count = 0;
         for(u32 i = 0; i < mesh->mNumBones; i++) {
-            auto iter = bone_names_to_id.find(mesh->mBones[i]->mName.C_Str());
-            assert(iter != bone_names_to_id.end(), "the bone name should always be loaded");
+
+        	s32 bone_index = -1;
+
+        	{
+				auto& bones = bones_transformations;
+				std::string bone_name(mesh->mBones[i]->mName.C_Str());
+				s32 bone_index = model_find_bone_info(bones.data(), bones.size(), bone_name);
+				assert(bone_index != -1, "the bone name should be loaded by this point");
+			}
 
             for(u32 j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
                 auto weight = mesh->mBones[i]->mWeights[j];
@@ -312,7 +324,7 @@ namespace gfx
 
                 vertex_weight.vertex_id = weight.mVertexId;
                 u32 idx = vertex_weight.bone_count++;
-                vertex_weight.bone_id[idx] = iter->second;
+                vertex_weight.bone_id[idx] = bone_index;
                 vertex_weight.bone_weight[idx] = weight.mWeight;
             }
         }
