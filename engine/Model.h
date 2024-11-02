@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <map>
 
 #define ASSIMP_STATIC_LIB
 
@@ -16,6 +17,13 @@ namespace gfx
 {
     static constexpr u32 max_bone_movement_per_vertex = 4;
 
+	struct BoneInfo
+    {
+    	std::string name;
+		glm::mat4 final_transformation = glm::mat4(0.0f);
+		bool initialized = false;
+    };
+
     struct ModelData
     {
         VertexMesh mesh_data;
@@ -26,6 +34,7 @@ namespace gfx
         //in the global buffer
         u32* vertex_divisors;
         u32* index_divisors;
+        std::vector<BoneInfo> bone_transformations;
 
         //TODO(C7) probably also rewriting texture is better
         Texture* textures;
@@ -46,11 +55,19 @@ namespace gfx
 	void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform);
 	void model_get_count_of_vertices_and_indices(const aiScene* scene, u32* num_vertices, u32* num_indices);
 	bool model_mesh_has_weights(const aiMesh* mesh);
-	void model_print_tree_transformations(const aiNode* node, const std::string& tabspace = "");
+	void model_map_bone_names_to_id(const aiScene* scene, std::map<std::string, u32>& bone_names_to_id);
 
-	void model_parse_bones(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count);
-
+	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, std::map<std::string, u32>& bone_names_to_id,
+		std::vector<BoneInfo>& vec, const glm::mat4& parent_transform = glm::mat4(1.0f));
+	void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
+		const std::map<std::string, u32>& bone_names_to_id);
 	void model_cleanup(ModelData* mesh);
+
+	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix);
+
+
+	void model_test_find_identity(const aiScene* scene, const aiBone* bone);
+	bool matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon);
 }
 
 
