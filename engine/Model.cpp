@@ -24,11 +24,6 @@ namespace gfx
 			return model_data;
 		}
 
-		//TEMP
-		model_test_find_identity(scene, scene->mMeshes[0]->mBones[0]);
-		model_test_find_identity(scene, scene->mMeshes[0]->mBones[1]);
-		model_test_find_identity(scene, scene->mMeshes[0]->mBones[2]);
-
 		model_data.mesh_count = scene->mNumMeshes;
 		u32 vertices_count = 0;
 		u32 indices_count = 0;
@@ -37,9 +32,8 @@ namespace gfx
 		model_get_count_of_vertices_and_indices(scene, &vertices_count, &indices_count);
 
 		f32* vertices = new f32[vertices_count * vertex_stride];
-		//VertexWeight* vertices_weight = new VertexWeight[vertices_count];
-		std::vector<VertexWeight> vertices_weight(vertices_count);
-		std::memset(vertices_weight.data(), 0, vertices_count * sizeof(VertexWeight));
+		VertexWeight* vertices_weight = new VertexWeight[vertices_count];
+		std::memset(vertices_weight, 0, vertices_count * sizeof(VertexWeight));
 		u32* indices = new u32[indices_count * 3];
 
 		model_data.vertex_divisors = new u32[scene->mNumMeshes];
@@ -48,7 +42,7 @@ namespace gfx
 		defer {
 				delete[] vertices;
 				delete[] indices;
-				//delete[] vertices_weight;
+				delete[] vertices_weight;
 		};
 
 		u32 vertices_parsed_so_far = 0;
@@ -94,7 +88,7 @@ namespace gfx
 			}
 
             if(model_mesh_has_weights(mesh)) {
-                VertexWeight* vertices_weight_current = vertices_weight.data() + vertices_parsed_so_far;
+                VertexWeight* vertices_weight_current = vertices_weight + vertices_parsed_so_far;
                 model_parse_weights(mesh, vertices_weight_current, mesh->mNumVertices, bone_names_to_id);
     			std::sort(vertices_weight_current, vertices_weight_current + mesh->mNumVertices,
     			[](const VertexWeight& first, const VertexWeight& second) {return first.vertex_id < second.vertex_id;});
@@ -133,7 +127,7 @@ namespace gfx
 
         glGenBuffers(1, &model_data.vertex_weight_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, model_data.vertex_weight_buffer);
-        glBufferData(GL_ARRAY_BUFFER, vertices_count * sizeof(VertexWeight), vertices_weight.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices_count * sizeof(VertexWeight), vertices_weight, GL_STATIC_DRAW);
 
         push_mesh_attributes(&model_data.mesh_data, weight_attributes, sizeof(weight_attributes), 3);
         //Default texture loading might not work depending on where the textures are stored
@@ -340,22 +334,6 @@ namespace gfx
 	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix)
 	{
 		return glm::transpose(glm::make_mat4((f32*)&matrix));
-	}
-
-	void model_test_find_identity(const aiScene* scene, const aiBone* bone)
-	{
-		aiNode* node = scene->mRootNode->FindNode(bone->mName);
-
-		glm::mat4 transform(1.0f);
-		for(; node->mParent; node = node->mParent) {
-			transform = glm_mat_cast(node->mTransformation) * transform;
-		}
-
-
-
-		glm::mat4 should_be_identity = transform * glm_mat_cast(bone->mOffsetMatrix);
-		assert(matrix_epsilon_check(should_be_identity, glm::mat4(1.0f), 0.00001f), "identity test failed");
-		log_message("model_test_find_identity ----------------------- OK\n");
 	}
 
 	bool matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon)

@@ -64,9 +64,6 @@ namespace gfx
 	void model_cleanup(ModelData* mesh);
 
 	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix);
-
-
-	void model_test_find_identity(const aiScene* scene, const aiBone* bone);
 	bool matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon);
 }
 
