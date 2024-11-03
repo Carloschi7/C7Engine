@@ -5,14 +5,14 @@
 namespace gfx
 {
 
-	ModelData model_create(const char* filepath, bool load_textures)
+	ModelData model_create(const std::string& filepath, bool load_textures)
 	{
 		//ATM using assimp to load the model, prob writing my own parser soon
 		ModelData model_data = {};
 
 		Assimp::Importer importer;
 		u32 assimp_flags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals;
-		const aiScene* scene = importer.ReadFile(filepath, assimp_flags);
+		const aiScene* scene = importer.ReadFile(filepath.c_str(), assimp_flags);
 
 		defer {
 		    importer.FreeScene();
@@ -35,7 +35,7 @@ namespace gfx
 		f32* vertices = new f32[vertices_count * vertex_stride];
 		VertexWeight* vertices_weight = new VertexWeight[vertices_count];
 		std::memset(vertices_weight, 0, vertices_count * sizeof(VertexWeight));
-		u32* indices = new u32[indices_count * 3];
+		u32* indices = new u32[indices_count];
 
 		model_data.vertex_divisors = new u32[scene->mNumMeshes];
 		model_data.index_divisors = new u32[scene->mNumMeshes];
@@ -93,7 +93,7 @@ namespace gfx
                 VertexWeight* vertices_weight_current = vertices_weight + vertices_parsed_so_far;
                 model_parse_weights(mesh, vertices_weight_current, mesh->mNumVertices, bone_transformations);
     			std::sort(vertices_weight_current, vertices_weight_current + mesh->mNumVertices,
-    			[](const VertexWeight& first, const VertexWeight& second) {return first.vertex_id < second.vertex_id;});
+    				[](const VertexWeight& first, const VertexWeight& second) {return first.vertex_id < second.vertex_id;});
 			}
 
 			model_data.vertex_divisors[i] = vertices_parsed_so_far;
@@ -131,21 +131,20 @@ namespace gfx
         //Default texture loading might not work depending on where the textures are stored
         if(load_textures) {
             model_data.textures = new Texture[scene->mNumMeshes];
-            std::string filepath_str(filepath);
             std::string current_working_dir;
 
             {
-                bool backslash_defined = filepath_str.find_last_of('\\');
-                bool forwardslash_defined = filepath_str.find_last_of('/');
+                bool backslash_defined = filepath.find_last_of('\\');
+                bool forwardslash_defined = filepath.find_last_of('/');
 
                 assert(backslash_defined || forwardslash_defined, "invalid path syntax");
 
                 if (backslash_defined) {
-                    current_working_dir = filepath_str.substr(0, filepath_str.find_last_of('\\'));
+                    current_working_dir = filepath.substr(0, filepath.find_last_of('\\'));
                 }
 
                 if (forwardslash_defined) {
-                    current_working_dir = filepath_str.substr(0, filepath_str.find_last_of('/'));
+                    current_working_dir = filepath.substr(0, filepath.find_last_of('/'));
                 }
             }
 
@@ -233,8 +232,7 @@ namespace gfx
 				auto& bone = scene->mMeshes[i]->mBones[j];
 				std::string bone_name(bone->mName.C_Str());
 
-				auto& bones = bones_transformations;
-				s32 bone_index = model_find_bone_info(bones.data(), bones.size(), bone_name);
+				s32 bone_index = model_find_bone_info(bones_transformations.data(), bones_transformations.size(), bone_name);
 				if(bone_index == -1) {
 					auto& transformation = bones_transformations[unique_bone_index];
 					transformation.name = bone_name;

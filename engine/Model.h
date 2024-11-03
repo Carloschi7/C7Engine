@@ -2,8 +2,6 @@
 #include <iostream>
 #include <vector>
 
-//#define ASSIMP_STATIC_LIB
-
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -52,7 +50,7 @@ namespace gfx
         f32 bone_weight[max_bone_movement_per_vertex];
     };
 
-	ModelData model_create(const char* filepath, bool load_textures);
+	ModelData model_create(const std::string& filepath, bool load_textures);
 	void model_load_textures(ModelData& data, std::string* texture_locations, u32 locations_count);
 	void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform);
 	void model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices, u32* num_bones);
