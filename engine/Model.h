@@ -61,7 +61,7 @@ namespace gfx
     };
 
 	ModelData model_create(const std::string& filepath, bool load_textures);
-	void model_load_textures(ModelData& data, std::string* texture_locations, u32 locations_count);
+	void model_load_textures(ModelData& model_data, std::string* texture_paths, u32 texture_count);
 	void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform);
 	void model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices, u32* num_bones);
 	bool model_mesh_has_weights(const aiMesh* mesh);

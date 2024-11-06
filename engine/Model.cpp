@@ -190,11 +190,43 @@ namespace gfx
         return model_data;
     }
 
-    //Load textures from a custom position
-    void model_load_textures(ModelData& data, std::string* texture_locations, u32 locations_count)
+    //Load textures from a custom position, requires locations to have full path
+    //binds the n texture to the n mesh
+    //it is recommended to try and load the texture automatically with model_create
+    void model_load_textures(ModelData& model_data, std::string* texture_paths, u32 texture_count)
     {
-        assert(texture_locations, "the variable needs to be defined in this scope\n");
-        //TODO(C7)
+		assert(texture_paths, "the variable needs to be defined in this scope\n");
+		auto& texture_info = model_data.texture_info;
+		const auto& scene  = model_data.scene;
+
+		if(model_data.textures || model_data.texture_info) {
+			delete[] model_data.textures;
+			delete[] model_data.texture_info;
+		}
+
+		model_data.textures = new Texture[texture_count];
+		model_data.texture_info = new ModelTextureInfo[texture_count];
+
+		for(u32 i = 0; i < texture_count; i++) {
+			const aiMesh* mesh = scene->mMeshes[i];
+		    const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+		    texture_info[i].name = texture_paths[i];
+		    bool texture_already_loaded = false;
+
+		    for(u32 j = 0; j < i; j++) {
+		    	if(texture_info[j].name == texture_info[i].name) {
+		    		texture_info[i].index = j;
+		        	texture_already_loaded = true;
+		        	break;
+		        }
+			}
+
+		    if(texture_already_loaded) continue;
+
+			texture_info[i].index = i;
+		    model_data.textures[i].Load(texture_paths[i].c_str());
+		}
     }
 
     void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform)
