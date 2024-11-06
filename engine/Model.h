@@ -26,9 +26,14 @@ namespace gfx
 
     struct ModelData
     {
+    	const aiScene* scene;
+
         VertexMesh mesh_data;
         u32 mesh_count;
         u32 vertex_weight_buffer;
+        //TODO(C7): is it always the same for each keyframe? should we store a different value for
+        //each animation?
+        f32 keyframes_last_timestamp;
         //INFO: we try to store all vertex/index data in a single vertex/index buffer,
         //then we render all the meshes in separate drawcalls depeding on their offsets
         //in the global buffer
@@ -58,13 +63,20 @@ namespace gfx
 	void model_map_bone_names_to_id(const aiScene* scene, std::vector<BoneInfo>& bones_transformations);
 	s32  model_find_bone_info(const BoneInfo* data, u32 size, std::string& name);
 
-	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, std::vector<BoneInfo>& vec,
+	aiNodeAnim* model_find_animation_channel(const aiAnimation* anim, const std::string& name);
+	glm::vec3   model_lerp_keyframes_positions(const aiNodeAnim* node_anim, f32 ticks);
+	glm::quat   model_lerp_keyframes_rotations(const aiNodeAnim* node_anim, f32 ticks);
+	glm::vec3   model_lerp_keyframes_scales(const aiNodeAnim* node_anim, f32 ticks);
+
+	void model_parse_bone_transformations(ModelData& model_data, f32 ticks);
+	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, f32 ticks, std::vector<BoneInfo>& vec,
 		const glm::mat4& parent_transform = glm::mat4(1.0f));
 	void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
 		const std::vector<BoneInfo>& bones_transformations);
 	void model_cleanup(ModelData* mesh);
 
 	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix);
+	glm::quat glm_quat_cast(const aiQuaternion& q);
 	bool matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon);
 }
 

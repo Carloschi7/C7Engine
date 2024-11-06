@@ -1,22 +1,22 @@
 #include "MainIncl.h"
 #include "Model.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace gfx
 {
-
 	ModelData model_create(const std::string& filepath, bool load_textures)
 	{
-		//ATM using assimp to load the model, prob writing my own parser soon
 		ModelData model_data = {};
 
 		Assimp::Importer importer;
+		auto& scene = model_data.scene;
 		u32 assimp_flags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals;
-		const aiScene* scene = importer.ReadFile(filepath.c_str(), assimp_flags);
+		//INFO: this will call external allocations
+		const aiScene* _scene = importer.ReadFile(filepath.c_str(), assimp_flags);
+		scene = importer.GetOrphanedScene();
 
-		defer {
-		    importer.FreeScene();
-		};
+		log_message("{}\n", scene->mAnimations[0]->mTicksPerSecond);
 
 		if (!scene) {
 			log_message("the given model was not found by the loader\n");
@@ -89,11 +89,11 @@ namespace gfx
 				current_mesh_indices += face.mNumIndices;
 			}
 
-            if(model_mesh_has_weights(mesh)) {
-                VertexWeight* vertices_weight_current = vertices_weight + vertices_parsed_so_far;
-                model_parse_weights(mesh, vertices_weight_current, mesh->mNumVertices, bone_transformations);
-    			std::sort(vertices_weight_current, vertices_weight_current + mesh->mNumVertices,
-    				[](const VertexWeight& first, const VertexWeight& second) {return first.vertex_id < second.vertex_id;});
+			if(model_mesh_has_weights(mesh)) {
+				VertexWeight* vertices_weight_current = vertices_weight + vertices_parsed_so_far;
+				model_parse_weights(mesh, vertices_weight_current, mesh->mNumVertices, bone_transformations);
+				std::sort(vertices_weight_current, vertices_weight_current + mesh->mNumVertices,
+					[](const VertexWeight& first, const VertexWeight& second) {return first.vertex_id < second.vertex_id;});
 			}
 
 			model_data.vertex_divisors[i] = vertices_parsed_so_far;
@@ -105,7 +105,7 @@ namespace gfx
 		model_data.mesh_data.indices_count = indices_count;
 
 		//Parsing bone matrices
-		model_parse_bone_transformations(scene, scene->mRootNode, bone_transformations);
+		model_parse_bone_transformations(scene, scene->mRootNode, 135.0f, bone_transformations);
 
 		//Position, normals, texcoords
 		LayoutElement attributes[3] = {
@@ -148,20 +148,28 @@ namespace gfx
                 }
             }
 
-            for(u32 i = 0; i < scene->mNumMaterials; i++) {
-                const aiMaterial* material = scene->mMaterials[i];
+			current_working_dir += "/";
 
-                if(material->GetTextureCount(aiTextureType_UNKNOWN) > 0) {
+			//TODO(C7): This algorithm could still load the same texture twice if used by multiple meshes
+            for(u32 i = 0; i < scene->mNumMeshes; i++) {
+            	const aiMesh* mesh = scene->mMeshes[i];
+                const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+                if(material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
                     aiString path;
-                    if(material->GetTexture(aiTextureType_UNKNOWN, 0, &path, 0, 0, 0, 0, 0) == AI_SUCCESS) {
+                    if(material->GetTexture(aiTextureType_DIFFUSE, 0, &path, 0, 0, 0, 0, 0) == AI_SUCCESS) {
                         log_message("{}: {}\n", i, path.data);
                         std::string loading_path = current_working_dir + path.C_Str();
-                        //TODO(C7) find and load these textures
                         model_data.textures[i].Load(loading_path.c_str());
                     }
                 }
             }
         }
+
+		//Assuming the first channel has as many position/rotation frames as the other ones
+		if(scene->mNumAnimations > 0) {
+			model_data.keyframes_last_timestamp = scene->mAnimations[0]->mDuration;
+		}
 
         model_data.initialized = true;
         return model_data;
@@ -182,8 +190,10 @@ namespace gfx
 
         u32 indices_drawn = 0;
         for(u32 i = 0; i < model.mesh_count; i++) {
-            shader.Uniform1i(0, std::string(diffuse_uniform));
+        	if(model.textures)
+        		model.textures[i].Bind(0);
 
+            shader.Uniform1i(0, std::string(diffuse_uniform));
             glDrawElementsBaseVertex(GL_TRIANGLES, model.index_divisors[i], GL_UNSIGNED_INT,
                 (void*)(sizeof(u32) * indices_drawn), model.vertex_divisors[i]);
 
@@ -255,22 +265,147 @@ namespace gfx
 		return -1;
 	}
 
-	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, std::vector<BoneInfo>& vec,
+	aiNodeAnim* model_find_animation_channel(const aiAnimation* anim, const std::string& name)
+	{
+		for(u32 i = 0; i < anim->mNumChannels; i++) {
+			aiNodeAnim* ptr = anim->mChannels[i];
+			if(std::strcmp(ptr->mNodeName.C_Str(), name.c_str()) == 0) {
+				return ptr;
+			}
+		}
+
+		return nullptr;
+	}
+
+	glm::vec3 model_lerp_keyframes_positions(const aiNodeAnim* node_anim, f32 ticks)
+	{
+		if(node_anim->mNumPositionKeys == 1)
+			return glm::make_vec3(&node_anim->mPositionKeys[0].mValue[0]);
+
+		u32 first_index = 0;
+		f32 first_time = 0.0f;
+		f32 second_time = 0.0f;
+		for(u32 i = 1; node_anim->mNumPositionKeys; i++) {
+			auto& key = node_anim->mPositionKeys[i];
+			auto& prev_key = node_anim->mPositionKeys[i - 1];
+			if(key.mTime >= ticks) {
+				first_time = prev_key.mTime;
+				second_time = key.mTime;
+				first_index = i - 1;
+				break;
+			}
+		}
+
+		auto& first_key  = node_anim->mPositionKeys[first_index];
+		auto& second_key = node_anim->mPositionKeys[first_index + 1];
+		glm::vec3 first_vector  = glm::make_vec3(&first_key.mValue[0]);
+		glm::vec3 second_vector = glm::make_vec3(&second_key.mValue[0]);
+
+		f32 delta = (ticks - first_time) / (second_time - first_time);
+		glm::vec3 result = (1.0f - delta) * first_vector + delta * second_vector;
+		return result;
+	}
+
+	glm::quat model_lerp_keyframes_rotations(const aiNodeAnim* node_anim, f32 ticks)
+	{
+		if(node_anim->mNumRotationKeys == 1)
+			return glm_quat_cast(node_anim->mRotationKeys[0].mValue);
+
+		u32 first_index = 0;
+		f32 first_time = 0.0f;
+		f32 second_time = 0.0f;
+		for(u32 i = 1; node_anim->mNumPositionKeys; i++) {
+			auto& key = node_anim->mPositionKeys[i];
+			auto& prev_key = node_anim->mPositionKeys[i - 1];
+			if(key.mTime >= ticks) {
+				first_time = prev_key.mTime;
+				second_time = key.mTime;
+				first_index = i - 1;
+				break;
+			}
+		}
+
+		auto& first_key  = node_anim->mRotationKeys[first_index];
+		auto& second_key = node_anim->mRotationKeys[first_index + 1];
+		f32 delta = (ticks - first_time) / (second_time - first_time);
+
+		aiQuaternion result;
+		aiQuaternion::Interpolate(result, first_key.mValue, second_key.mValue, delta);
+		return glm::normalize(glm_quat_cast(result));
+	}
+	glm::vec3 model_lerp_keyframes_scales(const aiNodeAnim* node_anim, f32 ticks)
+	{
+		if(node_anim->mNumScalingKeys == 1)
+			return glm::make_vec3(&node_anim->mScalingKeys[0].mValue[0]);
+
+		u32 first_index = 0;
+		f32 first_time = 0.0f;
+		f32 second_time = 0.0f;
+		for(u32 i = 1; node_anim->mNumPositionKeys; i++) {
+			auto& key = node_anim->mPositionKeys[i];
+			auto& prev_key = node_anim->mPositionKeys[i - 1];
+			if(key.mTime >= ticks) {
+				first_time = prev_key.mTime;
+				second_time = key.mTime;
+				first_index = i - 1;
+				break;
+			}
+		}
+
+		auto& first_key  = node_anim->mScalingKeys[first_index];
+		auto& second_key = node_anim->mScalingKeys[first_index + 1];
+		glm::vec3 first_vector  = glm::make_vec3(&first_key.mValue[0]);
+		glm::vec3 second_vector = glm::make_vec3(&second_key.mValue[0]);
+
+		f32 delta = (ticks - first_time) / (second_time - first_time);
+		glm::vec3 result = (1.0f - delta) * first_vector + delta * second_vector;
+		return result;
+	}
+
+	void model_parse_bone_transformations(ModelData& model_data, f32 ticks)
+	{
+		model_parse_bone_transformations(model_data.scene, model_data.scene->mRootNode, ticks, model_data.bone_transformations);
+	}
+
+	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, f32 ticks, std::vector<BoneInfo>& vec,
 		const glm::mat4& parent_transform)
 	{
 		if(!node) return;
 		glm::mat4 current_transformation;
 
+		bool animation_file_loaded = (scene->mNumAnimations > 0);
+		std::string bone_name(node->mName.C_Str());
+
 		//INFO(C7) apparently the mTransform of the root node stores information about the
 		//physical rototranslation of the model in the environment, so the matrix is not used
 		//for in-model coordinate system shifting
 		if(node != scene->mRootNode) {
-			current_transformation = parent_transform * glm_mat_cast(node->mTransformation);
+			glm::mat4 node_transform = glm_mat_cast(node->mTransformation);
+
+			if(animation_file_loaded && ticks != 0.0f) {
+				//Default animation atm, should take this in as a parameter
+				aiAnimation* animation = scene->mAnimations[0];
+				aiNodeAnim* current_channel = model_find_animation_channel(animation, bone_name);
+
+				if(current_channel) {
+					glm::vec3 position = model_lerp_keyframes_positions(current_channel, ticks);
+					glm::quat rotation = model_lerp_keyframes_rotations(current_channel, ticks);
+					glm::vec3 scale    = model_lerp_keyframes_scales(current_channel, ticks);
+
+					glm::mat4 position_mat = glm::translate(glm::mat4(1.0f), position);
+					glm::mat4 rotation_mat = glm::toMat4(rotation);
+					glm::mat4 scaling_mat  = glm::scale(glm::mat4(1.0f), scale);
+
+					node_transform = position_mat * rotation_mat * scaling_mat;
+				}
+			}
+
+			current_transformation = parent_transform * node_transform;
+
 		} else {
 			current_transformation = parent_transform;
 		}
 
-		std::string bone_name(node->mName.C_Str());
 		s32 bone_index = model_find_bone_info(vec.data(), vec.size(), bone_name);
 		if(bone_index != -1) {
 			auto& bone_info = vec[bone_index];
@@ -280,7 +415,7 @@ namespace gfx
 		}
 
 		for(u32 i = 0; i < node->mNumChildren; i++)
-			model_parse_bone_transformations(scene, node->mChildren[i], vec, current_transformation);
+			model_parse_bone_transformations(scene, node->mChildren[i], ticks, vec, current_transformation);
 	}
 
     void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
@@ -299,13 +434,12 @@ namespace gfx
 
         u32 count = 0;
         for(u32 i = 0; i < mesh->mNumBones; i++) {
-
         	s32 bone_index = -1;
 
         	{
 				auto& bones = bones_transformations;
 				std::string bone_name(mesh->mBones[i]->mName.C_Str());
-				s32 bone_index = model_find_bone_info(bones.data(), bones.size(), bone_name);
+				bone_index = model_find_bone_info(bones.data(), bones.size(), bone_name);
 				assert(bone_index != -1, "the bone name should be loaded by this point");
 			}
 
@@ -335,6 +469,7 @@ namespace gfx
 	    glDeleteBuffers(1, &model->vertex_weight_buffer);
 	    delete[] model->vertex_divisors;
 	    delete[] model->index_divisors;
+	    delete model->scene;
 
 	    if(model->textures) {
 	        delete[] model->textures;
@@ -344,6 +479,16 @@ namespace gfx
 	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix)
 	{
 		return glm::transpose(glm::make_mat4((f32*)&matrix));
+	}
+
+	glm::quat glm_quat_cast(const aiQuaternion& q)
+	{
+		glm::quat ret;
+		ret.x = q.x;
+		ret.y = q.y;
+		ret.z = q.z;
+		ret.w = q.w;
+		return ret;
 	}
 
 	bool matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon)
