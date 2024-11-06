@@ -44,7 +44,8 @@ namespace gfx
     VertexMesh create_mesh_and_push_attributes(const f32* verts, u32 verts_size, const LayoutElement* attributes, u32 attributes_size);
     VertexMesh create_mesh_with_indices(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size);
     VertexMesh create_mesh_with_indices_and_push_attributes(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size, const LayoutElement* attributes, u32 attributes_size);
-    void       push_mesh_attributes(VertexMesh* mesh, const LayoutElement* attributes, u32 attributes_size, u32 staring_index = 0);
+    void       push_mesh_attributes(VertexMesh* mesh, const LayoutElement* attributes, u32 attributes_size,
+               u32 starting_index = 0, u32 instance_divisor = 0);
     void       bind_vertex_buffer(const VertexMesh& mesh);
     void       bind_index_buffer(const VertexMesh& mesh);
     void       bind_vertex_array(const VertexMesh& mesh);

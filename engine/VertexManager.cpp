@@ -56,7 +56,8 @@ namespace gfx
 
         return mesh;
     }
-    void push_mesh_attributes(VertexMesh* mesh, const LayoutElement* attributes, u32 attributes_size, u32 starting_index)
+    void push_mesh_attributes(VertexMesh* mesh, const LayoutElement* attributes, u32 attributes_size, u32 starting_index,
+    	u32 instance_divisor)
     {
         assert(mesh, "the mesh needs to be defined in this scope");
         glBindVertexArray(mesh->vertex_array);
@@ -85,6 +86,9 @@ namespace gfx
             } else {
                 glVertexAttribPointer(attr_index, attr.count, attr.type, attr.normalized, attr.stride, (void*)attr.offset);
             }
+
+            if(instance_divisor != 0)
+            	glVertexAttribDivisor(attr_index, instance_divisor);
         }
     }
 

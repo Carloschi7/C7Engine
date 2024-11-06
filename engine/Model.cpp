@@ -120,66 +120,66 @@ namespace gfx
 			{ 4, GL_FLOAT, GL_FALSE, sizeof(VertexWeight), offsetof(VertexWeight, bone_weight) },
 		};
 
-        model_data.mesh_data = create_mesh_with_indices_and_push_attributes(vertices, vertices_count * vertex_stride * sizeof(f32),
-            indices, indices_count * sizeof(u32), attributes, sizeof(attributes));
+		model_data.mesh_data = create_mesh_with_indices_and_push_attributes(vertices, vertices_count * vertex_stride * sizeof(f32),
+		    indices, indices_count * sizeof(u32), attributes, sizeof(attributes));
 
-        glGenBuffers(1, &model_data.vertex_weight_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, model_data.vertex_weight_buffer);
-        glBufferData(GL_ARRAY_BUFFER, vertices_count * sizeof(VertexWeight), vertices_weight, GL_STATIC_DRAW);
+		glGenBuffers(1, &model_data.vertex_weight_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, model_data.vertex_weight_buffer);
+		glBufferData(GL_ARRAY_BUFFER, vertices_count * sizeof(VertexWeight), vertices_weight, GL_STATIC_DRAW);
 
-        push_mesh_attributes(&model_data.mesh_data, weight_attributes, sizeof(weight_attributes), 3);
-        //Default texture loading might not work depending on where the textures are stored
-        if(load_textures) {
-            model_data.textures = new Texture[scene->mNumMeshes];
-            model_data.texture_info = new ModelTextureInfo[scene->mNumMeshes];
-            auto& texture_info = model_data.texture_info;
-            std::string current_working_dir;
+		push_mesh_attributes(&model_data.mesh_data, weight_attributes, sizeof(weight_attributes), 3);
+		//Default texture loading might not work depending on where the textures are stored
+		if(load_textures) {
+			model_data.textures = new Texture[scene->mNumMeshes];
+			model_data.texture_info = new ModelTextureInfo[scene->mNumMeshes];
+			auto& texture_info = model_data.texture_info;
+			std::string current_working_dir;
 
-            {
-                bool backslash_defined = filepath.find_last_of('\\');
-                bool forwardslash_defined = filepath.find_last_of('/');
+			{
+				bool backslash_defined = filepath.find_last_of('\\');
+				bool forwardslash_defined = filepath.find_last_of('/');
 
-                assert(backslash_defined || forwardslash_defined, "invalid path syntax");
+				assert(backslash_defined || forwardslash_defined, "invalid path syntax");
 
-                if (backslash_defined) {
-                    current_working_dir = filepath.substr(0, filepath.find_last_of('\\'));
-                }
+				if (backslash_defined) {
+				    current_working_dir = filepath.substr(0, filepath.find_last_of('\\'));
+				}
 
-                if (forwardslash_defined) {
-                    current_working_dir = filepath.substr(0, filepath.find_last_of('/'));
-                }
-            }
+				if (forwardslash_defined) {
+				    current_working_dir = filepath.substr(0, filepath.find_last_of('/'));
+				}
+			}
 
 			current_working_dir += "/";
 
-            for(u32 i = 0; i < scene->mNumMeshes; i++) {
-            	const aiMesh* mesh = scene->mMeshes[i];
-                const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+			for(u32 i = 0; i < scene->mNumMeshes; i++) {
+				const aiMesh* mesh = scene->mMeshes[i];
+			    const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-                if(material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-                    aiString path;
+			    if(material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+			        aiString path;
 
-                    if(material->GetTexture(aiTextureType_DIFFUSE, 0, &path, 0, 0, 0, 0, 0) == AI_SUCCESS) {
-                    	texture_info[i].name = path.data;
-                    	bool texture_already_loaded = false;
+					if(material->GetTexture(aiTextureType_DIFFUSE, 0, &path, 0, 0, 0, 0, 0) == AI_SUCCESS) {
+						texture_info[i].name = path.data;
+						bool texture_already_loaded = false;
 
-                    	for(u32 j = 0; j < i; j++) {
-                    		if(texture_info[j].name == texture_info[i].name) {
-                    			texture_info[i].index = j;
-                    			texture_already_loaded = true;
-                    			break;
-                    		}
-                    	}
+						for(u32 j = 0; j < i; j++) {
+							if(texture_info[j].name == texture_info[i].name) {
+								texture_info[i].index = j;
+								texture_already_loaded = true;
+								break;
+							}
+						}
 
-                    	if(texture_already_loaded) continue;
+			        	if(texture_already_loaded) continue;
 
-                        std::string loading_path = current_working_dir + path.C_Str();
+			            std::string loading_path = current_working_dir + path.C_Str();
 						texture_info[i].index = i;
-                        model_data.textures[i].Load(loading_path.c_str());
-                    }
-                }
-            }
-        }
+			            model_data.textures[i].Load(loading_path.c_str());
+			        }
+			    }
+			}
+		}
 
 		//Assuming the first channel has as many position/rotation frames as the other ones
 		if(scene->mNumAnimations > 0) {
@@ -209,17 +209,17 @@ namespace gfx
 
 		for(u32 i = 0; i < texture_count; i++) {
 			const aiMesh* mesh = scene->mMeshes[i];
-		    const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+			const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
 		    texture_info[i].name = texture_paths[i];
 		    bool texture_already_loaded = false;
 
-		    for(u32 j = 0; j < i; j++) {
-		    	if(texture_info[j].name == texture_info[i].name) {
-		    		texture_info[i].index = j;
-		        	texture_already_loaded = true;
-		        	break;
-		        }
+			for(u32 j = 0; j < i; j++) {
+				if(texture_info[j].name == texture_info[i].name) {
+					texture_info[i].index = j;
+					texture_already_loaded = true;
+					break;
+				}
 			}
 
 		    if(texture_already_loaded) continue;
@@ -227,27 +227,27 @@ namespace gfx
 			texture_info[i].index = i;
 		    model_data.textures[i].Load(texture_paths[i].c_str());
 		}
-    }
+	}
 
     void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform)
     {
-        assert(model.initialized, "the model needs to be initialized\n");
-        bind_vertex_array(model.mesh_data);
-        bind_index_buffer(model.mesh_data);
+		assert(model.initialized, "the model needs to be initialized\n");
+		bind_vertex_array(model.mesh_data);
+		bind_index_buffer(model.mesh_data);
 
-        u32 indices_drawn = 0;
-        for(u32 i = 0; i < model.mesh_count; i++) {
-        	if(model.textures) {
-        		u32 texture_index = model.texture_info[i].index;
-        		model.textures[texture_index].Bind(0);
-        	}
+		u32 indices_drawn = 0;
+		for(u32 i = 0; i < model.mesh_count; i++) {
+			if(model.textures) {
+				u32 texture_index = model.texture_info[i].index;
+				model.textures[texture_index].Bind(0);
+			}
 
-            shader.Uniform1i(0, std::string(diffuse_uniform));
-            glDrawElementsBaseVertex(GL_TRIANGLES, model.index_divisors[i], GL_UNSIGNED_INT,
-                (void*)(sizeof(u32) * indices_drawn), model.vertex_divisors[i]);
+			shader.Uniform1i(0, std::string(diffuse_uniform));
+			glDrawElementsBaseVertex(GL_TRIANGLES, model.index_divisors[i], GL_UNSIGNED_INT,
+			    (void*)(sizeof(u32) * indices_drawn), model.vertex_divisors[i]);
 
-            indices_drawn += model.index_divisors[i];
-        }
+		    indices_drawn += model.index_divisors[i];
+		}
     }
 
 	//INFO(C7): the num_bones count can contain some repeated bones because they are part
@@ -255,21 +255,21 @@ namespace gfx
     void model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices,
     	u32* num_bones)
     {
-        assert(num_vertices && num_indices, "these pointers need to be defined in this scope");
+		assert(num_vertices && num_indices, "these pointers need to be defined in this scope");
 
-        *num_vertices = 0;
-        *num_indices = 0;
-        *num_bones = 0;
+		*num_vertices = 0;
+		*num_indices = 0;
+		*num_bones = 0;
 
-        for(u32 i = 0; i < scene->mNumMeshes; i++) {
-            const aiMesh* mesh = scene->mMeshes[i];
-            (*num_vertices) += mesh->mNumVertices;
-            for(u32 j = 0; j < mesh->mNumFaces; j++) {
-                (*num_indices) += mesh->mFaces[j].mNumIndices;
-            }
+		for(u32 i = 0; i < scene->mNumMeshes; i++) {
+			const aiMesh* mesh = scene->mMeshes[i];
+			(*num_vertices) += mesh->mNumVertices;
+			for(u32 j = 0; j < mesh->mNumFaces; j++) {
+			    (*num_indices) += mesh->mFaces[j].mNumIndices;
+			}
 
-            (*num_bones) += mesh->mNumBones;
-        }
+			(*num_bones) += mesh->mNumBones;
+		}
     }
 
     bool model_mesh_has_weights(const aiMesh* mesh)

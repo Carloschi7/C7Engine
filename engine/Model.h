@@ -124,7 +124,6 @@ public:
 
 	const std::vector<Mesh>& GetMeshesInVM() const { return m_Meshes; }
 
-	//TODO: to be deleted by the user
 	f32* GetRawBuffer() const;
 	f32* GetRawAttribute(u32 begin, u32 end) const;
 	u32 GetValuesCount() const;
