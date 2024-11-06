@@ -131,6 +131,8 @@ namespace gfx
         //Default texture loading might not work depending on where the textures are stored
         if(load_textures) {
             model_data.textures = new Texture[scene->mNumMeshes];
+            model_data.texture_info = new ModelTextureInfo[scene->mNumMeshes];
+            auto& texture_info = model_data.texture_info;
             std::string current_working_dir;
 
             {
@@ -150,16 +152,29 @@ namespace gfx
 
 			current_working_dir += "/";
 
-			//TODO(C7): This algorithm could still load the same texture twice if used by multiple meshes
             for(u32 i = 0; i < scene->mNumMeshes; i++) {
             	const aiMesh* mesh = scene->mMeshes[i];
                 const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
                 if(material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
                     aiString path;
+
                     if(material->GetTexture(aiTextureType_DIFFUSE, 0, &path, 0, 0, 0, 0, 0) == AI_SUCCESS) {
-                        log_message("{}: {}\n", i, path.data);
+                    	texture_info[i].name = path.data;
+                    	bool texture_already_loaded = false;
+
+                    	for(u32 j = 0; j < i; j++) {
+                    		if(texture_info[j].name == texture_info[i].name) {
+                    			texture_info[i].index = j;
+                    			texture_already_loaded = true;
+                    			break;
+                    		}
+                    	}
+
+                    	if(texture_already_loaded) continue;
+
                         std::string loading_path = current_working_dir + path.C_Str();
+						texture_info[i].index = i;
                         model_data.textures[i].Load(loading_path.c_str());
                     }
                 }
@@ -190,8 +205,10 @@ namespace gfx
 
         u32 indices_drawn = 0;
         for(u32 i = 0; i < model.mesh_count; i++) {
-        	if(model.textures)
-        		model.textures[i].Bind(0);
+        	if(model.textures) {
+        		u32 texture_index = model.texture_info[i].index;
+        		model.textures[texture_index].Bind(0);
+        	}
 
             shader.Uniform1i(0, std::string(diffuse_uniform));
             glDrawElementsBaseVertex(GL_TRIANGLES, model.index_divisors[i], GL_UNSIGNED_INT,
@@ -469,6 +486,7 @@ namespace gfx
 	    glDeleteBuffers(1, &model->vertex_weight_buffer);
 	    delete[] model->vertex_divisors;
 	    delete[] model->index_divisors;
+	    delete[] model->texture_info;
 	    delete model->scene;
 
 	    if(model->textures) {

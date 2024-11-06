@@ -24,6 +24,12 @@ namespace gfx
 		bool initialized = false;
     };
 
+	struct ModelTextureInfo
+	{
+		std::string name;
+		u32 index;
+	};
+
     struct ModelData
     {
     	const aiScene* scene;
@@ -31,8 +37,6 @@ namespace gfx
         VertexMesh mesh_data;
         u32 mesh_count;
         u32 vertex_weight_buffer;
-        //TODO(C7): is it always the same for each keyframe? should we store a different value for
-        //each animation?
         f32 keyframes_last_timestamp;
         //INFO: we try to store all vertex/index data in a single vertex/index buffer,
         //then we render all the meshes in separate drawcalls depeding on their offsets
@@ -41,7 +45,8 @@ namespace gfx
         u32* index_divisors;
         std::vector<BoneInfo> bone_transformations;
 
-        //TODO(C7) probably also rewriting texture is better
+		//Indexing this with the mesh index will return the index of the mesh texture
+        ModelTextureInfo* texture_info;
         Texture* textures;
 
         bool initialized;
