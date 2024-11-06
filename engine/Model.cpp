@@ -79,7 +79,7 @@ namespace gfx
 				vertices[base_index + 7] = vec.y;
 			}
 
-            u32 current_mesh_indices = 0;
+	        u32 current_mesh_indices = 0;
 			for (u32 j = 0; j < mesh->mNumFaces; j++) {
 				const aiFace& face = mesh->mFaces[j];
 				for (u32 k = 0; k < face.mNumIndices; k++) {
@@ -186,15 +186,15 @@ namespace gfx
 			model_data.keyframes_last_timestamp = scene->mAnimations[0]->mDuration;
 		}
 
-        model_data.initialized = true;
-        return model_data;
-    }
+	    model_data.initialized = true;
+	    return model_data;
+	}
 
-    //Load textures from a custom position, requires locations to have full path
-    //binds the n texture to the n mesh
-    //it is recommended to try and load the texture automatically with model_create
-    void model_load_textures(ModelData& model_data, std::string* texture_paths, u32 texture_count)
-    {
+	//Load textures from a custom position, requires locations to have full path
+	//binds the n texture to the n mesh
+	//it is recommended to try and load the texture automatically with model_create
+	void model_load_textures(ModelData& model_data, std::string* texture_paths, u32 texture_count)
+	{
 		assert(texture_paths, "the variable needs to be defined in this scope\n");
 		auto& texture_info = model_data.texture_info;
 		const auto& scene  = model_data.scene;
@@ -229,8 +229,8 @@ namespace gfx
 		}
 	}
 
-    void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform)
-    {
+	void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform)
+	{
 		assert(model.initialized, "the model needs to be initialized\n");
 		bind_vertex_array(model.mesh_data);
 		bind_index_buffer(model.mesh_data);
@@ -248,13 +248,13 @@ namespace gfx
 
 		    indices_drawn += model.index_divisors[i];
 		}
-    }
+	}
 
 	//INFO(C7): the num_bones count can contain some repeated bones because they are part
 	//of multiple vertices
-    void model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices,
-    	u32* num_bones)
-    {
+	void model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices,
+		u32* num_bones)
+	{
 		assert(num_vertices && num_indices, "these pointers need to be defined in this scope");
 
 		*num_vertices = 0;
@@ -265,23 +265,23 @@ namespace gfx
 			const aiMesh* mesh = scene->mMeshes[i];
 			(*num_vertices) += mesh->mNumVertices;
 			for(u32 j = 0; j < mesh->mNumFaces; j++) {
-			    (*num_indices) += mesh->mFaces[j].mNumIndices;
+				(*num_indices) += mesh->mFaces[j].mNumIndices;
 			}
 
 			(*num_bones) += mesh->mNumBones;
 		}
-    }
+	}
 
-    bool model_mesh_has_weights(const aiMesh* mesh)
-    {
-        for(u32 i = 0; i < mesh->mNumBones; i++) {
-            if(mesh->mBones[i]->mNumWeights > 0) {
-                return true;
-            }
-        }
+	bool model_mesh_has_weights(const aiMesh* mesh)
+	{
+		for(u32 i = 0; i < mesh->mNumBones; i++) {
+			if(mesh->mBones[i]->mNumWeights > 0) {
+				return true;
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 	void model_map_bone_names_to_id(const aiScene* scene, std::vector<BoneInfo>& bones_transformations)
 	{
@@ -467,49 +467,49 @@ namespace gfx
 			model_parse_bone_transformations(scene, node->mChildren[i], ticks, vec, current_transformation);
 	}
 
-    void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
+	void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
 		const std::vector<BoneInfo>& bones_transformations)
-    {
-        assert(mesh, "this variable needs to be defined in this scope");
+	{
+	    assert(mesh, "this variable needs to be defined in this scope");
 
-        auto find_element = [](VertexWeight* data, u32 count, u32 vertex_id) -> s32 {
-            for(s32 i = 0; i < count; i++) {
-                if(data[i].vertex_id == vertex_id)
-                    return i;
-            }
+		auto find_element = [](VertexWeight* data, u32 count, u32 vertex_id) -> s32 {
+			for(s32 i = 0; i < count; i++) {
+				if(data[i].vertex_id == vertex_id)
+					return i;
+			}
 
-            return -1;
-        };
+			return -1;
+		};
 
-        u32 count = 0;
-        for(u32 i = 0; i < mesh->mNumBones; i++) {
-        	s32 bone_index = -1;
+		u32 count = 0;
+		for(u32 i = 0; i < mesh->mNumBones; i++) {
+			s32 bone_index = -1;
 
-        	{
+	    	{
 				auto& bones = bones_transformations;
 				std::string bone_name(mesh->mBones[i]->mName.C_Str());
 				bone_index = model_find_bone_info(bones.data(), bones.size(), bone_name);
 				assert(bone_index != -1, "the bone name should be loaded by this point");
 			}
 
-            for(u32 j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
-                auto weight = mesh->mBones[i]->mWeights[j];
-                s32 element_index = find_element(weight_data, weight_count, weight.mVertexId);
-                auto& vertex_weight = (element_index != -1) ? weight_data[element_index] : weight_data[count++];
+	        for(u32 j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
+				auto weight = mesh->mBones[i]->mWeights[j];
+				s32 element_index = find_element(weight_data, weight_count, weight.mVertexId);
+				auto& vertex_weight = (element_index != -1) ? weight_data[element_index] : weight_data[count++];
 
-                assert(count <= weight_count, "range specified too small");
+				assert(count <= weight_count, "range specified too small");
 
 				if (vertex_weight.bone_count == max_bone_movement_per_vertex)
 					continue;
 
 
-                vertex_weight.vertex_id = weight.mVertexId;
-                u32 idx = vertex_weight.bone_count++;
-                vertex_weight.bone_id[idx] = bone_index;
-                vertex_weight.bone_weight[idx] = weight.mWeight;
-            }
-        }
-    }
+				vertex_weight.vertex_id = weight.mVertexId;
+				u32 idx = vertex_weight.bone_count++;
+				vertex_weight.bone_id[idx] = bone_index;
+				vertex_weight.bone_weight[idx] = weight.mWeight;
+	        }
+	    }
+	}
 
 	void model_cleanup(ModelData* model)
 	{
