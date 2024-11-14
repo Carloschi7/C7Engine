@@ -25,13 +25,22 @@ while(GLenum e = glGetError())\
 
 #define log_message(msg, ...) std::cout << std::format(msg, __VA_ARGS__)
 
+#ifdef _DEBUG
+#	define log_message_debug(msg, ...) std::cout << std::format(msg, __VA_ARGS__)
+#else
+#	define log_message_debug(msg, ...)
+#endif
+
 #ifdef assert
 #   undef assert
 #endif
 
+//You cannot possibily have a good library without this
+#define WRITE_TO_NULLPTR() *(int*)nullptr = 69420
+
 #define assert(x, msg) if(!(x)) {\
         log_message("[ASSERTION FAILED]: in file: {}, on line: {}, msg: {}", __FILE__, __LINE__, msg);\
-        *(int*)0 = 0;\
+    	WRITE_TO_NULLPTR();\
     }
 
 #ifndef defer

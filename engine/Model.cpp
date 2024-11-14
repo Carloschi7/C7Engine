@@ -16,8 +16,6 @@ namespace gfx
 		const aiScene* _scene = importer.ReadFile(filepath.c_str(), assimp_flags);
 		scene = importer.GetOrphanedScene();
 
-		log_message("{}\n", scene->mAnimations[0]->mTicksPerSecond);
-
 		if (!scene) {
 			log_message("the given model was not found by the loader\n");
 			model_data.initialized = false;
@@ -130,8 +128,12 @@ namespace gfx
 		push_mesh_attributes(&model_data.mesh_data, weight_attributes, sizeof(weight_attributes), 3);
 		//Default texture loading might not work depending on where the textures are stored
 		if(load_textures) {
-			model_data.textures = new Texture[scene->mNumMeshes];
+			model_data.textures = new TextureData[scene->mNumMeshes];
 			model_data.texture_info = new ModelTextureInfo[scene->mNumMeshes];
+			model_data.texture_count = scene->mNumMeshes;
+
+			std::memset(model_data.textures, 0, sizeof(TextureData) * model_data.texture_count);
+
 			auto& texture_info = model_data.texture_info;
 			std::string current_working_dir;
 
@@ -175,7 +177,7 @@ namespace gfx
 
 			            std::string loading_path = current_working_dir + path.C_Str();
 						texture_info[i].index = i;
-			            model_data.textures[i].Load(loading_path.c_str());
+			            model_data.textures[i] = texture_create(loading_path.c_str());
 			        }
 			    }
 			}
@@ -200,11 +202,14 @@ namespace gfx
 		const auto& scene  = model_data.scene;
 
 		if(model_data.textures || model_data.texture_info) {
+			for(u32 i = 0; i < model_data.texture_count; i++)
+				texture_cleanup(&model_data.textures[i]);
+
 			delete[] model_data.textures;
 			delete[] model_data.texture_info;
 		}
 
-		model_data.textures = new Texture[texture_count];
+		model_data.textures = new TextureData[texture_count];
 		model_data.texture_info = new ModelTextureInfo[texture_count];
 
 		for(u32 i = 0; i < texture_count; i++) {
@@ -225,7 +230,7 @@ namespace gfx
 		    if(texture_already_loaded) continue;
 
 			texture_info[i].index = i;
-		    model_data.textures[i].Load(texture_paths[i].c_str());
+		    model_data.textures[i] = texture_create(texture_paths[i].c_str());
 		}
 	}
 
@@ -238,8 +243,8 @@ namespace gfx
 		u32 indices_drawn = 0;
 		for(u32 i = 0; i < model.mesh_count; i++) {
 			if(model.textures) {
-				u32 texture_index = model.texture_info[i].index;
-				model.textures[texture_index].Bind(0);
+				auto& diffuse_texture = model.textures[model.texture_info[i].index];
+				texture_bind(diffuse_texture, 0);
 			}
 
 			shader.Uniform1i(0, std::string(diffuse_uniform));
@@ -522,10 +527,14 @@ namespace gfx
 	    delete model->scene;
 
 	    if(model->textures) {
+			for(u32 i = 0; i < model->texture_count; i++)
+				texture_cleanup(&model->textures[i]);
+
 	        delete[] model->textures;
 	    }
 	}
 
+	//apparently aiMatrix4x4 stores the data in a trensposed way compared to glm::mat4
 	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix)
 	{
 		return glm::transpose(glm::make_mat4((f32*)&matrix));

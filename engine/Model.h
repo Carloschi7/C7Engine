@@ -47,7 +47,8 @@ namespace gfx
 
 		//Indexing this with the mesh index will return the index of the mesh texture
         ModelTextureInfo* texture_info;
-        Texture* textures;
+        TextureData* textures;
+        u32 texture_count;
 
         bool initialized;
     };

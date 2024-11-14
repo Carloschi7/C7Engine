@@ -1,11 +1,140 @@
 #include "Texture.h"
+#include "MainIncl.h"
 #include <utility>
 #include <string>
-#include <cassert>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "VertexManager.h"
+
+namespace gfx
+{
+	TextureData texture_create(const std::string& filepath)
+	{
+		return texture_create(filepath, texture_default_args());
+	}
+
+	TextureData texture_create(const std::string& filepath, const TextureArgs& args)
+	{
+		TextureData texture_data = {};
+
+		const GLint texture_type = args.texture_type;
+		assert(texture_type != GL_TEXTURE_CUBE_MAP, "this code initializes an individual texture not a group of them, in order to initialize a cube_map, texture_cubemap_create is a valid alternative");
+		texture_data.texture_type = texture_type;
+
+		glGenTextures(1, &texture_data.id);
+		glActiveTexture(GL_TEXTURE0 + args.default_binding);
+		glBindTexture(GL_TEXTURE_2D, texture_data.id);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		assert(args.texture_filter == GL_LINEAR || args.texture_filter == GL_NEAREST,
+			"no other options are valid at the moment");
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, args.texture_filter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, args.texture_filter);
+
+
+		stbi_set_flip_vertically_on_load(args.flip_axis_on_load);
+		u8*& raw_buffer = texture_data.raw_buffers[0];
+		raw_buffer = stbi_load(filepath.c_str(), &texture_data.width, &texture_data.height,
+			&texture_data.bytes_per_pixel, 4);
+
+		if (raw_buffer)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture_data.width, texture_data.height, 0,
+				GL_RGBA, GL_UNSIGNED_BYTE, raw_buffer);
+
+			texture_data.initialized = true;
+		} else {
+			log_message("texture at path \"{}\" not loaded", filepath.c_str());
+			texture_data.initialized = false;
+		}
+
+		if(!args.store_raw_buffer) {
+			stbi_image_free(raw_buffer);
+			raw_buffer = nullptr;
+		}
+
+		return texture_data;
+	}
+
+	TextureData texture_cubemap_create(const std::string* locations, u32 count)
+	{
+		return texture_cubemap_create(locations, count, texture_cubemap_default_args());
+	}
+	TextureData texture_cubemap_create(const std::string* locations, u32 count, const TextureArgs& args)
+	{
+		TextureData texture_data = {};
+
+		const GLint texture_type = args.texture_type;
+		assert(texture_type == GL_TEXTURE_CUBE_MAP, "this function is only used for GL_TEXTURE_CUBE_MAP initializations");
+		texture_data.texture_type = GL_TEXTURE_CUBE_MAP;
+
+		glGenTextures(1, &texture_data.id);
+		glActiveTexture(GL_TEXTURE0 + args.default_binding);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, texture_data.id);
+
+		for(u32 i = 0; i < count; i++) {
+			u8*& raw_buffer = texture_data.raw_buffers[i];
+
+			//INFO: at the moment width, height and bytes_per_pixel are overridden each call,
+			//so only the information of the last texture loaded is preserved (should not be a
+			//concern since texture that are part of a cubemap usually share this values anyways)
+			raw_buffer = stbi_load(locations[i].c_str(), &texture_data.width, &texture_data.height,
+				&texture_data.bytes_per_pixel, 3);
+
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, texture_data.width,
+				texture_data.height, 0, GL_RGB, GL_UNSIGNED_BYTE, raw_buffer);
+
+			if(!args.store_raw_buffer) {
+				stbi_image_free(raw_buffer);
+				raw_buffer = nullptr;
+			}
+		}
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		LayoutElement elem = { 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), 0 };
+		//TODO @C7 transfer this in the temp memory when allocators are available
+		const u32 vtx_cube_data_count = sizeof(vtx_cube_data) / sizeof(f32);
+		f32* buf = new f32[vtx_cube_data_count];
+		for(u32 i = 0; i < vtx_cube_data_count; i++) {
+			buf[i] = vtx_cube_data[i] * args.cubemap_scaling;
+		}
+		texture_data.cubemap_mesh = new VertexMesh;
+		*texture_data.cubemap_mesh = create_mesh_and_push_attributes(buf, vtx_cube_data_count * sizeof(f32),
+			&elem, sizeof(LayoutElement));
+
+		return texture_data;
+	}
+
+	void texture_bind(const TextureData& data, u8 slot)
+	{
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(data.texture_type, data.id);
+	}
+
+	void texture_cleanup(TextureData* data)
+	{
+		for(u32 i = 0; i < max_texture_buffers_in_unit; i++) {
+			if(data->raw_buffers[i])
+				stbi_image_free(data->raw_buffers[i]);
+		}
+
+		if(data->cubemap_mesh) {
+			cleanup_mesh(data->cubemap_mesh);
+			delete data->cubemap_mesh;
+		}
+
+		glDeleteTextures(1, &data->id);
+	}
+}
 
 Texture::Texture() : is_loaded(false)
 {
@@ -86,7 +215,7 @@ glm::ivec2 Texture::GetWidthAndHeight()
 
 void Texture::Bind(unsigned int slot) const
 {
-	assert(is_loaded);
+	assert(is_loaded, "the texture needs to be loaded when calling this method");
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, m_TextureID);
 }
@@ -106,8 +235,6 @@ CubeMap::CubeMap(const std::vector<std::string>& files, f32 fScalingFactor)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
 				m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_Data);
-
-			
 		}
 		else
 		{
@@ -126,7 +253,7 @@ CubeMap::CubeMap(const std::vector<std::string>& files, f32 fScalingFactor)
 
 	//Cubemap buffer data
 	float skyboxVertices[] = {
-		// positions          
+		// positions
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
 		 1.0f, -1.0f, -1.0f,

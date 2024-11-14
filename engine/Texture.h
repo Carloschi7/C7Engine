@@ -2,13 +2,79 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <type_traits>
 #include "GL/glew.h"
 #include "VertexManager.h"
 #include <glm/glm.hpp>
 
 #define GLError "[OpenGL]: Error in file:" << __FILE__ << ", line:" << __LINE__ << "\n"
 
-//Defines how a texture is loaded
+//Wrapper written to create a more straight-forward implementation for texture and cubemaps
+namespace gfx
+{
+	//INFO: tells how many textures can be generated for a texture type, the maximum is
+	//weighted on the amount of textures supported by the GL_TEXTURE_CUBE_MAP object at the moment
+	static constexpr u32 max_cubemap_textures = 6;
+	static constexpr u32 max_texture_buffers_in_unit = max_cubemap_textures;
+
+	struct TextureArgs
+	{
+		bool flip_axis_on_load;
+		bool store_raw_buffer;
+		GLint texture_filter;
+		GLint texture_type;
+		f32 cubemap_scaling;
+		//Only matters when loading the texture for the first time
+		u8 default_binding;
+	};
+
+	//TODO @C7 prob needs to be renamed to Texture, just it creates conflicts with the already existing class at the moment
+	struct TextureData
+	{
+		u32 id;
+		s32 width, height, bytes_per_pixel;
+		GLint texture_type;
+		u8* raw_buffers[max_texture_buffers_in_unit];
+		VertexMesh* cubemap_mesh;
+		bool initialized;
+	};
+
+	static_assert(std::is_trivially_copyable_v<TextureData>, "needs to be trivially copiable because of zero initialization");
+
+	inline TextureArgs texture_default_args()
+	{
+		TextureArgs args = {};
+		args.flip_axis_on_load = false;
+		args.store_raw_buffer = false;
+		args.texture_filter = GL_LINEAR;
+		args.texture_type = GL_TEXTURE_2D;
+		args.cubemap_scaling = 0.0f; //Ignored for non-cubemap initialization
+		args.default_binding = 0;
+		return args;
+	}
+
+	inline TextureArgs texture_cubemap_default_args()
+	{
+		TextureArgs args = {};
+		args.flip_axis_on_load = false;
+		args.store_raw_buffer = false;
+		args.texture_filter = GL_LINEAR;
+		args.texture_type = GL_TEXTURE_CUBE_MAP;
+		args.cubemap_scaling = 200.0f; // average value valid for most conditions
+		args.default_binding = 0;
+		return args;
+	}
+
+	TextureData texture_create(const std::string& filepath);
+	TextureData texture_create(const std::string& filepath, const TextureArgs& args);
+	TextureData texture_cubemap_create(const std::string* locations, u32 count);
+	TextureData texture_cubemap_create(const std::string* locations, u32 count, const TextureArgs& args);
+	void        texture_bind(const TextureData& data, u8 slot = 0);
+	void        texture_cleanup(TextureData* data);
+
+}
+
+//TODO(C7) @Obsolete?
 enum class TextureFilter {Linear = 0, Nearest};
 enum class TexFormat : u8 {Rgb8 = 0, Rgba8, DepthComponentf32};
 

@@ -10,25 +10,26 @@ else()
 endif()
 
 set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
-	engine/Camera.h 
+	engine/Camera.h
 	engine/Camera.cpp
 	engine/CurrentBindings.cpp
-	engine/Entity.h 
+	engine/Entity.h
 	engine/Entity.cpp
-	engine/FrameBuffer.h 
+	engine/FrameBuffer.h
 	engine/FrameBuffer.cpp
 	engine/MainIncl.h
 	${OPTIONAL_MODEL_FILES}
-	engine/Shader.h 
+	engine/Shader.h
 	engine/Shader.cpp
-	engine/Texture.h 
+	engine/Texture.h
 	engine/Texture.cpp
-	engine/VertexManager.h 
+	engine/VertexManager.h
 	engine/VertexManager.cpp
 	engine/TextRenderer.h
 	engine/TextRenderer.cpp
-	engine/Window.h 
+	engine/Window.h
 	engine/Window.cpp
+	engine/Debug.cpp
 	engine/algs_3d.h
 	engine/utils/types.h
 	application/Application.h)
@@ -37,7 +38,7 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 if(MSVC)
 
 	add_library(${PROJECT_NAME} STATIC ${C7ENGINE_SOURCE_FILES})
-	
+
 	#32 bit only for this version
 	target_link_libraries(${PROJECT_NAME}
 		opengl32.lib
@@ -57,7 +58,7 @@ else()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	${PROJECT_SOURCE_DIR}/engine 
+	${PROJECT_SOURCE_DIR}/engine
 	${PROJECT_SOURCE_DIR}/Dependencies/ASSIMP/include
 	${PROJECT_SOURCE_DIR}/Dependencies/GLM
 	${PROJECT_SOURCE_DIR}/Dependencies/stbi
