@@ -1,5 +1,6 @@
 #include "MainIncl.h"
 #include "Model.h"
+#include "math_basics.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
 
@@ -29,6 +30,7 @@ namespace gfx
 		const u32 vertex_stride = 8;
 
 		model_get_vertices_indices_bones_count(scene, &vertices_count, &indices_count, &bones_count);
+		model_data.bone_count = bones_count;
 
 		f32* vertices = new f32[vertices_count * vertex_stride];
 		VertexWeight* vertices_weight = new VertexWeight[vertices_count];
@@ -49,8 +51,8 @@ namespace gfx
 		u32 bones_incremental_idx  = 0;
 
 		auto& bone_transformations = model_data.bone_transformations;
-		bone_transformations.resize(bones_count);
-		model_map_bone_names_to_id(scene, bone_transformations);
+		bone_transformations = new BoneInfo[bones_count];
+		model_map_bone_names_to_id(scene, bone_transformations, bones_count);
 
 		for (u32 i = 0; i < model_data.mesh_count; i++) {
 			const aiMesh* mesh = scene->mMeshes[i];
@@ -89,7 +91,7 @@ namespace gfx
 
 			if(model_mesh_has_weights(mesh)) {
 				VertexWeight* vertices_weight_current = vertices_weight + vertices_parsed_so_far;
-				model_parse_weights(mesh, vertices_weight_current, mesh->mNumVertices, bone_transformations);
+				model_parse_weights(mesh, vertices_weight_current, mesh->mNumVertices, bone_transformations, bones_count);
 				std::sort(vertices_weight_current, vertices_weight_current + mesh->mNumVertices,
 					[](const VertexWeight& first, const VertexWeight& second) {return first.vertex_id < second.vertex_id;});
 			}
@@ -103,7 +105,7 @@ namespace gfx
 		model_data.mesh_data.indices_count = indices_count;
 
 		//Parsing bone matrices
-		model_parse_bone_transformations(scene, scene->mRootNode, 135.0f, bone_transformations);
+		model_parse_bone_transformations(scene, scene->mRootNode, 135.0f, bone_transformations, bones_count, model_data.world_transformation);
 
 		//Position, normals, texcoords
 		LayoutElement attributes[3] = {
@@ -118,8 +120,7 @@ namespace gfx
 			{ 4, GL_FLOAT, GL_FALSE, sizeof(VertexWeight), offsetof(VertexWeight, bone_weight) },
 		};
 
-		model_data.mesh_data = create_mesh_with_indices_and_push_attributes(vertices, vertices_count * vertex_stride * sizeof(f32),
-		    indices, indices_count * sizeof(u32), attributes, sizeof(attributes));
+		model_data.mesh_data = create_mesh_with_indices_and_push_attributes(vertices, vertices_count * vertex_stride * sizeof(f32), indices, indices_count * sizeof(u32), attributes, sizeof(attributes));
 
 		glGenBuffers(1, &model_data.vertex_weight_buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, model_data.vertex_weight_buffer);
@@ -288,7 +289,7 @@ namespace gfx
 		return false;
 	}
 
-	void model_map_bone_names_to_id(const aiScene* scene, std::vector<BoneInfo>& bones_transformations)
+	void model_map_bone_names_to_id(const aiScene* scene, BoneInfo* bone_info, u32 bones_count)
 	{
 		u32 unique_bone_index = 0;
 		for(u32 i = 0; i < scene->mNumMeshes; i++) {
@@ -296,9 +297,9 @@ namespace gfx
 				auto& bone = scene->mMeshes[i]->mBones[j];
 				std::string bone_name(bone->mName.C_Str());
 
-				s32 bone_index = model_find_bone_info(bones_transformations.data(), bones_transformations.size(), bone_name);
+				s32 bone_index = model_find_bone_info(bone_info, bones_count, bone_name);
 				if(bone_index == -1) {
-					auto& transformation = bones_transformations[unique_bone_index];
+					auto& transformation = bone_info[unique_bone_index];
 					transformation.name = bone_name;
 					transformation.id = unique_bone_index;
 					transformation.local_transformation = glm_mat_cast(bone->mOffsetMatrix);
@@ -418,11 +419,10 @@ namespace gfx
 
 	void model_parse_bone_transformations(ModelData& model_data, f32 ticks)
 	{
-		model_parse_bone_transformations(model_data.scene, model_data.scene->mRootNode, ticks, model_data.bone_transformations);
+		model_parse_bone_transformations(model_data.scene, model_data.scene->mRootNode, ticks, model_data.bone_transformations, model_data.bone_count, model_data.world_transformation);
 	}
 
-	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, f32 ticks, std::vector<BoneInfo>& vec,
-		const glm::mat4& parent_transform)
+	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, f32 ticks, BoneInfo* bone_info, u32 bone_info_count, glm::mat4& world_transformation, const glm::mat4& parent_transform)
 	{
 		if(!node) return;
 		glm::mat4 current_transformation;
@@ -458,22 +458,24 @@ namespace gfx
 
 		} else {
 			current_transformation = parent_transform;
+			world_transformation = glm_mat_cast(node->mTransformation);
 		}
 
-		s32 bone_index = model_find_bone_info(vec.data(), vec.size(), bone_name);
+		s32 bone_index = model_find_bone_info(bone_info, bone_info_count, bone_name);
 		if(bone_index != -1) {
-			auto& bone_info = vec[bone_index];
-			bone_info.name = bone_name;
-			bone_info.final_transformation = current_transformation * bone_info.local_transformation;
-			bone_info.initialized = true;
+			auto& current_bone_info = bone_info[bone_index];
+			current_bone_info.name = bone_name;
+			current_bone_info.final_transformation = current_transformation * current_bone_info.local_transformation;
+			current_bone_info.initialized = true;
 		}
 
-		for(u32 i = 0; i < node->mNumChildren; i++)
-			model_parse_bone_transformations(scene, node->mChildren[i], ticks, vec, current_transformation);
+		for(u32 i = 0; i < node->mNumChildren; i++) {
+			model_parse_bone_transformations(scene, node->mChildren[i], ticks, bone_info, bone_info_count, world_transformation, current_transformation);
+		}
 	}
 
 	void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
-		const std::vector<BoneInfo>& bones_transformations)
+		const BoneInfo* bone_info, u32 bone_info_count)
 	{
 	    assert(mesh, "this variable needs to be defined in this scope");
 
@@ -491,9 +493,8 @@ namespace gfx
 			s32 bone_index = -1;
 
 	    	{
-				auto& bones = bones_transformations;
 				std::string bone_name(mesh->mBones[i]->mName.C_Str());
-				bone_index = model_find_bone_info(bones.data(), bones.size(), bone_name);
+				bone_index = model_find_bone_info(bone_info, bone_info_count, bone_name);
 				assert(bone_index != -1, "the bone name should be loaded by this point");
 			}
 
@@ -523,6 +524,7 @@ namespace gfx
 	    glDeleteBuffers(1, &model->vertex_weight_buffer);
 	    delete[] model->vertex_divisors;
 	    delete[] model->index_divisors;
+	    delete[] model->bone_transformations;
 	    delete[] model->texture_info;
 	    delete model->scene;
 
@@ -532,32 +534,6 @@ namespace gfx
 
 	        delete[] model->textures;
 	    }
-	}
-
-	//apparently aiMatrix4x4 stores the data in a trensposed way compared to glm::mat4
-	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix)
-	{
-		return glm::transpose(glm::make_mat4((f32*)&matrix));
-	}
-
-	glm::quat glm_quat_cast(const aiQuaternion& q)
-	{
-		glm::quat ret;
-		ret.x = q.x;
-		ret.y = q.y;
-		ret.z = q.z;
-		ret.w = q.w;
-		return ret;
-	}
-
-	bool matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon)
-	{
-		for(u32 i = 0; i < 4; i++)
-			for(u32 j = 0; j < 4; j++)
-				if(glm::abs(m1[i][j] - m1[i][j]) > epsilon)
-					return false;
-
-		return true;
 	}
 }
 

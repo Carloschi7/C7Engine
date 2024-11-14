@@ -9,20 +9,19 @@
 #include "Shader.h"
 #include "VertexManager.h"
 #include "Texture.h"
-#include "utils/types.h"
 
 namespace gfx
 {
     static constexpr u32 max_bone_movement_per_vertex = 4;
 
 	struct BoneInfo
-    {
-    	std::string name;
-    	u32 id;
-    	glm::mat4 local_transformation;
+	{
+		std::string name;
+		u32 id;
+		glm::mat4 local_transformation;
 		glm::mat4 final_transformation;
 		bool initialized = false;
-    };
+	};
 
 	struct ModelTextureInfo
 	{
@@ -30,60 +29,62 @@ namespace gfx
 		u32 index;
 	};
 
-    struct ModelData
-    {
-    	const aiScene* scene;
+	struct ModelData
+	{
+		const aiScene* scene;
 
-        VertexMesh mesh_data;
-        u32 mesh_count;
-        u32 vertex_weight_buffer;
-        f32 keyframes_last_timestamp;
-        //INFO: we try to store all vertex/index data in a single vertex/index buffer,
-        //then we render all the meshes in separate drawcalls depeding on their offsets
-        //in the global buffer
-        u32* vertex_divisors;
-        u32* index_divisors;
-        std::vector<BoneInfo> bone_transformations;
+		VertexMesh mesh_data;
+		u32 mesh_count;
+		u32 vertex_weight_buffer;
+		f32 keyframes_last_timestamp;
+		//INFO: we try to store all vertex/index data in a single vertex/index buffer,
+		//then we render all the meshes in separate drawcalls depeding on their offsets
+		//in the global buffer
+		u32* vertex_divisors;
+		u32* index_divisors;
+
+		u32 bone_count;
+		BoneInfo* bone_transformations;
+
+		//Extracted from the first offset matrix in the root node, that usually represents the rototranslation
+		//of the model in the world space
+		glm::mat4 world_transformation;
 
 		//Indexing this with the mesh index will return the index of the mesh texture
-        ModelTextureInfo* texture_info;
-        TextureData* textures;
-        u32 texture_count;
+		ModelTextureInfo* texture_info;
+		TextureData* textures;
+		u32 texture_count;
 
-        bool initialized;
-    };
+		bool initialized;
+	};
 
-    struct VertexWeight
-    {
-        u32 vertex_id;
-        u32 bone_count;
-        u32 bone_id[max_bone_movement_per_vertex];
-        f32 bone_weight[max_bone_movement_per_vertex];
-    };
+	struct VertexWeight
+	{
+		u32 vertex_id;
+		u32 bone_count;
+		u32 bone_id[max_bone_movement_per_vertex];
+		f32 bone_weight[max_bone_movement_per_vertex];
+	};
 
-	ModelData model_create(const std::string& filepath, bool load_textures);
-	void model_load_textures(ModelData& model_data, std::string* texture_paths, u32 texture_count);
-	void model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform);
-	void model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices, u32* num_bones);
-	bool model_mesh_has_weights(const aiMesh* mesh);
-	void model_map_bone_names_to_id(const aiScene* scene, std::vector<BoneInfo>& bones_transformations);
-	s32  model_find_bone_info(const BoneInfo* data, u32 size, std::string& name);
+	ModelData     model_create(const std::string& filepath, bool load_textures);
+	void          model_load_textures(ModelData& model_data, std::string* texture_paths, u32 texture_count);
+	void          model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform);
+	void          model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices, u32* num_bones);
+	bool          model_mesh_has_weights(const aiMesh* mesh);
+	void          model_map_bone_names_to_id(const aiScene* scene, BoneInfo* bone_info, u32 bones_count);
+	s32           model_find_bone_info(const BoneInfo* data, u32 size, std::string& name);
 
-	aiNodeAnim* model_find_animation_channel(const aiAnimation* anim, const std::string& name);
-	glm::vec3   model_lerp_keyframes_positions(const aiNodeAnim* node_anim, f32 ticks);
-	glm::quat   model_lerp_keyframes_rotations(const aiNodeAnim* node_anim, f32 ticks);
-	glm::vec3   model_lerp_keyframes_scales(const aiNodeAnim* node_anim, f32 ticks);
+	aiNodeAnim*   model_find_animation_channel(const aiAnimation* anim, const std::string& name);
+	glm::vec3     model_lerp_keyframes_positions(const aiNodeAnim* node_anim, f32 ticks);
+	glm::quat     model_lerp_keyframes_rotations(const aiNodeAnim* node_anim, f32 ticks);
+	glm::vec3     model_lerp_keyframes_scales(const aiNodeAnim* node_anim, f32 ticks);
 
-	void model_parse_bone_transformations(ModelData& model_data, f32 ticks);
-	void model_parse_bone_transformations(const aiScene* scene, const aiNode* node, f32 ticks, std::vector<BoneInfo>& vec,
-		const glm::mat4& parent_transform = glm::mat4(1.0f));
-	void model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count,
-		const std::vector<BoneInfo>& bones_transformations);
-	void model_cleanup(ModelData* mesh);
+	void          model_parse_bone_transformations(ModelData& model_data, f32 ticks);
+	void          model_parse_bone_transformations(const aiScene* scene, const aiNode* node, f32 ticks, BoneInfo* bone_info, u32 bone_info_count, glm::mat4& world_transformation, const glm::mat4& parent_transform = glm::mat4(1.0f));
+	void          model_parse_weights(const aiMesh* mesh, VertexWeight* weight_data, u32 weight_count, const BoneInfo* bone_info, u32 bone_info_count);
+	void          model_cleanup(ModelData* mesh);
 
-	glm::mat4 glm_mat_cast(const aiMatrix4x4& matrix);
-	glm::quat glm_quat_cast(const aiQuaternion& q);
-	bool matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon);
+
 }
 
 

@@ -30,7 +30,8 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/Window.h
 	engine/Window.cpp
 	engine/Debug.cpp
-	engine/algs_3d.h
+	engine/math_basics.h
+	engine/math_basics.cpp
 	engine/utils/types.h
 	application/Application.h)
 
