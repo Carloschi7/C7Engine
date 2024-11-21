@@ -32,6 +32,8 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/Debug.cpp
 	engine/math_basics.h
 	engine/math_basics.cpp
+	engine/memory.h
+	engine/memory.cpp
 	engine/utils/types.h
 	application/Application.h)
 
