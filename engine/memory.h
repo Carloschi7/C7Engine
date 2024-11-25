@@ -45,21 +45,15 @@ namespace gfx
 
 		inline const _Node* get_root() const { return root; }
 	private:
-		void tree_insert_check_1(_Node* node);
-		void tree_insert_check_2(_Node* node);
-		void tree_insert_check_3(_Node* node);
-		void tree_insert_check_4(_Node* node);
-		void tree_insert_check_5(_Node* node);
-
-		//This function is used to perform element deletion logic, this includes also rearranging the
-		//tree after the deletion is performed, hence the perform_deletion flag
+		//INFO @C7: In addition to performing the insertion/deletion operations, the functions also can make sure
+		//with recursive calls that the tree is still valid according to the RB tree rules, the flag in the
+		//tree_delete_check function explicitly says if the recursive calls perform a deletion or just
+		//rearranges the newly created tree structure
+		void tree_insert_check(_Node* node);
 		void tree_delete_check(_Node* node, bool perform_deletion);
 
 		_Node* root = nullptr;
 	};
-
-	_Node* find_next_node(const _Node* node);
-	_Node* find_prev_node(const _Node* node);
 
 	struct MemoryStorage
 	{

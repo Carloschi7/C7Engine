@@ -87,42 +87,27 @@ namespace gfx
 
 
 	//Definitions written according to the red black tree principles
-	void SegmentTree::tree_insert_check_1(_Node* node)
+	void SegmentTree::tree_insert_check(_Node* node)
 	{
 		if(!node->parent) {
 			node->color = NODE_COLOR_BLACK;
 			return;
 		}
 
-		tree_insert_check_2(node);
-	}
-
-	void SegmentTree::tree_insert_check_2(_Node* node)
-	{
 		if(node->parent->color & NODE_COLOR_BLACK) {
 			//Leave the new leaf color as NODE_COLOR_RED which is already set
 			return;
 		}
 
-		tree_insert_check_3(node);
-	}
-
-	void SegmentTree::tree_insert_check_3(_Node* node)
-	{
 		if(uncle(node) && uncle(node)->color & NODE_COLOR_RED) {
 			node->parent->color      = NODE_COLOR_BLACK;
 			uncle(node)->color       = NODE_COLOR_BLACK;
 			grandparent(node)->color = NODE_COLOR_RED;
 
-			tree_insert_check_1(grandparent(node));
+			tree_insert_check(grandparent(node));
 			return;
 		}
 
-		tree_insert_check_4(node);
-	}
-
-	void SegmentTree::tree_insert_check_4(_Node* node)
-	{
 		if(node->parent->right == node && node->parent == grandparent(node)->left) {
 			rotate_left(node->parent);
 			node = node->left;
@@ -134,11 +119,6 @@ namespace gfx
 			node = node->right;
 		}
 
-		tree_insert_check_5(node);
-	}
-
-	void SegmentTree::tree_insert_check_5(_Node* node)
-	{
 		node->parent->color      = NODE_COLOR_BLACK;
 		grandparent(node)->color = NODE_COLOR_RED;
 
@@ -166,7 +146,7 @@ namespace gfx
 		current_node->segment.start = start;
 		current_node->segment.size  = size;
 
-		tree_insert_check_1(*iterator);
+		tree_insert_check(*iterator);
 	}
 
 	_Node** SegmentTree::find_place_to_insert_node(u32 start, _Node** parent)
@@ -267,8 +247,6 @@ namespace gfx
 		tree_delete_check(node_to_delete, true);
 	}
 
-
-
 	static void red_black_tree_delete(_Node* node)
 	{
 		if(!node) return;
@@ -276,6 +254,26 @@ namespace gfx
 		red_black_tree_delete(node->left);
 		red_black_tree_delete(node->right);
 		delete node;
+	}
+
+	static void node_removal_utility(_Node* node_to_delete, bool perform_deletion)
+	{
+		if(!perform_deletion) {
+			if(node_to_delete->color & NODE_COLOR_DOUBLE_BLACK) {
+				node_to_delete->color = NODE_COLOR_BLACK;
+			}
+
+			return;
+		}
+
+		if(node_to_delete->parent) {
+			if(node_to_delete->parent->left == node_to_delete)
+				node_to_delete->parent->left = nullptr;
+			else
+				node_to_delete->parent->right = nullptr;
+		}
+
+		delete node_to_delete;
 	}
 
 	void SegmentTree::cleanup()
@@ -287,28 +285,8 @@ namespace gfx
 	void SegmentTree::tree_delete_check(_Node* node_to_delete, bool perform_deletion)
 	{
 		auto node_sibling = sibling(node_to_delete);
-		auto delete_node_util = [&](_Node* node_to_delete)
-		{
-			if(!perform_deletion) {
-				if(node_to_delete->color & NODE_COLOR_DOUBLE_BLACK) {
-					node_to_delete->color = NODE_COLOR_BLACK;
-				}
-
-				return;
-			}
-
-			if(node_to_delete->parent) {
-				if(node_to_delete->parent->left == node_to_delete)
-					node_to_delete->parent->left = nullptr;
-				else
-					node_to_delete->parent->right = nullptr;
-			}
-
-			delete node_to_delete;
-		};
-
 		if(!node_to_delete->left && !node_to_delete->right && get_node_color(node_to_delete) & NODE_COLOR_RED) {
-			delete_node_util(node_to_delete);
+			node_removal_utility(node_to_delete, perform_deletion);
 			return;
 		}
 
@@ -316,7 +294,7 @@ namespace gfx
 			//This was the last node, reset tree
 			root = nullptr;
 			assert(perform_deletion, "there should not be no way this flag is false when we have only one node");
-			delete_node_util(node_to_delete);
+			node_removal_utility(node_to_delete, perform_deletion);
 			return;
 		}
 
@@ -333,11 +311,11 @@ namespace gfx
 
 			if(parent_color & NODE_COLOR_RED) {
 				node_sibling->parent->color = NODE_COLOR_BLACK;
-				delete_node_util(node_to_delete);
+				node_removal_utility(node_to_delete, perform_deletion);
 			} else {
 				//Black or double black
 				node_sibling->parent->color = NODE_COLOR_DOUBLE_BLACK;
-				delete_node_util(node_to_delete);
+				node_removal_utility(node_to_delete, perform_deletion);
 				tree_delete_check(node_sibling->parent, false);
 			}
 
@@ -408,10 +386,10 @@ namespace gfx
 		if (!node_sibling->parent)
 			root = node_sibling;
 
-		delete_node_util(node_to_delete);
+		node_removal_utility(node_to_delete, perform_deletion);
 	}
 
-	_Node* find_next_node(const _Node* node)
+	static _Node* find_next_node(const _Node* node)
 	{
 		if(!node->right && !node->parent)
 			return nullptr;
@@ -439,8 +417,9 @@ namespace gfx
 		return nullptr;
 	}
 
-	_Node* find_prev_node(const _Node* node)
+	static _Node* find_prev_node(const _Node* node)
 	{
+		assert(false, "function still not implemented");
 		return nullptr;
 	}
 
@@ -640,6 +619,9 @@ namespace gfx
 		Allocator allocator = {};
 		allocator.permanent_storage.buffer = ::operator new(permanent_storage_bytes);
 		allocator.temporary_storage.buffer = ::operator new(temporary_storage_bytes);
+
+		std::memset(allocator.permanent_storage.buffer, 0, permanent_storage_bytes);
+		std::memset(allocator.temporary_storage.buffer, 0, temporary_storage_bytes);
 
 		allocator.permanent_storage.size = permanent_storage_bytes;
 		allocator.temporary_storage.size = temporary_storage_bytes;
