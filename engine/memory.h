@@ -35,9 +35,12 @@ namespace gfx
 		~SegmentTree() {
 			if(root) { cleanup(); }
 		}
-		void add_element(u32 start, u32 size);
-		_Node** find_element(u32 start, _Node*& parent);
-		void remove_element(u32 start);
+		void add_node(u32 start, u32 size);
+		_Node** find_place_to_insert_node(u32 start, _Node** parent);
+		_Node* find_node(u32 start);
+		const _Node* find_first_node();
+		const _Node* find_last_node();
+		void remove_node(u32 start);
 		void cleanup();
 
 		inline const _Node* get_root() const { return root; }
@@ -55,38 +58,27 @@ namespace gfx
 		_Node* root = nullptr;
 	};
 
-	struct TemporaryStorage
+	_Node* find_next_node(const _Node* node);
+	_Node* find_prev_node(const _Node* node);
+
+	struct MemoryStorage
 	{
 		void* buffer;
 		u32 size;
 		u32 used;
-	};
-
-	struct PermanentStorage
-	{
-		void* buffer;
-		u32 size;
-		u32 used;
-
-		SegmentTree memory_segments;
 	};
 
 	struct Allocator
 	{
-		TemporaryStorage temporary_storage;
-		PermanentStorage permanent_storage;
+		MemoryStorage temporary_storage;
+		MemoryStorage permanent_storage;
+		//Maps allocations in the permanent_storage
+		SegmentTree segment_tree;
+		//This basically marks the number of allocation done in O(n*log(n)) time complexity
+		//to cover holes generated from deallocations. If the value is zero the allocation
+		//takes O(log(n))
+		u32 dense_allocations_left = 0;
 	};
-
-	static Allocator* g_engine_allocator = nullptr;
-
-	Allocator allocator_create(u32 permanent_storage_bytes, u32 temporary_storage_bytes);
-
-	//This functions will either use the g_engine_allocator functionalities or allocate memory from the standard heap
-	//allocate_temporary and free_temporary behave the same way to allocate and free if g_engine_allocator is not defined
-	void* allocate(u32 bytes);
-	void  free(void* ptr);
-	void* allocate_temporary(u32 bytes);
-	void  free_temporary(void* ptr);
 
 	void assert_red_black_tree_validity(const SegmentTree& segment_tree);
 
@@ -94,4 +86,16 @@ namespace gfx
 	{
 		void memory_run_tests();
 	}
+
+	static Allocator* g_engine_allocator = nullptr;
+	Allocator allocator_create(u32 permanent_storage_bytes, u32 temporary_storage_bytes);
+	void      allocator_cleanup(Allocator* allocator);
+
+	//This functions will either use the g_engine_allocator functionalities or mem_allocate memory from the standard heap
+	//allocate_temporary and free_temporary behave the same way to mem_allocate and mem_free if g_engine_allocator is not defined
+	void* mem_allocate(u32 bytes);
+	void  mem_free(void* ptr);
+	void* temporary_allocate(u32 bytes);
+	void  temporary_free(void* ptr);
+	void  temporary_decrease_counter(u32 bytes);
 }

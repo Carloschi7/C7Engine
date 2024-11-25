@@ -111,7 +111,7 @@ u32 Shader::GenUniformBuffer(const std::string& block_name, u32 size, u32 bindin
 	Use();
 	u32& new_buffer = m_UniformBuffers.emplace_back();
 
-	//Generate a buffer and allocate the desired space
+	//Generate a buffer and mem_allocate the desired space
 	glGenBuffers(1, &new_buffer);
 	glBindBuffer(GL_UNIFORM_BUFFER, new_buffer);
 	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
