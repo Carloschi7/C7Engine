@@ -1,6 +1,7 @@
 #include "MainIncl.h"
 #include "Model.h"
 #include "math_basics.h"
+#include "memory.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
 
@@ -32,26 +33,34 @@ namespace gfx
 		model_get_vertices_indices_bones_count(scene, &vertices_count, &indices_count, &bones_count);
 		model_data.bone_count = bones_count;
 
-		f32* vertices = new f32[vertices_count * vertex_stride];
-		VertexWeight* vertices_weight = new VertexWeight[vertices_count];
-		std::memset(vertices_weight, 0, vertices_count * sizeof(VertexWeight));
-		u32* indices = new u32[indices_count];
-
-		model_data.vertex_divisors = new u32[scene->mNumMeshes];
-		model_data.index_divisors = new u32[scene->mNumMeshes];
+		f32* vertices                 = temporary_allocate<f32>(vertices_count * vertex_stride);
+		VertexWeight* vertices_weight = temporary_allocate<VertexWeight>(vertices_count);
+		u32* indices                  = temporary_allocate<u32>(indices_count);
 
 		defer {
-				delete[] vertices;
-				delete[] indices;
-				delete[] vertices_weight;
+			temporary_free(vertices, vertices_count * vertex_stride * sizeof(f32));
+			temporary_free(vertices_weight, vertices_count * sizeof(VertexWeight));
+			temporary_free(indices, indices_count * sizeof(u32));
 		};
+
+		std::memset(vertices_weight, 0, vertices_count * sizeof(VertexWeight));
+
+		model_data.vertex_divisors = mem_allocate<u32>(scene->mNumMeshes);
+		model_data.index_divisors  = mem_allocate<u32>(scene->mNumMeshes);
 
 		u32 vertices_parsed_so_far = 0;
 		u32 indices_parsed_so_far  = 0;
 		u32 bones_incremental_idx  = 0;
 
 		auto& bone_transformations = model_data.bone_transformations;
+		//bone_transformations = mem_allocate<BoneInfo>(bones_count);
 		bone_transformations = new BoneInfo[bones_count];
+		//TOBECONTINUED @C7 this function in this current iteration will crash because the string is not
+		//initialized properly. So this means either we need to have a way to call constructors which is
+		//something not suited to this way of doing stuff or we need a new string class
+		//(shame how zero initializing something is a bad thing)
+		//std::string is still pretty fast and valid, could write a CompactString structure for this
+		//specific error
 		model_map_bone_names_to_id(scene, bone_transformations, bones_count);
 
 		for (u32 i = 0; i < model_data.mesh_count; i++) {
@@ -129,7 +138,8 @@ namespace gfx
 		push_mesh_attributes(&model_data.mesh_data, weight_attributes, sizeof(weight_attributes), 3);
 		//Default texture loading might not work depending on where the textures are stored
 		if(load_textures) {
-			model_data.textures = new TextureData[scene->mNumMeshes];
+			model_data.textures      = mem_allocate<TextureData>(scene->mNumMeshes);
+			//model_data.texture_info  = mem_allocate<ModelTextureInfo>(scene->mNumMeshes);
 			model_data.texture_info = new ModelTextureInfo[scene->mNumMeshes];
 			model_data.texture_count = scene->mNumMeshes;
 
@@ -209,9 +219,9 @@ namespace gfx
 			delete[] model_data.textures;
 			delete[] model_data.texture_info;
 		}
-
-		model_data.textures = new TextureData[texture_count];
-		model_data.texture_info = new ModelTextureInfo[texture_count];
+		model_data.textures      = mem_allocate<TextureData>(scene->mNumMeshes);
+		//model_data.texture_info  = mem_allocate<ModelTextureInfo>(scene->mNumMeshes);
+		model_data.texture_info = new ModelTextureInfo[scene->mNumMeshes];
 
 		for(u32 i = 0; i < texture_count; i++) {
 			const aiMesh* mesh = scene->mMeshes[i];
@@ -522,17 +532,20 @@ namespace gfx
 	    assert(model, "model needs to be defined in this scope");
 	    cleanup_mesh(&model->mesh_data);
 	    glDeleteBuffers(1, &model->vertex_weight_buffer);
-	    delete[] model->vertex_divisors;
-	    delete[] model->index_divisors;
+	    mem_free(model->vertex_divisors);
+	    mem_free(model->index_divisors);
+	    //mem_free(model->bone_transformations);
+	    //mem_free(model->texture_info);
 	    delete[] model->bone_transformations;
 	    delete[] model->texture_info;
+	    //This is something which was allocated by another library, so just default delete
 	    delete model->scene;
 
 	    if(model->textures) {
 			for(u32 i = 0; i < model->texture_count; i++)
 				texture_cleanup(&model->textures[i]);
 
-	        delete[] model->textures;
+	        mem_free(model->textures);
 	    }
 	}
 }

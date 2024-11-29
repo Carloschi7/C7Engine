@@ -1,7 +1,7 @@
 #include "memory.h"
 #include "MainIncl.h"
 
-
+gfx::Allocator* g_engine_allocator = nullptr;
 
 namespace gfx
 {
@@ -732,6 +732,28 @@ namespace gfx
 		//INFO @C7 there is really nothing to mem_free if a temporary buffer is used, you can mark the memory on top
 		//of the temporary stack being no longer used by decreasing the counter with the related function
 		//declared in the memory header
+	}
+
+	void temporary_free(void* ptr, u32 size)
+	{
+		if(!g_engine_allocator) {
+			::operator delete(ptr);
+			return;
+		}
+
+		temporary_decrease_counter(size);
+	}
+
+	void temporary_free_c_str(char* c_string)
+	{
+		if(!g_engine_allocator) {
+			::operator delete(c_string);
+			return;
+		}
+
+		//Clearing also the space for the \0
+		u32 get_c_string_length(const char* c_string);
+		temporary_free(c_string, get_c_string_length(c_string) + 1);
 	}
 
 	void temporary_decrease_counter(u32 bytes)
