@@ -16,6 +16,7 @@ namespace gfx
 	CompactString compact_string_create(const char* c_string)
 	{
 		CompactString str = {};
+		std::memset(&str, 0, sizeof(CompactString));
 
 		u32 string_length = get_c_string_length(c_string);
 		if(string_length < compact_string_max_preallocated_buffer_size) {
@@ -51,7 +52,7 @@ namespace gfx
 			} else {
 				compact_string.heap_buffer = mem_allocate<char>(compact_string.count + size_of_string_to_append);
 				//Copy the old string to the heap allocation and then append
-				std::memcpy(compact_string.heap_buffer, compact_string.stack_buffer + compact_string.count, compact_string.count);
+				std::memcpy(compact_string.heap_buffer, compact_string.stack_buffer, compact_string.count);
 				std::memcpy(compact_string.heap_buffer + compact_string.count, c_string, size_of_string_to_append);
 				//We dont delete or reset the contents that are left in the old stack buffer, the flag below will make
 				//the string automatically load the heap buffer when doing string operations
@@ -62,7 +63,16 @@ namespace gfx
 		compact_string.count += size_of_string_to_append;
 	}
 
+	bool compact_string_match(const CompactString& first, const char* second)
+	{
+		const u32 second_string_count = get_c_string_length(second);
+		if(first.count != second_string_count)
+			return false;
 
+		auto first_pointer  = first.stored_in_heap_buffer ? first.heap_buffer : first.stack_buffer;
+
+		return (std::memcmp(first_pointer, second, second_string_count) == 0);
+	}
 
 	bool compact_string_match(const CompactString& first, const CompactString& second)
 	{
@@ -109,7 +119,6 @@ namespace gfx
 				CompactString current_string = compact_string_create("Hello world");
 				defer { compact_string_cleanup(&current_string); };
 				char* ptr = compact_string_c_str(current_string);
-				//TOBECONTINUED @C7 Test this with g_engine_allocator defined
 				defer { temporary_free_c_str(ptr); };
 			}
 
@@ -117,7 +126,6 @@ namespace gfx
 				CompactString current_string = compact_string_create("World hello");
 				defer { compact_string_cleanup(&current_string); };
 				char* ptr = compact_string_c_str(current_string);
-				//TOBECONTINUED @C7 Test this with g_engine_allocator defined
 				defer { temporary_free_c_str(ptr); };
 			}
 
@@ -127,7 +135,14 @@ namespace gfx
 				CompactString current_string = to_copy;
 				defer { compact_string_cleanup(&current_string); };
 				char* ptr = compact_string_c_str(current_string);
-				//TOBECONTINUED @C7 Test this with g_engine_allocator defined
+				defer { temporary_free_c_str(ptr); };
+			}
+
+			{
+				//30 character string
+				CompactString current_string = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+				compact_string_append(current_string, "aaa");
+				char* ptr = compact_string_c_str(current_string);
 				defer { temporary_free_c_str(ptr); };
 			}
 		}

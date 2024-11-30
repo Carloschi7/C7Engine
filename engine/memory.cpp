@@ -639,8 +639,11 @@ namespace gfx
 
 	void* mem_allocate(u32 bytes)
 	{
-		if(!g_engine_allocator) return ::operator new(bytes);
-
+		if(!g_engine_allocator) {
+			void* ptr = ::operator new(bytes);
+			std::memset(ptr, 0, bytes);
+			return ptr;
+		}
 		//TODO @C7 insert mutexes and locks here, this function needs to be synchronized
 
 		//the allocation methodology now consist of pushing the allocation start and size at the

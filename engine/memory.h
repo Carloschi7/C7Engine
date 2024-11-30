@@ -101,14 +101,15 @@ namespace gfx
 	template<typename T>
 	T* mem_allocate(u32 count)
 	{
-		static_assert(std::is_default_constructible_v<T>, "T in an invalid type");
+		//TODO @C7 should also check for triviality in the future
+		static_assert(std::is_standard_layout_v<T>, "T in an invalid type");
 		return reinterpret_cast<T*>(mem_allocate(count * sizeof(T)));
 	}
 
 	template<typename T>
 	T* temporary_allocate(u32 count)
 	{
-		static_assert(std::is_default_constructible_v<T>, "T in an invalid type");
+		static_assert(std::is_standard_layout_v<T>, "T in an invalid type");
 		return reinterpret_cast<T*>(temporary_allocate(count * sizeof(T)));
 	}
 

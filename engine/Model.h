@@ -9,6 +9,7 @@
 #include "Shader.h"
 #include "VertexManager.h"
 #include "Texture.h"
+#include "compact_string.h"
 
 namespace gfx
 {
@@ -16,7 +17,7 @@ namespace gfx
 
 	struct BoneInfo
 	{
-		std::string name;
+		CompactString name;
 		u32 id;
 		glm::mat4 local_transformation;
 		glm::mat4 final_transformation;
@@ -25,7 +26,7 @@ namespace gfx
 
 	struct ModelTextureInfo
 	{
-		std::string name;
+		CompactString name;
 		u32 index;
 	};
 

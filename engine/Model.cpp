@@ -53,8 +53,8 @@ namespace gfx
 		u32 bones_incremental_idx  = 0;
 
 		auto& bone_transformations = model_data.bone_transformations;
-		//bone_transformations = mem_allocate<BoneInfo>(bones_count);
-		bone_transformations = new BoneInfo[bones_count];
+		bone_transformations = mem_allocate<BoneInfo>(bones_count);
+		//bone_transformations = new BoneInfo[bones_count];
 		//TOBECONTINUED @C7 this function in this current iteration will crash because the string is not
 		//initialized properly. So this means either we need to have a way to call constructors which is
 		//something not suited to this way of doing stuff or we need a new string class
@@ -139,8 +139,7 @@ namespace gfx
 		//Default texture loading might not work depending on where the textures are stored
 		if(load_textures) {
 			model_data.textures      = mem_allocate<TextureData>(scene->mNumMeshes);
-			//model_data.texture_info  = mem_allocate<ModelTextureInfo>(scene->mNumMeshes);
-			model_data.texture_info = new ModelTextureInfo[scene->mNumMeshes];
+			model_data.texture_info  = mem_allocate<ModelTextureInfo>(scene->mNumMeshes);
 			model_data.texture_count = scene->mNumMeshes;
 
 			std::memset(model_data.textures, 0, sizeof(TextureData) * model_data.texture_count);
@@ -177,7 +176,7 @@ namespace gfx
 						bool texture_already_loaded = false;
 
 						for(u32 j = 0; j < i; j++) {
-							if(texture_info[j].name == texture_info[i].name) {
+							if(compact_string_match(texture_info[j].name, texture_info[i].name)) {
 								texture_info[i].index = j;
 								texture_already_loaded = true;
 								break;
@@ -216,12 +215,11 @@ namespace gfx
 			for(u32 i = 0; i < model_data.texture_count; i++)
 				texture_cleanup(&model_data.textures[i]);
 
-			delete[] model_data.textures;
-			delete[] model_data.texture_info;
+			mem_free(model_data.textures);
+			mem_free(model_data.texture_info);
 		}
-		model_data.textures      = mem_allocate<TextureData>(scene->mNumMeshes);
-		//model_data.texture_info  = mem_allocate<ModelTextureInfo>(scene->mNumMeshes);
-		model_data.texture_info = new ModelTextureInfo[scene->mNumMeshes];
+		model_data.textures     = mem_allocate<TextureData>(scene->mNumMeshes);
+		model_data.texture_info = mem_allocate<ModelTextureInfo>(scene->mNumMeshes);
 
 		for(u32 i = 0; i < texture_count; i++) {
 			const aiMesh* mesh = scene->mMeshes[i];
@@ -231,7 +229,7 @@ namespace gfx
 		    bool texture_already_loaded = false;
 
 			for(u32 j = 0; j < i; j++) {
-				if(texture_info[j].name == texture_info[i].name) {
+				if(compact_string_match(texture_info[j].name, texture_info[i].name)) {
 					texture_info[i].index = j;
 					texture_already_loaded = true;
 					break;
@@ -310,8 +308,8 @@ namespace gfx
 				s32 bone_index = model_find_bone_info(bone_info, bones_count, bone_name);
 				if(bone_index == -1) {
 					auto& transformation = bone_info[unique_bone_index];
-					transformation.name = bone_name;
-					transformation.id = unique_bone_index;
+					transformation.name  = compact_string_create(bone_name);
+					transformation.id    = unique_bone_index;
 					transformation.local_transformation = glm_mat_cast(bone->mOffsetMatrix);
 
 					unique_bone_index++;
@@ -323,7 +321,7 @@ namespace gfx
 	s32 model_find_bone_info(const BoneInfo* data, u32 size, std::string& name)
 	{
 		for(u32 i = 0; i < size; i++) {
-			if(data[i].name == name)
+			if(compact_string_match(data[i].name, name.c_str()))
 				return i;
 		}
 
@@ -474,7 +472,7 @@ namespace gfx
 		s32 bone_index = model_find_bone_info(bone_info, bone_info_count, bone_name);
 		if(bone_index != -1) {
 			auto& current_bone_info = bone_info[bone_index];
-			current_bone_info.name = bone_name;
+			current_bone_info.name  = compact_string_create(bone_name);
 			current_bone_info.final_transformation = current_transformation * current_bone_info.local_transformation;
 			current_bone_info.initialized = true;
 		}
@@ -534,10 +532,10 @@ namespace gfx
 	    glDeleteBuffers(1, &model->vertex_weight_buffer);
 	    mem_free(model->vertex_divisors);
 	    mem_free(model->index_divisors);
-	    //mem_free(model->bone_transformations);
-	    //mem_free(model->texture_info);
-	    delete[] model->bone_transformations;
-	    delete[] model->texture_info;
+	    mem_free(model->bone_transformations);
+	    mem_free(model->texture_info);
+	    //delete[] model->bone_transformations;
+	    //delete[] model->texture_info;
 	    //This is something which was allocated by another library, so just default delete
 	    delete model->scene;
 

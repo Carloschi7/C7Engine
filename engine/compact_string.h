@@ -48,6 +48,7 @@ namespace gfx {
 	CompactString compact_string_create(const std::string& cpp_string);
 	void          compact_string_append(CompactString& compact_string, const char* c_string);
 
+	bool          compact_string_match(const CompactString& first, const char* second);
 	bool          compact_string_match(const CompactString& first, const CompactString& second);
 	//This function allocates a c string using the temporary_allocate function, remember to use defer after calling
 	char*         compact_string_c_str(const CompactString& compact_string);
