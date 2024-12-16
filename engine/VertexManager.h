@@ -31,6 +31,7 @@ private:
 namespace gfx
 {
     //TODO(C7) implemented in the new engine version
+    static constexpr u32 max_instanced_buffers = 8;
     struct VertexMesh
     {
         u32 vertex_buffer;
@@ -38,14 +39,20 @@ namespace gfx
         u32 vertex_array;
 
         u32 indices_count;
+
+        u32 instanced_buffers[max_instanced_buffers];
+        u32 instanced_buffers_count = 0;
     };
 
     VertexMesh create_mesh(const f32* verts, u32 verts_size);
     VertexMesh create_mesh_and_push_attributes(const f32* verts, u32 verts_size, const LayoutElement* attributes, u32 attributes_size);
     VertexMesh create_mesh_with_indices(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size);
     VertexMesh create_mesh_with_indices_and_push_attributes(const f32* verts, u32 verts_size, const u32* indices, u32 indices_size, const LayoutElement* attributes, u32 attributes_size);
-    void       push_mesh_attributes(VertexMesh* mesh, const LayoutElement* attributes, u32 attributes_size,
-               u32 starting_index = 0, u32 instance_divisor = 0);
+    void       push_mesh_attributes(VertexMesh* mesh, const LayoutElement* attributes, u32 attributes_size, u32 starting_index = 0, u32 instance_divisor = 0);
+    //INFO @C7 at the moment the default instancing value is 1, could change in the future
+    u32        push_instanced_attribute(VertexMesh* mesh, const void* verts, u32 verts_size, u32 shader_attr_index, const LayoutElement& element);
+    void*      mesh_map_instanced_buffer(VertexMesh* mesh, u32 buffer_index);
+    void       mesh_unmap_instanced_buffer(VertexMesh* mesh, u32 buffer_index);
     void       bind_vertex_buffer(const VertexMesh& mesh);
     void       bind_index_buffer(const VertexMesh& mesh);
     void       bind_vertex_array(const VertexMesh& mesh);

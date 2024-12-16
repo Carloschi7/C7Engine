@@ -114,6 +114,20 @@ namespace gfx
 		return texture_data;
 	}
 
+	glm::ivec2 texture_get_width_and_height(const TextureData& data)
+	{
+		//Return those if they are already cached
+		if(data.width != 0 && data.height != 0)
+			return glm::ivec2{ data.width, data.height };
+
+		glm::ivec2 ret = {};
+
+		texture_bind(data);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &ret.x);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &ret.y);
+		return ret;
+	}
+
 	void texture_bind(const TextureData& data, u8 slot)
 	{
 		glActiveTexture(GL_TEXTURE0 + slot);
@@ -133,6 +147,7 @@ namespace gfx
 		}
 
 		glDeleteTextures(1, &data->id);
+		data->initialized = false;
 	}
 }
 

@@ -67,7 +67,7 @@ namespace gfx
 
         const u32 integer_types_count = sizeof(integer_types) / sizeof(integer_types[0]);
 
-        u32 attributes_count = attributes_size / sizeof(attributes[0]);
+        u32 attributes_count = attributes_size / sizeof(LayoutElement);
         for(u32 i = 0; i < attributes_count; i++) {
             u32 attr_index = starting_index + i;
             glEnableVertexAttribArray(attr_index);
@@ -91,6 +91,46 @@ namespace gfx
             	glVertexAttribDivisor(attr_index, instance_divisor);
         }
     }
+
+    u32 push_instanced_attribute(VertexMesh* mesh, const void* verts, u32 verts_size, u32 shader_attr_index, const LayoutElement& element)
+    {
+    	assert(mesh && shader_attr_index != -1, "The shader binding needs to be defined\n");
+		assert(mesh->instanced_buffers_count != max_instanced_buffers, "There are too many instanced buffers for this mesh\n");
+
+    	bind_vertex_array(*mesh);
+
+		u32& buffer = mesh->instanced_buffers[mesh->instanced_buffers_count++];
+		glGenBuffers(1, &buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferData(GL_ARRAY_BUFFER, verts_size, verts, GL_DYNAMIC_DRAW);
+
+		//Map the attribute
+		push_mesh_attributes(mesh, &element, sizeof(LayoutElement), shader_attr_index, 1);
+
+		return buffer;
+    }
+
+	void* mesh_map_instanced_buffer(VertexMesh* mesh, u32 buffer_index)
+	{
+		assert(mesh, "the mesh needs to be defined here\n");
+
+		if (buffer_index >= mesh->instanced_buffers_count)
+			return nullptr;
+
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->instanced_buffers[buffer_index]);
+		return glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+	}
+
+	void mesh_unmap_instanced_buffer(VertexMesh* mesh, u32 buffer_index)
+	{
+		assert(mesh, "the mesh needs to be defined here\n");
+
+		if (buffer_index >= mesh->instanced_buffers_count)
+			return;
+
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->instanced_buffers[buffer_index]);
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
 
     void bind_vertex_buffer(const VertexMesh& mesh)
     {

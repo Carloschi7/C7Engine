@@ -54,13 +54,6 @@ namespace gfx
 
 		auto& bone_transformations = model_data.bone_transformations;
 		bone_transformations = mem_allocate<BoneInfo>(bones_count);
-		//bone_transformations = new BoneInfo[bones_count];
-		//TOBECONTINUED @C7 this function in this current iteration will crash because the string is not
-		//initialized properly. So this means either we need to have a way to call constructors which is
-		//something not suited to this way of doing stuff or we need a new string class
-		//(shame how zero initializing something is a bad thing)
-		//std::string is still pretty fast and valid, could write a CompactString structure for this
-		//specific error
 		model_map_bone_names_to_id(scene, bone_transformations, bones_count);
 
 		for (u32 i = 0; i < model_data.mesh_count; i++) {
@@ -141,8 +134,6 @@ namespace gfx
 			model_data.textures      = mem_allocate<TextureData>(scene->mNumMeshes);
 			model_data.texture_info  = mem_allocate<ModelTextureInfo>(scene->mNumMeshes);
 			model_data.texture_count = scene->mNumMeshes;
-
-			std::memset(model_data.textures, 0, sizeof(TextureData) * model_data.texture_count);
 
 			auto& texture_info = model_data.texture_info;
 			std::string current_working_dir;
@@ -278,6 +269,7 @@ namespace gfx
 		for(u32 i = 0; i < scene->mNumMeshes; i++) {
 			const aiMesh* mesh = scene->mMeshes[i];
 			(*num_vertices) += mesh->mNumVertices;
+			//the number of indices should be the number of faces * 3 after triangulation but you never know
 			for(u32 j = 0; j < mesh->mNumFaces; j++) {
 				(*num_indices) += mesh->mFaces[j].mNumIndices;
 			}
@@ -534,8 +526,6 @@ namespace gfx
 	    mem_free(model->index_divisors);
 	    mem_free(model->bone_transformations);
 	    mem_free(model->texture_info);
-	    //delete[] model->bone_transformations;
-	    //delete[] model->texture_info;
 	    //This is something which was allocated by another library, so just default delete
 	    delete model->scene;
 

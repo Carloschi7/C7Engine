@@ -1,7 +1,9 @@
 #include "memory.h"
 #include "MainIncl.h"
+#include <mutex>
 
 gfx::Allocator* g_engine_allocator = nullptr;
+std::mutex      g_engine_allocator_mutex;
 
 namespace gfx
 {
@@ -644,7 +646,8 @@ namespace gfx
 			std::memset(ptr, 0, bytes);
 			return ptr;
 		}
-		//TODO @C7 insert mutexes and locks here, this function needs to be synchronized
+
+		std::scoped_lock lock(g_engine_allocator_mutex);
 
 		//the allocation methodology now consist of pushing the allocation start and size at the
 		//end of the tree. The tree having a red-black implementation will balance itself
@@ -693,12 +696,12 @@ namespace gfx
 
 	void mem_free(void* ptr)
 	{
-		//TODO @C7 insert mutexes and locks here, this function needs to be synchronized
-
 		if(!g_engine_allocator) {
 			::operator delete(ptr);
 			return;
 		}
+
+		std::scoped_lock lock(g_engine_allocator_mutex);
 
 		u32 node_start = (u8*)ptr - (u8*)g_engine_allocator->permanent_storage.buffer;
 		auto& segment_tree = g_engine_allocator->segment_tree;
