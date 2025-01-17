@@ -232,7 +232,11 @@ ShaderSource Shader::LoadShadersFromFile(const std::string& file)
             continue;
         }
 
-        assert(current_shader_source, "the pointer should be defined by now, check the shader implementation");
+		//If the pointer is still not defined, no shader implementation has started just yet, probably some
+		//comments or blank lines have been left, so keep iterating forward
+		//TODO @C7 test to see if this does not cause issues
+		if(!current_shader_source)
+			continue;
 
         if(parse_result.index != 0) {
             current_shader_source->append(current_line, parse_result.index);
