@@ -14,6 +14,7 @@ class Window;
 enum class KeyType { None, Printable, Function, Mouse };
 
 //Finds whether or not a key is pressed in the current frame
+//TODO @C7 This needs to be rewritten, I am not going to modify this for compatibility issues
 class InputEvent
 {
 public:

@@ -7,16 +7,16 @@ void InputState::Update(const Window* window)
 	m_OldState = m_CurrentState;
 
 	//Printable keys
-	for (u16 i = 32; i <= 162; i++)
-		m_CurrentState.printable_keys[i - 32] = window->IsKeyboardEvent({ i, GLFW_PRESS });
-	
+	for (s32 i = GLFW_KEY_SPACE; i <= GLFW_KEY_WORLD_2; i++)
+		m_CurrentState.printable_keys[i - GLFW_KEY_SPACE] = window->IsKeyboardEvent({ i, GLFW_PRESS });
+
 	//Function keys
-	for (u16 i = 256; i <= 348; i++)
-		m_CurrentState.function_keys[i - 256] = window->IsKeyboardEvent({ i, GLFW_PRESS });
+	for (s32 i = GLFW_KEY_ESCAPE; i <= GLFW_KEY_MENU; i++)
+		m_CurrentState.function_keys[i - GLFW_KEY_ESCAPE] = window->IsKeyboardEvent({ i, GLFW_PRESS });
 
 	//Mouse keys
-	for (u16 i = 0; i <= 7; i++)
-		m_CurrentState.mouse_keys[i] = window->IsMouseEvent({ i, GLFW_PRESS });
+	for (s32 i = GLFW_MOUSE_BUTTON_1; i <= GLFW_MOUSE_BUTTON_8; i++)
+		m_CurrentState.mouse_keys[i - GLFW_MOUSE_BUTTON_1] = window->IsMouseEvent({ i, GLFW_PRESS });
 }
 
 bool InputState::IsKeyPressed(u16 key) const
@@ -112,7 +112,7 @@ Window::~Window()
 Window::Window(Window&& wnd) noexcept :
 	m_Window(std::exchange(wnd.m_Window, nullptr)),
 	m_Monitor(std::exchange(wnd.m_Monitor, nullptr)),
-	m_Width(wnd.m_Width), m_Height(wnd.m_Height), 
+	m_Width(wnd.m_Width), m_Height(wnd.m_Height),
 	m_Fullscreen(wnd.m_Fullscreen)
 {
 }
@@ -122,7 +122,7 @@ void Window::Update() const
 	//Resetting the mouse wheel state
 	s_MouseWheelY = 0.0;
 	glfwPollEvents();
-	
+
 	if (IsKeyboardEvent({GLFW_KEY_ESCAPE, GLFW_PRESS}))
 		glfwSetWindowShouldClose(m_Window, true);
 
@@ -141,7 +141,7 @@ void Window::Destroy()
 		glfwDestroyWindow(m_Window);
 		m_Window = nullptr;
 	}
-	
+
 	if (m_Monitor) delete m_Monitor;
 }
 
@@ -207,7 +207,7 @@ void Window::SetVsync(bool true_or_false) const
 
 bool Window::ShouldClose() const
 {
-	return glfwWindowShouldClose(m_Window); 
+	return glfwWindowShouldClose(m_Window);
 }
 
 void Window::EnableCursor()
