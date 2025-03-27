@@ -6,6 +6,7 @@
 
 static constexpr u32 compact_string_max_preallocated_buffer_size = 32;
 u32 get_c_string_length(const char* c_string);
+u32 get_c_string_length_no_null_terminating(const char* c_string);
 
 namespace gfx {
 

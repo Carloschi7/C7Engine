@@ -8,6 +8,14 @@ u32 get_c_string_length(const char* c_string)
 {
 	u32 size = 0;
 	for(; c_string[size] != 0; size++) {}
+	//Returns the size of the string + the null terminating character
+	return size + 1;
+}
+
+u32 get_c_string_length_no_null_terminating(const char* c_string)
+{
+	u32 size = 0;
+	for(; c_string[size] != 0; size++) {}
 	return size;
 }
 

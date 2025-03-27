@@ -759,7 +759,7 @@ namespace gfx
 
 		//Clearing also the space for the \0
 		u32 get_c_string_length(const char* c_string);
-		temporary_free(c_string, get_c_string_length(c_string) + 1);
+		temporary_free(c_string, get_c_string_length(c_string));
 	}
 
 	void temporary_decrease_counter(u32 bytes)
