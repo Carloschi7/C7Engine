@@ -1,6 +1,17 @@
 #include "Shader.h"
 
+u64 simple_string_hash(const char* string)
+{
+	u64 hash = 5381;
+	u32 get_c_string_length_no_null_terminating(const char*);
 
+	u32 string_length = get_c_string_length_no_null_terminating(string);
+	for(u32 i = 0; i < string_length; i++) {
+		hash = ((hash) << 5) + hash + string[i];
+	}
+
+	return hash;
+}
 
 Shader::Shader() : is_loaded(false), m_programID(-1)
 {
@@ -30,7 +41,7 @@ void Shader::Load(const char* filepath)
 {
 	m_programID = glCreateProgram();
 
-	unsigned int vs, gs, fs;
+	u32 vs, gs, fs;
 	auto shader_source = LoadShadersFromFile(filepath);
 	is_loaded = shader_source.initialized;
 
@@ -253,8 +264,9 @@ s32 Shader::GetUniformLocation(const char* uniform_name) const
 {
 	//Checking if the uniform is already stored in the cache
 
-	if (m_UniformCache.find(uniform_name) != m_UniformCache.end())
-		return m_UniformCache[uniform_name];
+	u64 uniform_hash = simple_string_hash(uniform_name);
+	if (m_UniformCache.find(uniform_hash) != m_UniformCache.end())
+		return m_UniformCache[uniform_hash];
 
 	int uniform = glGetUniformLocation(m_programID, uniform_name);
 	if (uniform == -1)
@@ -263,7 +275,7 @@ s32 Shader::GetUniformLocation(const char* uniform_name) const
 		return -1;
 	}
 
-	m_UniformCache[uniform_name] = uniform;
+	m_UniformCache[uniform_hash] = uniform;
 	return uniform;
 }
 

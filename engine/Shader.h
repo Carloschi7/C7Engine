@@ -71,5 +71,5 @@ private:
 	u32 m_programID;
 	std::vector<u32> m_UniformBuffers;
 	//Uniform cache
-	mutable std::unordered_map<const char*, s32> m_UniformCache;
+	mutable std::unordered_map<u64, s32> m_UniformCache;
 };
