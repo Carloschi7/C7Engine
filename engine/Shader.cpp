@@ -5,10 +5,9 @@
 Shader::Shader() : is_loaded(false), m_programID(-1)
 {
 }
-
 Shader::Shader(const std::string& filepath)
 {
-	Load(filepath);
+	Load(filepath.c_str());
 }
 
 Shader::Shader(Shader&& shd) noexcept :
@@ -26,7 +25,8 @@ Shader::~Shader()
 	glDeleteProgram(m_programID);
 }
 
-void Shader::Load(const std::string& filepath)
+
+void Shader::Load(const char* filepath)
 {
 	m_programID = glCreateProgram();
 
@@ -65,48 +65,48 @@ void Shader::Use() const
 	}
 }
 
-void Shader::UniformMat4f(const glm::mat4& mat, const std::string& UniformName)
+void Shader::UniformMat4f(const glm::mat4& mat, const char* uniform_name)
 {
 	Use();
-	glUniformMatrix4fv(GetUniformLocation(UniformName), 1, GL_FALSE, &mat[0][0]);
+	glUniformMatrix4fv(GetUniformLocation(uniform_name), 1, GL_FALSE, &mat[0][0]);
 }
 
-void Shader::UniformVec2f(const glm::vec2& v, const std::string& UniformName)
+void Shader::UniformVec2f(const glm::vec2& v, const char* uniform_name)
 {
 	Use();
-	glUniform2f(GetUniformLocation(UniformName), v.x, v.y);
+	glUniform2f(GetUniformLocation(uniform_name), v.x, v.y);
 }
 
-void Shader::UniformVec3f(const glm::vec3& v, const std::string& UniformName)
+void Shader::UniformVec3f(const glm::vec3& v, const char* uniform_name)
 {
 	Use();
-	glUniform3f(GetUniformLocation(UniformName), v.x, v.y, v.z);
+	glUniform3f(GetUniformLocation(uniform_name), v.x, v.y, v.z);
 }
 
-void Shader::UniformVec4f(const glm::vec4& v, const std::string& UniformName)
+void Shader::UniformVec4f(const glm::vec4& v, const char* uniform_name)
 {
 	Use();
-	glUniform4f(GetUniformLocation(UniformName), v.x, v.y, v.z, v.a);
+	glUniform4f(GetUniformLocation(uniform_name), v.x, v.y, v.z, v.a);
 }
 
-void Shader::Uniform1i(int i, const std::string& UniformName)
+void Shader::Uniform1i(int i, const char* uniform_name)
 {
 	Use();
-	glUniform1i(GetUniformLocation(UniformName), i);
+	glUniform1i(GetUniformLocation(uniform_name), i);
 }
 
-void Shader::Uniform1f(f32 i, const std::string& UniformName)
+void Shader::Uniform1f(f32 i, const char* uniform_name)
 {
 	Use();
-	glUniform1f(GetUniformLocation(UniformName), i);
+	glUniform1f(GetUniformLocation(uniform_name), i);
 }
 
-bool Shader::IsUniformDefined(const std::string& UniformName) const
+bool Shader::IsUniformDefined(const char* uniform_name) const
 {
-	return (glGetUniformLocation(m_programID, UniformName.c_str()) != -1);
+	return (glGetUniformLocation(m_programID, uniform_name) != -1);
 }
 
-u32 Shader::GenUniformBuffer(const std::string& block_name, u32 size, u32 binding_point)
+u32 Shader::GenUniformBuffer(const char* block_name, u32 size, u32 binding_point)
 {
 	Use();
 	u32& new_buffer = m_UniformBuffers.emplace_back();
@@ -117,7 +117,7 @@ u32 Shader::GenUniformBuffer(const std::string& block_name, u32 size, u32 bindin
 	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 
 	//Bind the uniform block to the requested binding point...
-	u32 block_index = glGetUniformBlockIndex(m_programID, block_name.c_str());
+	u32 block_index = glGetUniformBlockIndex(m_programID, block_name);
 	glUniformBlockBinding(m_programID, block_index, binding_point);
 
 	//And link the binding point to the GPU buffer
@@ -127,10 +127,10 @@ u32 Shader::GenUniformBuffer(const std::string& block_name, u32 size, u32 bindin
 	return m_UniformBuffers.size() - 1;
 }
 
-s32 Shader::GetAttributeLocation(const std::string& attr_name)
+s32 Shader::GetAttributeLocation(const char* attr_name)
 {
 	Use();
-	return glGetAttribLocation(m_programID, attr_name.c_str());
+	return glGetAttribLocation(m_programID, attr_name);
 }
 
 void Shader::BindUniformBuffer(u32 ub_local_index)
@@ -169,11 +169,11 @@ void Shader::ClearUniformCache()
 	m_UniformCache.clear();
 }
 
-ShaderSource Shader::LoadShadersFromFile(const std::string& file)
+ShaderSource Shader::LoadShadersFromFile(const char* file)
 {
     ShaderSource shader_source = {};
     FILE* file_handle = nullptr;
-    fopen_s(&file_handle, file.c_str(), "r");
+    fopen_s(&file_handle, file, "r");
 
     if(!file_handle){
         shader_source.initialized = false;
@@ -249,20 +249,21 @@ ShaderSource Shader::LoadShadersFromFile(const std::string& file)
     return shader_source;
 }
 
-s32 Shader::GetUniformLocation(const std::string& UniformName) const
+s32 Shader::GetUniformLocation(const char* uniform_name) const
 {
 	//Checking if the uniform is already stored in the cache
-	if (m_UniformCache.find(UniformName) != m_UniformCache.end())
-		return m_UniformCache[UniformName];
 
-	int uniform = glGetUniformLocation(m_programID, UniformName.c_str());
+	if (m_UniformCache.find(uniform_name) != m_UniformCache.end())
+		return m_UniformCache[uniform_name];
+
+	int uniform = glGetUniformLocation(m_programID, uniform_name);
 	if (uniform == -1)
 	{
-		std::cout << GLError << "Uniform <" << UniformName <<"> was not found, please check string input\n";
+		std::cout << GLError << "Uniform <" << uniform_name <<"> was not found, please check string input\n";
 		return -1;
 	}
 
-	m_UniformCache[UniformName] = uniform;
+	m_UniformCache[uniform_name] = uniform;
 	return uniform;
 }
 
@@ -286,21 +287,27 @@ void Shader::CheckShaderCompileStatus(u32 shader, GLenum ShaderType)
 		char ErrorMsg[400];
 		glGetShaderInfoLog(shader, 400, nullptr, ErrorMsg);
 
-		std::string ShaderName;
+		u32 shader_name_index = 0;
+		const char* shader_names[3] = {
+			"vertex",
+			"geometry",
+			"fragment"
+		};
+
 		switch (ShaderType)
 		{
 		case GL_VERTEX_SHADER:
-			ShaderName = "Vertex";
+			shader_name_index = 0;
 			break;
 		case GL_GEOMETRY_SHADER:
-			ShaderName = "Geometry";
+			shader_name_index = 1;
 			break;
 		case GL_FRAGMENT_SHADER:
-			ShaderName = "Fragment";
+			shader_name_index = 2;
 			break;
 		}
 
-		std::cout << "[OpenGL]: Error in " << ShaderName
+		std::cout << "[OpenGL]: Error in " << shader_names[shader_name_index]
 			<< " Shader:\n" << ErrorMsg << std::endl;
 	}
 }

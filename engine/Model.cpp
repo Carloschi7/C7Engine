@@ -247,7 +247,7 @@ namespace gfx
 				texture_bind(diffuse_texture, 0);
 			}
 
-			shader.Uniform1i(0, std::string(diffuse_uniform));
+			shader.Uniform1i(0, diffuse_uniform);
 			glDrawElementsBaseVertex(GL_TRIANGLES, model.index_divisors[i], GL_UNSIGNED_INT,
 			    (void*)(sizeof(u32) * indices_drawn), model.vertex_divisors[i]);
 
@@ -585,8 +585,8 @@ void Model::Draw(Shader& shd)
 			glBindTexture(GL_TEXTURE_2D, m_Meshes[i].textureids[j]);
 			std::string uniformname = "texture" + std::to_string(j + 1);
 
-			if (shd.IsUniformDefined(uniformname))
-				shd.Uniform1i(j, uniformname);
+			if (shd.IsUniformDefined(uniformname.c_str()))
+				shd.Uniform1i(j, uniformname.c_str());
 		}
 
 		//Manually textures loaded externally have priority over the ones defined in the meshes
@@ -595,8 +595,8 @@ void Model::Draw(Shader& shd)
 			m_ExternalTextures[i].first.Bind(i);
 			std::string uniformname = m_ExternalTextures[i].second;
 
-			if (shd.IsUniformDefined(uniformname))
-				shd.Uniform1i(i, uniformname);
+			if (shd.IsUniformDefined(uniformname.c_str()))
+				shd.Uniform1i(i, uniformname.c_str());
 		}
 
 		shd.UniformMat4f(m_ModelMatrix, "model");
@@ -636,8 +636,8 @@ void Model::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* po
 			glBindTexture(GL_TEXTURE_2D, m_Meshes[i].textureids[j]);
 			std::string uniformname = "texture" + std::to_string(j + 1);
 
-			if (shd.IsUniformDefined(uniformname))
-				shd.Uniform1i(j, uniformname);
+			if (shd.IsUniformDefined(uniformname.c_str()))
+				shd.Uniform1i(j, uniformname.c_str());
 		}
 
 		//Manually textures loaded externally have priority over the ones defined in the meshes
@@ -646,8 +646,8 @@ void Model::DrawInstancedPositions(Shader& shd, u32 num_instances, glm::vec3* po
 			m_ExternalTextures[i].first.Bind(i);
 			std::string uniformname = m_ExternalTextures[i].second;
 
-			if (shd.IsUniformDefined(uniformname))
-				shd.Uniform1i(i, uniformname);
+			if (shd.IsUniformDefined(uniformname.c_str()))
+				shd.Uniform1i(i, uniformname.c_str());
 		}
 
 		shd.UniformMat4f(m_ModelMatrix, "model");
