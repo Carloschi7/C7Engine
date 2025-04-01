@@ -1,7 +1,7 @@
 [submodule "Dependencies/assimp"]
 	path = Dependencies/assimp
 	url = https://github.com/assimp/assimp.git
+
 [submodule "Dependencies/freetype"]
 	path = Dependencies/freetype
 	url = https://github.com/freetype/freetype.git
-
