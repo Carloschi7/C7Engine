@@ -51,7 +51,7 @@ if(MSVC)
 		${CMAKE_SOURCE_DIR}/Dependencies/ASSIMP/lib/assimp-vc143-mtd.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/x64/glew32sd.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib
-		${CMAKE_SOURCE_DIR}/Dependencies/freetype/lib/freetype.lib)
+		${CMAKE_SOURCE_DIR}/Dependencies/freetype_lib/freetype.lib)
 
 
 elseif(LINUX)
