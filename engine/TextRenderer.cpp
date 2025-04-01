@@ -1,6 +1,18 @@
 #include "TextRenderer.h"
 #include <iostream>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+void test_function()
+{
+	FT_Library ft;
+	if (FT_Init_FreeType(&ft))
+	{
+	    std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+	}
+}
+
 std::string GetPath(const char* path)
 {
 #ifndef SOLUTION_PATH
@@ -77,5 +89,5 @@ void TextRenderer::DrawString(const std::string& str, glm::vec2 pos)
 		m_Shader->Uniform1f(xoffset, "xoffset");
 		m_Shader->Uniform1f(yoffset, "yoffset");
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	}	
+	}
 }

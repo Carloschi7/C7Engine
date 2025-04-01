@@ -44,12 +44,15 @@ if(MSVC)
 
 	add_library(${PROJECT_NAME} STATIC ${C7ENGINE_SOURCE_FILES})
 
-	#32 bit only for this version
-	target_link_libraries(${PROJECT_NAME}
+	#INFO @C7 this should not be required considering we are building into a .lib, we can remove
+	#this in the future
+	target_link_libraries(${PROJECT_NAME} PRIVATE
 		opengl32.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/ASSIMP/lib/assimp-vc143-mtd.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/x64/glew32sd.lib
-		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib)
+		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib
+		${CMAKE_SOURCE_DIR}/Dependencies/freetype/lib/freetype.lib)
+
 
 elseif(LINUX)
 	#This was tested on some ubuntu distro, i am not exactly sure if the paths are the same
@@ -68,7 +71,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/Dependencies/GLM
 	${PROJECT_SOURCE_DIR}/Dependencies/stbi
 	${PROJECT_SOURCE_DIR}/Dependencies/GLFW
-	${PROJECT_SOURCE_DIR}/Dependencies/GLEW)
+	${PROJECT_SOURCE_DIR}/Dependencies/GLEW
+	${PROJECT_SOURCE_DIR}/Dependencies/freetype/include)
 
 file(COPY assets/textures DESTINATION assets)
 file(COPY assets/shaders DESTINATION assets)

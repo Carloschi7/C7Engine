@@ -40,6 +40,7 @@ namespace gfx
 	}
 
 	//apparently aiMatrix4x4 stores the data in a trensposed way compared to glm::mat4
+#ifndef NO_ASSIMP
 	glm::mat4 glm_mat_cast(const aiMatrix4x4t<f32>& matrix)
 	{
 		return glm::transpose(glm::make_mat4((f32*)&matrix));
@@ -54,6 +55,7 @@ namespace gfx
 		ret.w = q.w;
 		return ret;
 	}
+#endif
 
 	bool matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon)
 	{
