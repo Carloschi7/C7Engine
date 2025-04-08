@@ -5,8 +5,10 @@
 #include <string>
 
 static constexpr u32 compact_string_max_preallocated_buffer_size = 32;
-u32 get_c_string_length(const char* c_string);
-u32 get_c_string_length_no_null_terminating(const char* c_string);
+u32  get_c_string_length(const char* c_string);
+u32  get_c_string_length_no_null_terminating(const char* c_string);
+//INFO buffer needs to be FREED after function call
+char* string_merge(const char* str1, const char* str2);
 
 namespace gfx {
 

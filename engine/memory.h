@@ -91,9 +91,6 @@ namespace gfx
 	void  mem_free(void* ptr);
 	void* temporary_allocate(u32 bytes);
 	void  temporary_free(void* ptr);
-	//This function dispatches between an actual mem_free and a counter decrease by
-	//checking if g_engine_allocator is defined
-	void  temporary_free(void* ptr, u32 size);
 	//Frees a c_string allocated in the temporary storage
 	void  temporary_free_c_str(char* c_string);
 	void  temporary_decrease_counter(u32 bytes);

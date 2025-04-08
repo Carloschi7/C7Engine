@@ -25,8 +25,8 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/Texture.cpp
 	engine/VertexManager.h
 	engine/VertexManager.cpp
-	engine/TextRenderer.h
-	engine/TextRenderer.cpp
+	engine/text_renderer.h
+	engine/text_renderer.cpp
 	engine/Window.h
 	engine/Window.cpp
 	engine/Debug.cpp
@@ -36,6 +36,7 @@ set(C7ENGINE_SOURCE_FILES engine/Entrypoint.h
 	engine/memory.cpp
 	engine/compact_string.h
 	engine/compact_string.cpp
+	engine/macros.h
 	engine/utils/types.h
 	application/Application.h)
 
@@ -53,6 +54,7 @@ if(MSVC)
 		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/freetype_lib/freetype.lib)
 
+	target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOWS_OS)
 
 elseif(LINUX)
 	#This was tested on some ubuntu distro, i am not exactly sure if the paths are the same
@@ -61,6 +63,8 @@ elseif(LINUX)
 	add_library(${PROJECT_NAME} SHARED ${C7ENGINE_SOURCE_FILES})
 	target_link_libraries(${PROJECT_NAME} glfw GLEW ${LINUX_LIB_PATH}/libGL.so
 		${LINUX_LIB_PATH}/libassimp.so)
+
+	target_compile_definitions(${PROJECT_NAME} PRIVATE LINUX_OS)
 else()
 	message(FATAL_ERROR "OS currently not supported")
 endif()

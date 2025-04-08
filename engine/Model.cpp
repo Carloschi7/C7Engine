@@ -38,9 +38,9 @@ namespace gfx
 		u32* indices                  = temporary_allocate<u32>(indices_count);
 
 		defer {
-			temporary_free(vertices, vertices_count * vertex_stride * sizeof(f32));
-			temporary_free(vertices_weight, vertices_count * sizeof(VertexWeight));
-			temporary_free(indices, indices_count * sizeof(u32));
+			temporary_free(vertices);
+			temporary_free(vertices_weight);
+			temporary_free(indices);
 		};
 
 		std::memset(vertices_weight, 0, vertices_count * sizeof(VertexWeight));

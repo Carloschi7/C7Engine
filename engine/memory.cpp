@@ -720,12 +720,21 @@ namespace gfx
 	{
 		if(!g_engine_allocator) return ::operator new(bytes);
 
+		//Add 4 to the total amount of bytes used in the system to make space for the object size.
+		//That makes it easier to understand by how much the counter needs to be decremented
+		const u32 size_of_padding_at_beginning = sizeof(u32);
+		bytes  += size_of_padding_at_beginning;
+
 		auto& temporary_storage = g_engine_allocator->temporary_storage;
 		u8* storage_u8 = static_cast<u8*>(temporary_storage.buffer);
 		assert(temporary_storage.used + bytes < temporary_storage.size, "there is now enough space in the temporary allocator for the requested space\n");
-		void* return_address = storage_u8 + temporary_storage.used;
+		u8* return_address = storage_u8 + temporary_storage.used;
 		temporary_storage.used += bytes;
-		return return_address;
+
+		//Write the allocation size at the end
+		*reinterpret_cast<u32*>(storage_u8) = bytes;
+
+		return return_address + size_of_padding_at_beginning;
 	}
 
 	void temporary_free(void* ptr)
@@ -735,19 +744,15 @@ namespace gfx
 			return;
 		}
 
+		//Load the temporary allocation size
+		const u32 size_of_padding_at_beginning = sizeof(u32);
+		u32* size_ptr = reinterpret_cast<u32*>((u8*)ptr - size_of_padding_at_beginning);
+		assert(size_ptr, "There is a weird issue going on here, this should never be 0");
+		temporary_decrease_counter(*size_ptr);
+
 		//INFO @C7 there is really nothing to mem_free if a temporary buffer is used, you can mark the memory on top
 		//of the temporary stack being no longer used by decreasing the counter with the related function
 		//declared in the memory header
-	}
-
-	void temporary_free(void* ptr, u32 size)
-	{
-		if(!g_engine_allocator) {
-			::operator delete(ptr);
-			return;
-		}
-
-		temporary_decrease_counter(size);
 	}
 
 	void temporary_free_c_str(char* c_string)
@@ -757,9 +762,7 @@ namespace gfx
 			return;
 		}
 
-		//Clearing also the space for the \0
-		u32 get_c_string_length(const char* c_string);
-		temporary_free(c_string, get_c_string_length(c_string));
+		temporary_free(c_string);
 	}
 
 	void temporary_decrease_counter(u32 bytes)
