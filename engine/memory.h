@@ -96,12 +96,30 @@ namespace gfx
 	void  temporary_decrease_counter(u32 bytes);
 
 	template<typename T>
-	T* mem_allocate(u32 count)
+	T* mem_allocate(u32 count = 1)
 	{
 		//TODO @C7 should also check for triviality in the future
 		static_assert(std::is_standard_layout_v<T>, "T in an invalid type");
 		return reinterpret_cast<T*>(mem_allocate(count * sizeof(T)));
 	}
+
+	//only for structs that have members with constructors (needs to have default constructor)
+	template<typename T>
+	T* mem_allocate_and_construct(u32 count = 1)
+	{
+		static_assert(!std::is_standard_layout_v<T> && std::is_default_constructible_v<T>, "T in an invalid type");
+		void* ptr = mem_allocate(count * sizeof(T));
+		new (ptr) T;
+		return reinterpret_cast<T*>(ptr);
+	}
+
+	template<typename T>
+	void mem_free_and_destroy(T* ptr)
+	{
+		ptr->~T();
+		mem_free(ptr);
+	}
+
 
 	template<typename T>
 	T* temporary_allocate(u32 count)

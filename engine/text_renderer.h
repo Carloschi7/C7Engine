@@ -40,6 +40,6 @@ namespace gfx
 
 	void freetype_init(const char* font_name, const u32 screen_width, const u32 screen_height, const u32 texture_width, const u32 texture_height, FreetypeInstance* freetype_instance_ptr);
 	//The rendering pipeline of the text is all handled by the function itself, including the shading process
-	void draw_text(FreetypeInstance& freetype_instance, const char* str, u32 x, u32 y, f32 scale);
+	void draw_text(FreetypeInstance* freetype_instance_ptr, const char* str, u32 x, u32 y, f32 scale);
 	void freetype_deinit(FreetypeInstance* freetype_instance);
 }

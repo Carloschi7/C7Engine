@@ -23,9 +23,6 @@ char* string_merge(const char* str1, const char* str2)
 {
 	const u32 first_buffer_size  = get_c_string_length_no_null_terminating(str1);
 	const u32 second_buffer_size = get_c_string_length(str2);
-	//TOBECONTINUED @C7 make it so that the temporary_free function does not take in also a size,
-	//just store the size on the heap and then read that for decrementing the counter if the allocator
-	//is defined
 	char* buffer = gfx::temporary_allocate<char>(first_buffer_size + second_buffer_size);
 
 	std::memcpy(buffer, str1, first_buffer_size);

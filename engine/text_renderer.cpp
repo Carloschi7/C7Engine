@@ -142,11 +142,14 @@ namespace gfx
 		freetype_instance.initialized = true;
 	}
 
-	void draw_text(FreetypeInstance& freetype_instance, const char* str, u32 x, u32 y, f32 scale)
+	void draw_text(FreetypeInstance* freetype_instance_ptr, const char* str, u32 x, u32 y, f32 scale)
 	{
 		//INFO: @C7 the shader is provided externally at the moment, just requires:
 		//layout = 0 => vec2 pos;
 		//layout = 1 => vec2 tex_coords;
+
+		assert(freetype_instance_ptr, "This parameter needs to be defined");
+		auto& freetype_instance = *freetype_instance_ptr;
 
 		u32 get_c_string_length_no_null_terminating(const char*);
 		const u32 string_length = get_c_string_length_no_null_terminating(str);
@@ -226,6 +229,7 @@ namespace gfx
 	void freetype_deinit(FreetypeInstance* freetype_instance)
 	{
 		cleanup_mesh(&freetype_instance->batched_glyphs_buffer);
+
 		FT_Done_Face(freetype_instance->face);
 		FT_Done_FreeType(freetype_instance->library);
 	}
