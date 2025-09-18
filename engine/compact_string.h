@@ -100,6 +100,8 @@ public:
 			heap_buffer = gfx::mem_allocate<CharType>(heap_capacity);
 			std::memcpy(heap_buffer, string, string_size);
 		}
+
+		return *this;
 	}
 
 	GenericString& operator=(const GenericString& string) noexcept
@@ -112,6 +114,8 @@ public:
 		} else {
 			std::memcpy(stack_buffer, string.stack_buffer, string_size);
 		}
+
+		return *this;
 	}
 
 	GenericString& operator=(GenericString&& right) noexcept
@@ -123,6 +127,8 @@ public:
 		} else {
 			std::memcpy(stack_buffer, right.stack_buffer, string_size);
 		}
+
+		return *this;
 	}
 
 	u32 size()
@@ -243,13 +249,13 @@ public:
 		string_size -= index;
 	}
 
-	bool operator==(const GenericString& string)
+	bool operator==(const GenericString& string) const
 	{
 		if(string_size != string.string_size)
 			return false;
 
-		CharType* first_buf  = heap_buffer ? heap_buffer : stack_buffer;
-		CharType* second_buf = string.heap_buffer ? string.heap_buffer : string.stack_buffer;
+		const CharType* first_buf  = heap_buffer ? heap_buffer : stack_buffer;
+		const CharType* second_buf = string.heap_buffer ? string.heap_buffer : string.stack_buffer;
 
 		for(u32 i = 0; i < string_size; i++) {
 			if(first_buf[i] != second_buf[i])
@@ -259,7 +265,28 @@ public:
 		return true;
 	}
 
-	bool operator!=(const GenericString& string)
+	bool operator==(const char* string) const
+	{
+		if(string_size != get_c_string_length_no_null_terminating(string))
+			return false;
+
+		const CharType* first_buf  = heap_buffer ? heap_buffer : stack_buffer;
+		const CharType* second_buf = string;
+
+		for(u32 i = 0; i < string_size; i++) {
+			if(first_buf[i] != second_buf[i])
+				return false;
+		}
+
+		return true;
+	}
+
+	bool operator!=(const GenericString& string) const
+	{
+		return !operator==(string);
+	}
+
+	bool operator!=(const char* string) const
 	{
 		return !operator==(string);
 	}

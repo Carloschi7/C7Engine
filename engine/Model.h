@@ -17,7 +17,7 @@ namespace gfx
 
 	struct BoneInfo
 	{
-		CompactString name;
+		String name;
 		u32 id;
 		glm::mat4 local_transformation;
 		glm::mat4 final_transformation;
@@ -26,7 +26,7 @@ namespace gfx
 
 	struct ModelTextureInfo
 	{
-		CompactString name;
+		String name;
 		u32 index;
 	};
 

@@ -167,7 +167,7 @@ namespace gfx
 						bool texture_already_loaded = false;
 
 						for(u32 j = 0; j < i; j++) {
-							if(compact_string_match(texture_info[j].name, texture_info[i].name)) {
+							if(texture_info[j].name == texture_info[i].name) {
 								texture_info[i].index = j;
 								texture_already_loaded = true;
 								break;
@@ -216,11 +216,11 @@ namespace gfx
 			const aiMesh* mesh = scene->mMeshes[i];
 			const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-		    texture_info[i].name = texture_paths[i];
+		    texture_info[i].name = texture_paths[i].c_str();
 		    bool texture_already_loaded = false;
 
 			for(u32 j = 0; j < i; j++) {
-				if(compact_string_match(texture_info[j].name, texture_info[i].name)) {
+				if(texture_info[j].name == texture_info[i].name) {
 					texture_info[i].index = j;
 					texture_already_loaded = true;
 					break;
@@ -300,7 +300,7 @@ namespace gfx
 				s32 bone_index = model_find_bone_info(bone_info, bones_count, bone_name);
 				if(bone_index == -1) {
 					auto& transformation = bone_info[unique_bone_index];
-					transformation.name  = compact_string_create(bone_name);
+					transformation.name  = bone_name.c_str();
 					transformation.id    = unique_bone_index;
 					transformation.local_transformation = glm_mat_cast(bone->mOffsetMatrix);
 
@@ -313,7 +313,7 @@ namespace gfx
 	s32 model_find_bone_info(const BoneInfo* data, u32 size, std::string& name)
 	{
 		for(u32 i = 0; i < size; i++) {
-			if(compact_string_match(data[i].name, name.c_str()))
+			if(data[i].name == name.c_str())
 				return i;
 		}
 
@@ -464,7 +464,7 @@ namespace gfx
 		s32 bone_index = model_find_bone_info(bone_info, bone_info_count, bone_name);
 		if(bone_index != -1) {
 			auto& current_bone_info = bone_info[bone_index];
-			current_bone_info.name  = compact_string_create(bone_name);
+			current_bone_info.name  = bone_name.c_str();
 			current_bone_info.final_transformation = current_transformation * current_bone_info.local_transformation;
 			current_bone_info.initialized = true;
 		}
