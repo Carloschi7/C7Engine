@@ -1,5 +1,6 @@
 #pragma once
 #include <format>
+#include <iostream>
 
 #define log_message(msg, ...) std::cout << std::format(msg, __VA_ARGS__)
 

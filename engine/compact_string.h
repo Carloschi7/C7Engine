@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <string>
 #include "memory.h"
+#include "macros.h"
 
 static constexpr u32 compact_string_max_preallocated_buffer_size = 32;
 u32  get_c_string_length(const char* c_string);
@@ -96,9 +97,21 @@ public:
 		if(string_size < stack_buffer_size) {
 			std::memcpy(stack_buffer, string, string_size);
 		} else {
+			if(heap_buffer) {
+				if(string_size < heap_capacity) {
+					std::memset(heap_buffer, 0, heap_capacity);
+					std::memcpy(heap_buffer, string, string_size);
+					return *this;
+				} else {
+					_free_heap();
+				}
+			}
+
 			heap_capacity = (string_size * 3) / 2;
 			heap_buffer = gfx::mem_allocate<CharType>(heap_capacity);
 			std::memcpy(heap_buffer, string, string_size);
+
+			std::memset(stack_buffer, 0, stack_buffer_size);
 		}
 
 		return *this;
@@ -140,13 +153,15 @@ public:
 	{
 		const u32 size = get_c_string_length_no_null_terminating(string);
 		if(!heap_buffer) {
-			if(string_size + size <= stack_buffer_size) {
+			if(string_size + size < stack_buffer_size) {
 				std::memcpy(stack_buffer + string_size, string, size);
 			} else {
 				heap_capacity = ((string_size + size) * 3) / 2;
 				heap_buffer = gfx::mem_allocate<CharType>(heap_capacity);
 				std::memcpy(heap_buffer, stack_buffer, string_size);
 				std::memcpy(heap_buffer + string_size, string, size);
+
+				std::memset(stack_buffer, 0, stack_buffer_size);
 			}
 
 		} else {
@@ -168,37 +183,24 @@ public:
 	{
 		append(string);
 	}
-
-	const CharType* data()
+	void operator+=(const GenericString& string)
 	{
-		return data();
+		append(string.c_str());
 	}
 
 	const CharType* data() const
 	{
-		CharType* buf = nullptr;
-		if(!heap_buffer && string_size == stack_buffer_size) {
-			//INFO @C7 the string internally is stored without the \0, so if we want to forward a string
-			//as a c-string, we need to add it at the end, so if the string is fully occupying the stack
-			//buffer, we need to move the string to the heap so that we are able to add the \0 without reducing
-			//or changing the string
-			heap_capacity = (string_size * 3) / 2;
-			heap_buffer = gfx::mem_allocate<CharType>(heap_capacity);
-			std::memcpy(heap_buffer, stack_buffer, string_size);
+		return heap_buffer ? heap_buffer : stack_buffer;
+	}
 
-			buf = heap_buffer;
-		} else if(heap_buffer) {
-			buf = heap_buffer;
-		} else {
-			buf = stack_buffer;
-		}
-
-		buf[string_size] = 0;
-		return buf;
+	const CharType* c_str() const
+	{
+		return data();
 	}
 
 	CharType& operator[](u32 index)
 	{
+		assert(index < string_size, "index out of bounds");
 		if(heap_buffer)
 			return heap_buffer[index];
 
@@ -207,6 +209,7 @@ public:
 
 	const CharType& operator[](u32 index) const
 	{
+		assert(index < string_size, "index out of bounds");
 		if(heap_buffer)
 			return heap_buffer[index];
 
@@ -215,7 +218,10 @@ public:
 
 	void cut_from_start(u32 index)
 	{
-		CharType* buf = heap_buffer ? heap_buffer : stack_buffer;
+		if(index >= string_size)
+			return;
+
+		CharType* buf = data();
 
 		for(u32 i = 0; i < string_size - index; i++) {
 			buf[i] = buf[index + i];
@@ -225,24 +231,23 @@ public:
 		}
 
 		string_size -= index;
-		if(string_size <= stack_buffer_size) {
+		if(string_size < stack_buffer_size) {
 			std::memcpy(stack_buffer, heap_buffer, string_size);
-			gfx::mem_free(heap_buffer);
-			heap_buffer = nullptr;
-			heap_capacity = 0;
+			_free_heap();
 		}
 	}
 
 	void cut_from_end(u32 index)
 	{
-		if(heap_buffer && string_size > stack_buffer_size && string_size - index <= stack_buffer_size) {
+		if(index >= string_size)
+			return;
+
+		if(heap_buffer && string_size >= stack_buffer_size && string_size - index < stack_buffer_size) {
 			std::memset(stack_buffer, 0, stack_buffer_size);
 			std::memcpy(stack_buffer, heap_buffer, string_size - index);
-			gfx::mem_free(heap_buffer);
-			heap_buffer = nullptr;
-			heap_capacity = 0;
+			_free_heap();
 		} else {
-			CharType* buf = heap_buffer ? heap_buffer : stack_buffer;
+			CharType* buf = data();
 			std::memset(buf + string_size - index, 0, index);
 		}
 
@@ -254,8 +259,8 @@ public:
 		if(string_size != string.string_size)
 			return false;
 
-		const CharType* first_buf  = heap_buffer ? heap_buffer : stack_buffer;
-		const CharType* second_buf = string.heap_buffer ? string.heap_buffer : string.stack_buffer;
+		const CharType* first_buf  = data();
+		const CharType* second_buf = string.data();
 
 		for(u32 i = 0; i < string_size; i++) {
 			if(first_buf[i] != second_buf[i])
@@ -270,7 +275,7 @@ public:
 		if(string_size != get_c_string_length_no_null_terminating(string))
 			return false;
 
-		const CharType* first_buf  = heap_buffer ? heap_buffer : stack_buffer;
+		const CharType* first_buf  = data();
 		const CharType* second_buf = string;
 
 		for(u32 i = 0; i < string_size; i++) {
@@ -291,19 +296,71 @@ public:
 		return !operator==(string);
 	}
 
+	s32 find_first_of(CharType c) const
+	{
+		const CharType* buf = data();
+		for(s32 i = 0; i < (s32)string_size; i++) {
+			if(buf[i] == c)
+				return i;
+		}
+
+		return -1;
+	}
+
+	s32 find_last_of(CharType c) const
+	{
+		const CharType* buf = data();
+		for(s32 i = 0; i < (s32)string_size; i++) {
+			if(buf[(string_size - 1) - i] == c)
+				return (string_size - 1) - i;
+		}
+
+		return -1;
+	}
+
 	~GenericString()
 	{
 		if(heap_buffer)
-			gfx::mem_free(heap_buffer);
+			_free_heap();
 
 		string_size = 0;
 	}
 
 private:
+	CharType* data()
+	{
+		return heap_buffer ? heap_buffer : stack_buffer;
+	}
+
+	void _free_heap()
+	{
+		gfx::mem_free(heap_buffer);
+		heap_capacity = 0;
+		heap_buffer = nullptr;
+	}
+
 	CharType stack_buffer[stack_buffer_size];
 	CharType* heap_buffer = nullptr;
 	u32 heap_capacity;
 	u32 string_size;
 };
+
+template<typename T>
+GenericString<T> operator+(const GenericString<T>& a, const GenericString<T>& b)
+{
+	static_assert(std::is_same_v<T, char>, "Only char is supported at the moment");
+	GenericString<T> result = a;
+	result += b;
+	return result;
+}
+
+template<typename T>
+GenericString<T> operator+(const GenericString<T>& a, const T* b)
+{
+	static_assert(std::is_same_v<T, char>, "Only char is supported at the moment");
+	GenericString<T> result = a;
+	result += b;
+	return result;
+}
 
 using String = GenericString<char>;
