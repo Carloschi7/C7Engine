@@ -91,6 +91,21 @@ public:
 		operator=(right);
 	}
 
+
+	GenericString(const char* string, u32 size)
+	{
+		u32 actual_size = get_c_string_length_no_null_terminating(string);
+		assert(size < actual_size, "specified size must be smaller than the actual string size");
+
+		CharType* buf = gfx::temporary_allocate<CharType>(size + 1);
+		defer {
+			gfx::temporary_free(buf);
+		};
+		std::memcpy(buf, string, size);
+		buf[size] = 0;
+		*this = buf;
+	}
+
 	GenericString& operator=(const char* string)
 	{
 		string_size = get_c_string_length_no_null_terminating(string);
@@ -316,6 +331,14 @@ public:
 		}
 
 		return -1;
+	}
+
+	GenericString substr(u32 begin, u32 end)
+	{
+		if(begin >= string_size || end >= string_size)
+			return {};
+
+		return GenericString(data() + begin, end - begin);
 	}
 
 	~GenericString()
