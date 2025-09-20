@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <type_traits>
+#include "compact_string.h"
 #include "GL/glew.h"
 #include "VertexManager.h"
 #include <glm/glm.hpp>
@@ -65,8 +65,8 @@ namespace gfx
 		return args;
 	}
 
-	TextureData texture_create(const std::string& filepath);
-	TextureData texture_create(const std::string& filepath, const TextureArgs& args);
+	TextureData texture_create(const String& filepath);
+	TextureData texture_create(const String& filepath, const TextureArgs& args);
 	TextureData texture_cubemap_create(const std::string* locations, u32 count);
 	TextureData texture_cubemap_create(const std::string* locations, u32 count, const TextureArgs& args);
 	glm::ivec2  texture_get_width_and_height(const TextureData& data);

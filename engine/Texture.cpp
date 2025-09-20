@@ -7,14 +7,16 @@
 #include "stb_image.h"
 #include "VertexManager.h"
 
+void my_func(String s) {}
+
 namespace gfx
 {
-	TextureData texture_create(const std::string& filepath)
+	TextureData texture_create(const String& filepath)
 	{
 		return texture_create(filepath, texture_default_args());
 	}
 
-	TextureData texture_create(const std::string& filepath, const TextureArgs& args)
+	TextureData texture_create(const String& filepath, const TextureArgs& args)
 	{
 		TextureData texture_data = {};
 

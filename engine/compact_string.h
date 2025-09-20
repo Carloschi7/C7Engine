@@ -333,7 +333,7 @@ public:
 		return -1;
 	}
 
-	GenericString substr(u32 begin, u32 end)
+	GenericString substr(u32 begin, u32 end) const
 	{
 		if(begin >= string_size || end >= string_size)
 			return {};
@@ -362,7 +362,7 @@ private:
 		heap_buffer = nullptr;
 	}
 
-	CharType stack_buffer[stack_buffer_size];
+	CharType stack_buffer[stack_buffer_size] = {};
 	CharType* heap_buffer = nullptr;
 	u32 heap_capacity;
 	u32 string_size;

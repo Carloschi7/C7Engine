@@ -7,7 +7,7 @@
 
 namespace gfx
 {
-	ModelData model_create(const std::string& filepath, bool load_textures)
+	ModelData model_create(const String& filepath, bool load_textures)
 	{
 		ModelData model_data = {};
 
@@ -136,20 +136,20 @@ namespace gfx
 			model_data.texture_count = scene->mNumMeshes;
 
 			auto& texture_info = model_data.texture_info;
-			std::string current_working_dir;
+			String current_working_dir;
 
 			{
-				bool backslash_defined = filepath.find_last_of('\\');
-				bool forwardslash_defined = filepath.find_last_of('/');
+				s32 backslash = filepath.find_last_of('\\');
+				s32 forwardslash = filepath.find_last_of('/');
 
-				assert(backslash_defined || forwardslash_defined, "invalid path syntax");
+				assert(backslash != -1 || forwardslash != -1, "invalid path syntax");
 
-				if (backslash_defined) {
-				    current_working_dir = filepath.substr(0, filepath.find_last_of('\\'));
+				if (backslash != -1) {
+				    current_working_dir = filepath.substr(0, backslash);
 				}
 
-				if (forwardslash_defined) {
-				    current_working_dir = filepath.substr(0, filepath.find_last_of('/'));
+				if (forwardslash != -1) {
+				    current_working_dir = filepath.substr(0, forwardslash);
 				}
 			}
 
@@ -176,9 +176,9 @@ namespace gfx
 
 			        	if(texture_already_loaded) continue;
 
-			            std::string loading_path = current_working_dir + path.C_Str();
+			            String loading_path = current_working_dir + path.C_Str();
 						texture_info[i].index = i;
-			            model_data.textures[i] = texture_create(loading_path.c_str());
+			            model_data.textures[i] = texture_create(loading_path);
 			        }
 			    }
 			}
