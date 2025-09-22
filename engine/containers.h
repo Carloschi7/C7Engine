@@ -4,7 +4,8 @@
 #include <type_traits>
 #include <string>
 #include "memory.h"
-#include "macros.h"
+
+#define local_assert(x, msg) if(!(x)) { *(int*)0 = 0; }
 
 u32  get_c_string_length(const char* c_string);
 u32  get_c_string_length_no_null_terminating(const char* c_string);
@@ -39,15 +40,14 @@ public:
 	GenericString(const char* string, u32 size)
 	{
 		u32 actual_size = get_c_string_length_no_null_terminating(string);
-		assert(size < actual_size, "specified size must be smaller than the actual string size");
+		local_assert(size < actual_size, "specified size must be smaller than the actual string size");
 
 		CharType* buf = gfx::temporary_allocate<CharType>(size + 1);
-		defer {
-			gfx::temporary_free(buf);
-		};
+
 		std::memcpy(buf, string, size);
 		buf[size] = 0;
 		*this = buf;
+		gfx::temporary_free(buf);
 	}
 
 	GenericString& operator=(const char* string)
@@ -159,7 +159,7 @@ public:
 
 	CharType& operator[](u32 index)
 	{
-		assert(index < string_size, "index out of bounds");
+		local_assert(index < string_size, "index out of bounds");
 		if(heap_buffer)
 			return heap_buffer[index];
 
@@ -168,7 +168,7 @@ public:
 
 	const CharType& operator[](u32 index) const
 	{
-		assert(index < string_size, "index out of bounds");
+		local_assert(index < string_size, "index out of bounds");
 		if(heap_buffer)
 			return heap_buffer[index];
 
@@ -335,3 +335,5 @@ using String = GenericString<char>;
 namespace gfx {
 	void test_string();
 }
+
+#undef local_assert

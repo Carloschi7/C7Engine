@@ -2,10 +2,10 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include "containers.h"
 #include "GL/glew.h"
 #include "VertexManager.h"
 #include <glm/glm.hpp>
+#include "containers.h"
 
 #define GLError "[OpenGL]: Error in file:" << __FILE__ << ", line:" << __LINE__ << "\n"
 

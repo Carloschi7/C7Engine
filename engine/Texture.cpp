@@ -7,8 +7,6 @@
 #include "stb_image.h"
 #include "VertexManager.h"
 
-void my_func(String s) {}
-
 namespace gfx
 {
 	TextureData texture_create(const char* filepath)
