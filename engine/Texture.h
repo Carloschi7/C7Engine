@@ -65,10 +65,10 @@ namespace gfx
 		return args;
 	}
 
-	TextureData texture_create(const String& filepath);
-	TextureData texture_create(const String& filepath, const TextureArgs& args);
-	TextureData texture_cubemap_create(const std::string* locations, u32 count);
-	TextureData texture_cubemap_create(const std::string* locations, u32 count, const TextureArgs& args);
+	TextureData texture_create(const char* filepath);
+	TextureData texture_create(const char* filepath, const TextureArgs& args);
+	TextureData texture_cubemap_create(const String* locations, u32 count);
+	TextureData texture_cubemap_create(const String* locations, u32 count, const TextureArgs& args);
 	glm::ivec2  texture_get_width_and_height(const TextureData& data);
 	void        texture_bind(const TextureData& data, u8 slot = 0);
 	void        texture_cleanup(TextureData* data);

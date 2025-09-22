@@ -68,14 +68,14 @@ namespace gfx
 	};
 
 	ModelData     model_create(const String& filepath, bool load_textures);
-	void          model_load_textures(ModelData& model_data, std::string* texture_paths, u32 texture_count);
+	void          model_load_textures(ModelData& model_data, String* texture_paths, u32 texture_count);
 	void          model_render(const ModelData& model, Shader& shader, const char* diffuse_uniform);
 	void          model_get_vertices_indices_bones_count(const aiScene* scene, u32* num_vertices, u32* num_indices, u32* num_bones);
 	bool          model_mesh_has_weights(const aiMesh* mesh);
 	void          model_map_bone_names_to_id(const aiScene* scene, BoneInfo* bone_info, u32 bones_count);
-	s32           model_find_bone_info(const BoneInfo* data, u32 size, std::string& name);
+	s32           model_find_bone_info(const BoneInfo* data, u32 size, String& name);
 
-	aiNodeAnim*   model_find_animation_channel(const aiAnimation* anim, const std::string& name);
+	aiNodeAnim*   model_find_animation_channel(const aiAnimation* anim, const String& name);
 	glm::vec3     model_lerp_keyframes_positions(const aiNodeAnim* node_anim, f32 ticks);
 	glm::quat     model_lerp_keyframes_rotations(const aiNodeAnim* node_anim, f32 ticks);
 	glm::vec3     model_lerp_keyframes_scales(const aiNodeAnim* node_anim, f32 ticks);

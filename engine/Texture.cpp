@@ -11,12 +11,12 @@ void my_func(String s) {}
 
 namespace gfx
 {
-	TextureData texture_create(const String& filepath)
+	TextureData texture_create(const char* filepath)
 	{
 		return texture_create(filepath, texture_default_args());
 	}
 
-	TextureData texture_create(const String& filepath, const TextureArgs& args)
+	TextureData texture_create(const char* filepath, const TextureArgs& args)
 	{
 		TextureData texture_data = {};
 
@@ -40,7 +40,7 @@ namespace gfx
 
 		stbi_set_flip_vertically_on_load(args.flip_axis_on_load);
 		u8*& raw_buffer = texture_data.raw_buffers[0];
-		raw_buffer = stbi_load(filepath.c_str(), &texture_data.width, &texture_data.height,
+		raw_buffer = stbi_load(filepath, &texture_data.width, &texture_data.height,
 			&texture_data.bytes_per_pixel, 4);
 
 		if (raw_buffer)
@@ -50,7 +50,7 @@ namespace gfx
 
 			texture_data.initialized = true;
 		} else {
-			log_message("texture at path \"{}\" not loaded", filepath.c_str());
+			log_message("texture at path \"{}\" not loaded", filepath);
 			texture_data.initialized = false;
 		}
 
@@ -62,11 +62,11 @@ namespace gfx
 		return texture_data;
 	}
 
-	TextureData texture_cubemap_create(const std::string* locations, u32 count)
+	TextureData texture_cubemap_create(const String* locations, u32 count)
 	{
 		return texture_cubemap_create(locations, count, texture_cubemap_default_args());
 	}
-	TextureData texture_cubemap_create(const std::string* locations, u32 count, const TextureArgs& args)
+	TextureData texture_cubemap_create(const String* locations, u32 count, const TextureArgs& args)
 	{
 		TextureData texture_data = {};
 

@@ -335,7 +335,8 @@ namespace gfx
 					root = new_node;
 				tree_delete_check(node_to_delete, true);
 			}
-			if(node_sibling == node_sibling->parent->right) {
+			//INFO @C7 node sibling could be the new root node here, so make sure it still has a parent
+			if(node_sibling->parent && node_sibling == node_sibling->parent->right) {
 				auto new_node = rotate_left(node_sibling->parent);
 				if(!new_node->parent)
 					root = new_node;
@@ -718,7 +719,8 @@ namespace gfx
 
 	void* temporary_allocate(u32 bytes)
 	{
-		if(!g_engine_allocator) return ::operator new(bytes);
+		if(!g_engine_allocator)
+			return ::operator new(bytes);
 
 		//Add 4 to the total amount of bytes used in the system to make space for the object size.
 		//That makes it easier to understand by how much the counter needs to be decremented
@@ -732,7 +734,7 @@ namespace gfx
 		temporary_storage.used += bytes;
 
 		//Write the allocation size at the end
-		*reinterpret_cast<u32*>(storage_u8) = bytes;
+		*reinterpret_cast<u32*>(return_address) = bytes;
 
 		return return_address + size_of_padding_at_beginning;
 	}

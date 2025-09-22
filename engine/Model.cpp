@@ -178,7 +178,7 @@ namespace gfx
 
 			            String loading_path = current_working_dir + path.C_Str();
 						texture_info[i].index = i;
-			            model_data.textures[i] = texture_create(loading_path);
+			            model_data.textures[i] = texture_create(loading_path.c_str());
 			        }
 			    }
 			}
@@ -196,7 +196,7 @@ namespace gfx
 	//Load textures from a custom position, requires locations to have full path
 	//binds the n texture to the n mesh
 	//it is recommended to try and load the texture automatically with model_create
-	void model_load_textures(ModelData& model_data, std::string* texture_paths, u32 texture_count)
+	void model_load_textures(ModelData& model_data, String* texture_paths, u32 texture_count)
 	{
 		assert(texture_paths, "the variable needs to be defined in this scope\n");
 		auto& texture_info = model_data.texture_info;
@@ -216,7 +216,7 @@ namespace gfx
 			const aiMesh* mesh = scene->mMeshes[i];
 			const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-		    texture_info[i].name = texture_paths[i].c_str();
+		    texture_info[i].name = texture_paths[i];
 		    bool texture_already_loaded = false;
 
 			for(u32 j = 0; j < i; j++) {
@@ -295,7 +295,7 @@ namespace gfx
 		for(u32 i = 0; i < scene->mNumMeshes; i++) {
 			for(u32 j = 0; j < scene->mMeshes[i]->mNumBones; j++) {
 				auto& bone = scene->mMeshes[i]->mBones[j];
-				std::string bone_name(bone->mName.C_Str());
+				String bone_name = bone->mName.C_Str();
 
 				s32 bone_index = model_find_bone_info(bone_info, bones_count, bone_name);
 				if(bone_index == -1) {
@@ -310,17 +310,17 @@ namespace gfx
 		}
 	}
 
-	s32 model_find_bone_info(const BoneInfo* data, u32 size, std::string& name)
+	s32 model_find_bone_info(const BoneInfo* data, u32 size, String& name)
 	{
 		for(u32 i = 0; i < size; i++) {
-			if(data[i].name == name.c_str())
+			if(data[i].name == name)
 				return i;
 		}
 
 		return -1;
 	}
 
-	aiNodeAnim* model_find_animation_channel(const aiAnimation* anim, const std::string& name)
+	aiNodeAnim* model_find_animation_channel(const aiAnimation* anim, const String& name)
 	{
 		for(u32 i = 0; i < anim->mNumChannels; i++) {
 			aiNodeAnim* ptr = anim->mChannels[i];
@@ -428,7 +428,7 @@ namespace gfx
 		glm::mat4 current_transformation;
 
 		bool animation_file_loaded = (scene->mNumAnimations > 0);
-		std::string bone_name(node->mName.C_Str());
+		String bone_name = node->mName.C_Str();
 
 		//INFO(C7) apparently the mTransform of the root node stores information about the
 		//physical rototranslation of the model in the environment, so the matrix is not used
@@ -464,7 +464,7 @@ namespace gfx
 		s32 bone_index = model_find_bone_info(bone_info, bone_info_count, bone_name);
 		if(bone_index != -1) {
 			auto& current_bone_info = bone_info[bone_index];
-			current_bone_info.name  = bone_name.c_str();
+			current_bone_info.name  = bone_name;
 			current_bone_info.final_transformation = current_transformation * current_bone_info.local_transformation;
 			current_bone_info.initialized = true;
 		}
@@ -493,7 +493,7 @@ namespace gfx
 			s32 bone_index = -1;
 
 	    	{
-				std::string bone_name(mesh->mBones[i]->mName.C_Str());
+				String bone_name = mesh->mBones[i]->mName.C_Str();
 				bone_index = model_find_bone_info(bone_info, bone_info_count, bone_name);
 				assert(bone_index != -1, "the bone name should be loaded by this point");
 			}
