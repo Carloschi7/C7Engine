@@ -1,5 +1,5 @@
 #include "text_renderer.h"
-#include "compact_string.h"
+#include "containers.h"
 #include "memory.h"
 
 #include "memory.h"

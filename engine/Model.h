@@ -9,7 +9,7 @@
 #include "Shader.h"
 #include "VertexManager.h"
 #include "Texture.h"
-#include "compact_string.h"
+#include "containers.h"
 
 namespace gfx
 {

@@ -123,7 +123,7 @@ public:
 			}
 
 			heap_capacity = (string_size * 3) / 2;
-			heap_buffer = gfx::mem_allocate<CharType>(heap_capacity);
+			heap_buffer = gfx::mem_allocate_zeroed<CharType>(heap_capacity);
 			std::memcpy(heap_buffer, string, string_size);
 
 			std::memset(stack_buffer, 0, stack_buffer_size);
@@ -137,7 +137,7 @@ public:
 		string_size = string.string_size;
 		if(string.heap_buffer) {
 			heap_capacity = string.heap_capacity;
-			heap_buffer = gfx::mem_allocate<CharType>(heap_capacity);
+			heap_buffer = gfx::mem_allocate_zeroed<CharType>(heap_capacity);
 			std::memcpy(heap_buffer, string.heap_buffer, string_size);
 		} else {
 			std::memcpy(stack_buffer, string.stack_buffer, string_size);
@@ -164,7 +164,7 @@ public:
 		return string_size;
 	}
 
-	void append(const char* string)
+	void append(const CharType* string)
 	{
 		const u32 size = get_c_string_length_no_null_terminating(string);
 		if(!heap_buffer) {
@@ -172,7 +172,7 @@ public:
 				std::memcpy(stack_buffer + string_size, string, size);
 			} else {
 				heap_capacity = ((string_size + size) * 3) / 2;
-				heap_buffer = gfx::mem_allocate<CharType>(heap_capacity);
+				heap_buffer = gfx::mem_allocate_zeroed<CharType>(heap_capacity);
 				std::memcpy(heap_buffer, stack_buffer, string_size);
 				std::memcpy(heap_buffer + string_size, string, size);
 
@@ -182,7 +182,7 @@ public:
 		} else {
 			if(string_size + size >= heap_capacity) {
 				heap_capacity += size * 2;
-				CharType* new_heap_buffer = gfx::mem_allocate<CharType>(heap_capacity);
+				CharType* new_heap_buffer = gfx::mem_allocate_zeroed<CharType>(heap_capacity);
 				std::memcpy(new_heap_buffer, heap_buffer, string_size);
 				gfx::mem_free(heap_buffer);
 				heap_buffer = new_heap_buffer;
@@ -194,7 +194,7 @@ public:
 		string_size += size;
 	}
 
-	void operator+=(const char* string)
+	void operator+=(const CharType* string)
 	{
 		append(string);
 	}

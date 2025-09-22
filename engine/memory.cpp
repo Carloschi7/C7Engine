@@ -643,9 +643,7 @@ namespace gfx
 	void* mem_allocate(u32 bytes)
 	{
 		if(!g_engine_allocator) {
-			void* ptr = ::operator new(bytes);
-			std::memset(ptr, 0, bytes);
-			return ptr;
+			return ::operator new(bytes);
 		}
 
 		std::scoped_lock lock(g_engine_allocator_mutex);
@@ -692,7 +690,15 @@ namespace gfx
 
 		segment_tree.add_node(new_allocation_start, bytes);
 		g_engine_allocator->permanent_storage.used += bytes;
+
 		return storage_u8 + new_allocation_start;
+	}
+
+	void* mem_allocate_zeroed(u32 bytes)
+	{
+		void* ptr = mem_allocate(bytes);
+		std::memset(ptr, 0, bytes);
+		return ptr;
 	}
 
 	void mem_free(void* ptr)

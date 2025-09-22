@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include "compact_string.h"
+#include "containers.h"
 #include "GL/glew.h"
 #include "VertexManager.h"
 #include <glm/glm.hpp>

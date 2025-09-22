@@ -88,6 +88,7 @@ namespace gfx
 	//This functions will either use the g_engine_allocator functionalities or mem_allocate memory from the standard heap
 	//allocate_temporary and free_temporary behave the same way to mem_allocate and mem_free if g_engine_allocator is not defined
 	void* mem_allocate(u32 bytes);
+	void* mem_allocate_zeroed(u32 bytes);
 	void  mem_free(void* ptr);
 	void* temporary_allocate(u32 bytes);
 	void  temporary_free(void* ptr);
@@ -101,6 +102,14 @@ namespace gfx
 		//TODO @C7 should also check for triviality in the future
 		static_assert(std::is_standard_layout_v<T>, "T in an invalid type");
 		return reinterpret_cast<T*>(mem_allocate(count * sizeof(T)));
+	}
+
+	template<typename T>
+	T* mem_allocate_zeroed(u32 count = 1)
+	{
+		//TODO @C7 should also check for triviality in the future
+		static_assert(std::is_standard_layout_v<T>, "T in an invalid type");
+		return reinterpret_cast<T*>(mem_allocate_zeroed(count * sizeof(T)));
 	}
 
 	//only for structs that have members with constructors (needs to have default constructor)
