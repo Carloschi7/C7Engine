@@ -26,7 +26,7 @@ namespace gfx
 		FT_Face face;
 
 		VertexMesh batched_glyphs_buffer;
-		u32        batched_glyphs_buffer_size;
+		u32        batched_glyphs_buffer_size = 0;
 
 		Shader     text_shader;
 
