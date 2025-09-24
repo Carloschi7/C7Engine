@@ -327,6 +327,11 @@ public:
 		string_size = 0;
 	}
 
+	bool empty()
+	{
+		return string_size == 0;
+	}
+
 	~GenericString()
 	{
 		if(heap_buffer)
