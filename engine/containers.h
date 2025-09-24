@@ -195,7 +195,7 @@ public:
 
 	void cut_from_start(u32 index)
 	{
-		if(index >= string_size)
+		if(index > string_size)
 			return;
 
 		CharType* buf = data();
@@ -204,11 +204,11 @@ public:
 			buf[i] = buf[index + i];
 		}
 		for(u32 i = 0; i < index; i++) {
-			buf[string_size - i - 1] = 0; //TEST THIS
+			buf[string_size - i - 1] = 0;
 		}
 
 		string_size -= index;
-		if(string_size < stack_buffer_size) {
+		if(heap_buffer && string_size < stack_buffer_size) {
 			std::memcpy(stack_buffer, heap_buffer, string_size);
 			_free_heap();
 		}
@@ -216,7 +216,7 @@ public:
 
 	void cut_from_end(u32 index)
 	{
-		if(index >= string_size)
+		if(index > string_size)
 			return;
 
 		if(heap_buffer && string_size >= stack_buffer_size && string_size - index < stack_buffer_size) {
