@@ -55,6 +55,10 @@ public:
 		string_size = get_c_string_length_no_null_terminating(string);
 		if(string_size < stack_buffer_size) {
 			std::memcpy(stack_buffer, string, string_size);
+			
+			if (heap_buffer)
+				_free_heap();
+
 		} else {
 			if(heap_buffer) {
 				if(string_size < heap_capacity) {
