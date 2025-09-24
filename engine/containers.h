@@ -33,7 +33,7 @@ public:
 
 	GenericString(GenericString&& right)
 	{
-		operator=(right);
+		operator=(static_cast<GenericString&&>(right));
 	}
 
 
@@ -55,7 +55,7 @@ public:
 		string_size = get_c_string_length_no_null_terminating(string);
 		if(string_size < stack_buffer_size) {
 			std::memcpy(stack_buffer, string, string_size);
-			
+
 			if (heap_buffer)
 				_free_heap();
 
@@ -97,8 +97,9 @@ public:
 	GenericString& operator=(GenericString&& right) noexcept
 	{
 		string_size = right.string_size;
-		if(heap_buffer) {
-			heap_buffer = right.heap_buffer;
+		if(right.heap_buffer) {
+			heap_buffer   = right.heap_buffer;
+			heap_capacity = right.heap_capacity;
 			right.heap_buffer = nullptr;
 		} else {
 			std::memcpy(stack_buffer, right.stack_buffer, string_size);
@@ -110,6 +111,13 @@ public:
 	u32 size()
 	{
 		return string_size;
+	}
+
+	void append(const CharType ch)
+	{
+		CharType buf[2] = {};
+		buf[0] = ch;
+		append(buf);
 	}
 
 	void append(const CharType* string)
@@ -129,7 +137,9 @@ public:
 
 		} else {
 			if(string_size + size >= heap_capacity) {
-				heap_capacity += size * 2;
+				//Still allocate a bit of quantity so that even if we are appending a single char we are not
+				//reallocating for just 2 slots
+				heap_capacity += (size > 3 ? size : 3) * 2;
 				CharType* new_heap_buffer = gfx::mem_allocate_zeroed<CharType>(heap_capacity);
 				std::memcpy(new_heap_buffer, heap_buffer, string_size);
 				gfx::mem_free(heap_buffer);
@@ -142,6 +152,10 @@ public:
 		string_size += size;
 	}
 
+	void operator+=(const CharType ch)
+	{
+		append(ch);
+	}
 	void operator+=(const CharType* string)
 	{
 		append(string);
@@ -289,6 +303,30 @@ public:
 		return GenericString(data() + begin, end - begin);
 	}
 
+	//Actual resize/reserve not implemented atm
+	void allocate_buffer(u32 size)
+	{
+		clear();
+
+		if(size >= stack_buffer_size) {
+			gfx::mem_allocate_zeroed<CharType>(size);
+			heap_capacity = size;
+		}
+
+		//Otherwise just mark that the string is tot characters long
+		string_size = size;
+	}
+
+	void clear()
+	{
+		if(heap_buffer)
+			_free_heap();
+		else
+			std::memset(stack_buffer, 0, stack_buffer_size);
+
+		string_size = 0;
+	}
+
 	~GenericString()
 	{
 		if(heap_buffer)
@@ -297,11 +335,12 @@ public:
 		string_size = 0;
 	}
 
-private:
 	CharType* data()
 	{
 		return heap_buffer ? heap_buffer : stack_buffer;
 	}
+
+private:
 
 	void _free_heap()
 	{
@@ -312,8 +351,8 @@ private:
 
 	CharType stack_buffer[stack_buffer_size] = {};
 	CharType* heap_buffer = nullptr;
-	u32 heap_capacity;
-	u32 string_size;
+	u32 heap_capacity = 0;
+	u32 string_size = 0;
 };
 
 template<typename T>
