@@ -116,7 +116,9 @@ namespace gfx
 	template<typename T>
 	T* mem_allocate_and_construct(u32 count = 1)
 	{
-		static_assert(!std::is_standard_layout_v<T> && std::is_default_constructible_v<T>, "T in an invalid type");
+		//A type can also be standard layout while requiring explicit constructor code to be executed
+		//so std::is_standard_layout is wrong here
+		static_assert(std::is_default_constructible_v<T>, "T in an invalid type");
 		void* ptr = mem_allocate(count * sizeof(T));
 		new (ptr) T;
 		return reinterpret_cast<T*>(ptr);
