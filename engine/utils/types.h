@@ -12,6 +12,15 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
+static_assert(sizeof(unsigned long) == 4);
+static_assert(sizeof(unsigned long long) == 8);
+
+//Mainly added for Windows API support instead of using their types like LONG DWORD etc
+typedef long               l32;
+typedef long long          l64;
+typedef unsigned long      ul32;
+typedef unsigned long long ul64;
+
 static_assert(sizeof(float) == 4, "f32 is not 32-bit on this system");
 static_assert(sizeof(double) == 8, "f64 is not 64-bit on this system");
 
