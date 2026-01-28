@@ -54,6 +54,7 @@ public:
 	{
 		string_size = get_c_string_length_no_null_terminating(string);
 		if(string_size < stack_buffer_size) {
+			std::memset(stack_buffer, 0, stack_buffer_size);
 			std::memcpy(stack_buffer, string, string_size);
 
 			if (heap_buffer)
@@ -155,6 +156,18 @@ public:
 	void operator+=(const CharType ch)
 	{
 		append(ch);
+	}
+	void operator+=(const s32 value)
+	{
+		CharType buf[16] = {};
+		_itoa_s(value, buf, 10);
+		append(buf);
+	}
+	void operator+=(const u32 value)
+	{
+		CharType buf[16] = {};
+		_ultoa_s(value, buf, 10);
+		append(buf);
 	}
 	void operator+=(const CharType* string)
 	{
@@ -327,7 +340,7 @@ public:
 		string_size = 0;
 	}
 
-	bool empty()
+	bool empty() const
 	{
 		return string_size == 0;
 	}

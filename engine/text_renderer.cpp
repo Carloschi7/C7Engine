@@ -86,6 +86,7 @@ namespace gfx
         freetype_instance.texture_height = texture_height;
 
 		const u32 glyph_height = 60;
+		freetype_instance.font_size = glyph_height;
 		FT_Set_Pixel_Sizes(face, 0, glyph_height);
 
 		//Load just the visible chars

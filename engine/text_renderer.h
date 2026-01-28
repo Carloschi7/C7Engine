@@ -27,6 +27,7 @@ namespace gfx
 
 		VertexMesh batched_glyphs_buffer;
 		u32        batched_glyphs_buffer_size = 0;
+		u32        font_size;
 
 		Shader     text_shader;
 
