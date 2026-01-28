@@ -153,21 +153,23 @@ public:
 		string_size += size;
 	}
 
+	void append_s32(const s32 value)
+	{
+		CharType buf[16] = {};
+		_itoa_s(value, buf, sizeof(buf), 10);
+		append(buf);
+	}
+
+	void append_u32(const u32 value)
+	{
+		CharType buf[16] = {};
+		_ultoa_s(value, buf, sizeof(buf), 10);
+		append(buf);
+	}
+
 	void operator+=(const CharType ch)
 	{
 		append(ch);
-	}
-	void operator+=(const s32 value)
-	{
-		CharType buf[16] = {};
-		_itoa_s(value, buf, 10);
-		append(buf);
-	}
-	void operator+=(const u32 value)
-	{
-		CharType buf[16] = {};
-		_ultoa_s(value, buf, 10);
-		append(buf);
 	}
 	void operator+=(const CharType* string)
 	{
