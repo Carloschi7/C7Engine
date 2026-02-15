@@ -56,6 +56,7 @@ public:
 		if(string_size < stack_buffer_size) {
 			std::memset(stack_buffer, 0, stack_buffer_size);
 			std::memcpy(stack_buffer, string, string_size);
+			stack_buffer[string_size] = 0;
 
 			if (heap_buffer)
 				_free_heap();
@@ -90,6 +91,7 @@ public:
 			std::memcpy(heap_buffer, string.heap_buffer, string_size);
 		} else {
 			std::memcpy(stack_buffer, string.stack_buffer, string_size);
+			stack_buffer[string_size] = 0;
 		}
 
 		return *this;
@@ -104,6 +106,7 @@ public:
 			right.heap_buffer = nullptr;
 		} else {
 			std::memcpy(stack_buffer, right.stack_buffer, string_size);
+			stack_buffer[string_size] = 0;
 		}
 
 		return *this;
