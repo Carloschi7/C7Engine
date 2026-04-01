@@ -642,6 +642,10 @@ namespace gfx
 
 	void* mem_allocate(u32 bytes)
 	{
+		//INFO @C7 for some reason ::operator new called with 0 bytes does not return nullptr...
+		if(bytes == 0)
+			return nullptr;
+
 		if(!g_engine_allocator) {
 			return ::operator new(bytes);
 		}
@@ -725,6 +729,9 @@ namespace gfx
 
 	void* temporary_allocate(u32 bytes)
 	{
+		if(bytes == 0)
+			return nullptr;
+
 		if(!g_engine_allocator)
 			return ::operator new(bytes);
 

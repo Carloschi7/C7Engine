@@ -24,6 +24,10 @@
 
 #ifndef defer
 
+#define UNDEFINED_POINTER_STRING "The pointer(s) need(s) to be defined in this scope"
+//Debug macros
+#define TRACE_EXECUTION() { static int __trace = 0; LOG_INFO("{}\n", __trace++); }
+
 //If defer is already defined, the implementation should be very similar
 
 template<class T>
