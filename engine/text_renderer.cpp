@@ -93,18 +93,7 @@ namespace gfx
 		const u8 first_loaded_char = 32;
 		const u8 last_loaded_char  = 126;
 
-		s32 max_bearing_y = 0;
-
 		s32 x_offset = 0, y_offset = 0;
-		//Load basic info and figure out the max_bearing_y
-		for(u8 i = first_loaded_char; i <= first_loaded_char; i++) {
-			if(FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-				std::cout << "Cannot load char:" << i << "\n";
-			}
-
-			if(face->glyph->bitmap_top > max_bearing_y)
-				max_bearing_y = face->glyph->bitmap_top;
-		}
 
 		//Draw glyphs onto the texture
 		for(u8 i = first_loaded_char; i <= last_loaded_char; i++) {
@@ -130,7 +119,7 @@ namespace gfx
 			info.advance   = (face->glyph->advance.x >> 6) + 3;
 			info.offset_x  = x_offset;
 			info.offset_y  = y_offset;
-			info.offset_from_top = max_bearing_y - info.bearing_y;
+			info.offset_from_top = -info.bearing_y;
 			//Convert from local font unit to pixels, plus add 3 padding pixels to make everything clearer
 
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x_offset, y_offset, face->glyph->bitmap.width, face->glyph->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
@@ -143,7 +132,7 @@ namespace gfx
 		freetype_instance.initialized = true;
 	}
 
-	void draw_text(FreetypeInstance* freetype_instance_ptr, const char* str, u32 x, u32 y, f32 scale)
+	void draw_text(FreetypeInstance* freetype_instance_ptr, const char* str, s32 x, s32 y, f32 scale)
 	{
 		//INFO: @C7 the shader is provided externally at the moment, just requires:
 		//layout = 0 => vec2 pos;
@@ -189,7 +178,7 @@ namespace gfx
 			const char current_char = str[i];
 			auto& info = freetype_instance.glyph_info[current_char];
 
-			f32 start_x = 100.0f, start_y = 100.0f, size_x = 0.0f, size_y = 0.0f, offset_x = 0.0f, offset_y = 0.0f, tex_size_x = 0.0f, tex_size_y = 0.0f;
+			f32 start_x, start_y, size_x, size_y, offset_x, offset_y, tex_size_x, tex_size_y;
 
 			start_x    = (f32)x + (f32)info.bearing_x;
 			start_y    = (f32)y + (f32)info.offset_from_top;
