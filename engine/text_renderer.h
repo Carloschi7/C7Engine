@@ -43,6 +43,6 @@ namespace gfx
 	//The rendering pipeline of the text is all handled by the function itself, including the shading process
 	//we take in s32 coordinates because we may want to draw the glyph starting from a negative coordinate of the
 	//screen space
-	void draw_text(FreetypeInstance* freetype_instance_ptr, const char* str, s32 x, s32 y, f32 scale);
+	void draw_text(FreetypeInstance* freetype_instance_ptr, const char* str, s32 x, s32 y, f32 scale, glm::vec3 color = glm::vec3(0.0f, 1.0f, 0.0f));
 	void freetype_deinit(FreetypeInstance* freetype_instance);
 }

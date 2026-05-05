@@ -23,6 +23,7 @@ void main()
 
 in vec2 TexCoords;
 uniform sampler2D glyph_texture;
+uniform vec3      text_color;
 
 out vec4 FragColor;
 
@@ -30,5 +31,5 @@ void main()
 {
 	vec3 texture_color  = texture(glyph_texture, TexCoords).rgb;
 	if(texture_color.r < 0.3f) discard;
-	FragColor = vec4(0.0f, 1.0f, 0.0f, 0.8f);
+	FragColor = vec4(text_color, 0.8f);
 }

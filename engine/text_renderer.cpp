@@ -132,7 +132,7 @@ namespace gfx
 		freetype_instance.initialized = true;
 	}
 
-	void draw_text(FreetypeInstance* freetype_instance_ptr, const char* str, s32 x, s32 y, f32 scale)
+	void draw_text(FreetypeInstance* freetype_instance_ptr, const char* str, s32 x, s32 y, f32 scale, glm::vec3 color)
 	{
 		//INFO: @C7 the shader is provided externally at the moment, just requires:
 		//layout = 0 => vec2 pos;
@@ -146,7 +146,8 @@ namespace gfx
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, freetype_instance.glyph_texture_handle);
-		freetype_instance.text_shader.Uniform1i(0, "glyph_texture");
+		freetype_instance.text_shader.Uniform1i   (0,     "glyph_texture");
+		freetype_instance.text_shader.UniformVec3f(color, "text_color");
 
 		auto& mesh = freetype_instance.batched_glyphs_buffer;
         const u32 projected_array_size = string_length * 6 * 4 * sizeof(f32);
