@@ -7,11 +7,11 @@
 
 struct LayoutElement
 {
-	s32 count;
+	u32 count;
 	GLenum type;
 	GLboolean normalized;
-	size_t stride;
-	size_t offset;
+	u32 stride;
+	u32 offset;
 };
 
 //TODO (C7): make this obsolete pls
