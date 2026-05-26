@@ -402,4 +402,178 @@ namespace gfx {
 	void test_string();
 }
 
+//Meant only to be used with trivial types
+template<typename Key, typename Value>
+class SortedArray
+{
+private:
+	struct StoredElement
+	{
+		Key key;
+		Value stored_value;
+	};
+
+public:
+	SortedArray() {}
+	~SortedArray() {
+		if(buffer)
+			gfx::mem_free(buffer);
+	}
+
+	void add(const Key& key, const Value& value)
+	{
+		if(buffer_size == 0)
+			_reallocate(4);
+
+		if(buffer_size == buffer_capacity)
+			_reallocate(buffer_capacity * 2);
+
+		u32 index = 0;
+		u32 max_range = buffer_size == 0 ? 0 : buffer_size - 1;
+		for(; index < buffer_size && key > buffer[index].key; index++) {
+			//Value is already present, return
+			if(key == buffer[index].key)
+				return;
+
+
+/*
+			if (index + 1 < buffer_size && buffer[index].stored_value < value && buffer[index + 1].stored_value > value) {
+				index++;
+				break;
+			}*/
+		}
+
+		for(u32 i = buffer_size; i > index && i != 0; i--) {
+			buffer[i] = buffer[i - 1];
+		}
+
+		buffer[index].key          = key;
+		buffer[index].stored_value = value;
+		buffer_size += 1;
+	}
+
+	const Value find(const Key& key)
+	{
+		u32 index;
+		if(_find_index(key, &index)) {
+			return buffer[index].stored_value;
+		}
+
+		return {};
+	}
+
+	const bool contains(const Key& key)
+	{
+		u32 index;
+		return _find_index(key, &index);
+	}
+
+	const Value get_value_at_index(u32 index)
+	{
+		if(index >= buffer_size)
+			return {};
+
+		return buffer[index].stored_value;
+	}
+
+	const Key get_key_at_index(u32 index)
+	{
+		if(index >= buffer_size)
+			return {};
+
+		return buffer[index].key;
+	}
+
+	void remove(const Key& key)
+	{
+		u32 index;
+		if(!_find_index(key, &index))
+			return;
+
+		for(u32 i = index; i < buffer_size; i++)
+			buffer[i] = buffer[i + 1];
+
+		buffer_size -= 1;
+	}
+
+	const u32 size() const
+	{
+		return buffer_size;
+	}
+
+	const void clear()
+	{
+		if(!buffer)
+			return;
+
+		gfx::mem_free(buffer);
+		buffer = nullptr;
+	}
+
+private:
+	void _reallocate(u32 new_capacity)
+	{
+		if(!buffer) {
+			buffer = gfx::mem_allocate<StoredElement>(new_capacity);
+			buffer_size     = 0;
+			buffer_capacity = new_capacity;
+			return;
+		}
+
+		//This is not allowed
+		if(new_capacity < buffer_size)
+			return;
+
+		StoredElement* new_buffer = gfx::mem_allocate<StoredElement>(new_capacity);
+		memcpy(new_buffer, buffer, sizeof(StoredElement) * buffer_size);
+		gfx::mem_free(buffer);
+
+		buffer          = new_buffer;
+		buffer_capacity = new_capacity;
+	}
+
+	const bool _find_index(const Key& key, u32* found_index)
+	{
+		if(!found_index || !buffer)
+			return false;
+
+		u32 divisor = 2;
+		u32 search_index = buffer_size / divisor;
+		bool up_one = false, down_one = false;
+
+		while(!up_one || !down_one) {
+			divisor *= 2;
+			u32 prev_search_index = search_index;
+			u32 jump = buffer_size / divisor;
+			if(jump == 0) jump = 1;
+
+			if(buffer[search_index].key < key) {
+				if(search_index + jump >= buffer_size)
+					return false;
+
+				search_index += jump;
+				if(jump == 1)
+					up_one = true;
+			}
+			else if(buffer[search_index].key > key) {
+				if(search_index < jump)
+					return false;
+
+				search_index -= jump;
+				if(jump == 1)
+					down_one = true;
+			} else {
+				*found_index = search_index;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	StoredElement* buffer = nullptr;
+	u32 buffer_size = 0;
+	u32 buffer_capacity = 0;
+};
+
 #undef local_assert
