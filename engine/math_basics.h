@@ -24,3 +24,9 @@ namespace gfx
 	bool      matrix_epsilon_check(const glm::mat4& m1, const glm::mat4& m2, f32 epsilon);
 }
 
+template<typename T>
+T lerp(T first, T second, f32 percentage)
+{
+	return glm::mix<T, f32>(first, second, percentage);
+}
+
