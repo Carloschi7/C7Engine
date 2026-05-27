@@ -429,18 +429,10 @@ public:
 			_reallocate(buffer_capacity * 2);
 
 		u32 index = 0;
-		u32 max_range = buffer_size == 0 ? 0 : buffer_size - 1;
 		for(; index < buffer_size && key > buffer[index].key; index++) {
 			//Value is already present, return
 			if(key == buffer[index].key)
 				return;
-
-
-/*
-			if (index + 1 < buffer_size && buffer[index].stored_value < value && buffer[index + 1].stored_value > value) {
-				index++;
-				break;
-			}*/
 		}
 
 		for(u32 i = buffer_size; i > index && i != 0; i--) {
@@ -462,10 +454,14 @@ public:
 		return {};
 	}
 
-	const bool contains(const Key& key)
+	const bool contains(const Key& key, u32* out_index = nullptr)
 	{
 		u32 index;
-		return _find_index(key, &index);
+		bool result = _find_index(key, &index);
+		if(result && out_index)
+			*out_index = index;
+
+		return result;
 	}
 
 	const Value get_value_at_index(u32 index)
