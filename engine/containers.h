@@ -464,7 +464,7 @@ public:
 		return result;
 	}
 
-	const Value get_value_at_index(u32 index)
+	const Value& get_value_at_index(u32 index)
 	{
 		if(index >= buffer_size)
 			return {};
@@ -472,7 +472,7 @@ public:
 		return buffer[index].stored_value;
 	}
 
-	const Key get_key_at_index(u32 index)
+	const Key& get_key_at_index(u32 index)
 	{
 		if(index >= buffer_size)
 			return {};
