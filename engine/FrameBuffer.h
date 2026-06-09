@@ -12,8 +12,21 @@ struct DoubleTextureFramebuffer
 	u32 depth_texture;
 };
 
+struct ColorFramebuffer
+{
+	u32 handle;
+	u32 color_texture;
+	u32 renderbuffer_handle;
+};
+
 namespace gfx {
+	ColorFramebuffer create_framebuffer_texture_color(u32 width, u32 height);
 	DoubleTextureFramebuffer create_framebuffer_texture_color_texture_depth(u32 width, u32 height);
+	void framebuffer_bind(const ColorFramebuffer& fb);
+	void framebuffer_bind(const DoubleTextureFramebuffer& fb);
+	void texture_bind(const ColorFramebuffer& fb, u32 slot);
+	void texture_bind(const DoubleTextureFramebuffer& fb, u32 slot);
+	void destroy_framebuffer(ColorFramebuffer* fb);
 	void destroy_framebuffer(DoubleTextureFramebuffer* fb);
 }
 

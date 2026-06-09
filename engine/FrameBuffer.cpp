@@ -2,7 +2,37 @@
 #include "GL/glew.h"
 #include "MainIncl.h"
 
-namespace gfx {
+namespace gfx
+{
+	ColorFramebuffer create_framebuffer_texture_color(u32 width, u32 height)
+	{
+		ColorFramebuffer fb = {};
+		glGenFramebuffers(1, &fb.handle);
+		glGenTextures(1, &fb.color_texture);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, fb.handle);
+
+		//Setting up local handle texture
+		glBindTexture(GL_TEXTURE_2D, fb.color_texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.color_texture, 0);
+
+		//Setting the renderbuffer for stencil/depth operations
+		glGenRenderbuffers(1, &fb.renderbuffer_handle);
+		glBindRenderbuffer(GL_RENDERBUFFER, fb.renderbuffer_handle);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fb.renderbuffer_handle);
+
+
+		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Framebuffer setup error\n";
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		return fb;
+	}
 
 	DoubleTextureFramebuffer create_framebuffer_texture_color_texture_depth(u32 width, u32 height)
 	{
@@ -33,6 +63,37 @@ namespace gfx {
 		return fb;
 	}
 
+	void framebuffer_bind(const ColorFramebuffer& fb)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, fb.handle);
+	}
+	void framebuffer_bind(const DoubleTextureFramebuffer& fb)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, fb.handle);
+	}
+
+	void texture_bind(const ColorFramebuffer& fb, u32 slot)
+	{
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, fb.color_texture);
+	}
+
+	void texture_bind(const DoubleTextureFramebuffer& fb, u32 slot)
+	{
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, fb.color_texture);
+	}
+
+	void destroy_framebuffer(ColorFramebuffer* fb)
+	{
+		if (!fb)
+			return;
+
+		glDeleteFramebuffers(1, &fb->handle);
+		glDeleteTextures(1, &fb->color_texture);
+		glDeleteRenderbuffers(1, &fb->renderbuffer_handle);
+	}
+
 	void destroy_framebuffer(DoubleTextureFramebuffer* fb)
 	{
 		if (!fb)
@@ -60,13 +121,13 @@ void FrameBuffer::Load(u32 width, u32 height, FrameBufferType type)
 		glGenFramebuffers(1, &m_FrameBufferID);
 		glGenTextures(1, &m_FrameBufferColorTextureID);
 	}
-	
+
 	m_Type = type;
 
 	switch (m_Type)
 	{
 	case FrameBufferType::COLOR_ATTACHMENT:
-		
+
 		glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBufferID);
 
 		//Setting up local handle texture
@@ -118,7 +179,7 @@ void FrameBuffer::Load(u32 width, u32 height, FrameBufferType type)
 
 	case FrameBufferType::DEPTH_CUBEMAP_ATTACHMENT:
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_FrameBufferColorTextureID);
-		
+
 		for (int i = 0; i < 6; i++)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, width, height, 0,
@@ -178,12 +239,12 @@ void FrameBuffer::Bind()
 
 void FrameBuffer::BindFrameTexture(u32 slot)
 {
-	GLenum texture_type = (m_Type == FrameBufferType::DEPTH_CUBEMAP_ATTACHMENT) ? 
+	GLenum texture_type = (m_Type == FrameBufferType::DEPTH_CUBEMAP_ATTACHMENT) ?
 		GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
 
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(texture_type, m_FrameBufferColorTextureID);
-	
+
 }
 
 void FrameBuffer::BindFrameDepthTexture(u32 slot)
