@@ -112,6 +112,15 @@ void Shader::Uniform1f(f32 i, const char* uniform_name)
 	glUniform1f(GetUniformLocation(uniform_name), i);
 }
 
+f32 Shader::GetUniform1f(const char* uniform_name)
+{
+	//Use();
+	f32 res;
+	glGetUniformfv(m_programID, GetUniformLocation(uniform_name), &res);
+	return res;
+}
+
+
 bool Shader::IsUniformDefined(const char* uniform_name) const
 {
 	return (glGetUniformLocation(m_programID, uniform_name) != -1);

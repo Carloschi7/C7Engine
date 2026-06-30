@@ -47,6 +47,9 @@ public:
 	void UniformVec4f(const glm::vec4& v,   const char* uniform_name);
 	void Uniform1i(int i, const char* uniform_name);
 	void Uniform1f(f32 i, const char* uniform_name);
+
+	f32  GetUniform1f(const char* uniform_name);
+
 	bool IsUniformDefined(const char* uniform_name) const;
 	void ClearUniformCache();
 
