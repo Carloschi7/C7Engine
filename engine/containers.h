@@ -504,6 +504,9 @@ public:
 
 		gfx::mem_free(buffer);
 		buffer = nullptr;
+		
+		buffer_size     = 0;
+		buffer_capacity = 0;
 	}
 
 private:

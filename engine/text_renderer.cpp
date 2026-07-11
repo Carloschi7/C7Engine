@@ -23,7 +23,7 @@
 namespace gfx
 {
 
-	void freetype_init(const char* font_name, const u32 screen_width, const u32 screen_height, const u32 texture_width, const u32 texture_height, FreetypeInstance* freetype_instance_ptr)
+	void freetype_init(const char* font_name, u32 screen_width, u32 screen_height, u32 texture_width, u32 texture_height, s32 texture_binding, FreetypeInstance* freetype_instance_ptr)
 	{
 		assert(freetype_instance_ptr, "This parameter needs to be defined");
 
@@ -70,6 +70,7 @@ namespace gfx
 		glGenBuffers(1, &freetype_instance.batched_glyphs_buffer.vertex_buffer);
 
 		glGenTextures(1, &freetype_instance.glyph_texture_handle);
+		glActiveTexture(GL_TEXTURE0 + texture_binding);
 		glBindTexture(GL_TEXTURE_2D, freetype_instance.glyph_texture_handle);
 
 		s32 saved_unpack_alignment;
@@ -82,8 +83,9 @@ namespace gfx
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        freetype_instance.texture_width  = texture_width;
-        freetype_instance.texture_height = texture_height;
+        freetype_instance.texture_width   = texture_width;
+        freetype_instance.texture_height  = texture_height;
+        freetype_instance.texture_binding = texture_binding;
 
 		const u32 glyph_height = 60;
 		freetype_instance.font_size = glyph_height;
@@ -144,9 +146,9 @@ namespace gfx
 		u32 get_c_string_length_no_null_terminating(const char*);
 		const u32 string_length = get_c_string_length_no_null_terminating(str);
 
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0 + freetype_instance.texture_binding);
 		glBindTexture(GL_TEXTURE_2D, freetype_instance.glyph_texture_handle);
-		freetype_instance.text_shader.Uniform1i   (0,     "glyph_texture");
+		freetype_instance.text_shader.Uniform1i   (freetype_instance.texture_binding, "glyph_texture");
 		freetype_instance.text_shader.UniformVec3f(color, "text_color");
 
 		auto& mesh = freetype_instance.batched_glyphs_buffer;

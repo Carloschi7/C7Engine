@@ -33,13 +33,14 @@ namespace gfx
 
 		u32 glyph_texture_handle;
 		u32 texture_width, texture_height;
+		s32 texture_binding;
 		//Have a free slot for each UTF8 glyph (not all of them will be used tho)
 		CharInfo glyph_info[256];
 
 		bool initialized;
 	};
 
-	void freetype_init(const char* font_name, const u32 screen_width, const u32 screen_height, const u32 texture_width, const u32 texture_height, FreetypeInstance* freetype_instance_ptr);
+	void freetype_init(const char* font_name, u32 screen_width, u32 screen_height, u32 texture_width, u32 texture_height, s32 texture_binding, FreetypeInstance* freetype_instance_ptr);
 	//The rendering pipeline of the text is all handled by the function itself, including the shading process
 	//we take in s32 coordinates because we may want to draw the glyph starting from a negative coordinate of the
 	//screen space
