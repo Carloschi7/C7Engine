@@ -4,8 +4,10 @@
 
 namespace gfx
 {
-	ColorFramebuffer create_framebuffer_texture_color(u32 width, u32 height)
+	ColorFramebuffer create_framebuffer_texture_color(u32 width, u32 height, s32 texture_param)
 	{
+		if(texture_param == 0) texture_param = GL_LINEAR;
+
 		ColorFramebuffer fb = {};
 		glGenFramebuffers(1, &fb.handle);
 		glGenTextures(1, &fb.color_texture);
@@ -15,8 +17,8 @@ namespace gfx
 		//Setting up local handle texture
 		glBindTexture(GL_TEXTURE_2D, fb.color_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture_param);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture_param);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.color_texture, 0);
 
@@ -34,8 +36,10 @@ namespace gfx
 		return fb;
 	}
 
-	DoubleTextureFramebuffer create_framebuffer_texture_color_texture_depth(u32 width, u32 height)
+	DoubleTextureFramebuffer create_framebuffer_texture_color_texture_depth(u32 width, u32 height, s32 texture_param)
 	{
+		if(texture_param == 0) texture_param = GL_LINEAR;
+		
 		DoubleTextureFramebuffer fb = {};
 
 		glGenFramebuffers(1, &fb.handle);
@@ -47,15 +51,15 @@ namespace gfx
 		//Setting up local handle texture
 		glBindTexture(GL_TEXTURE_2D, fb.color_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture_param);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture_param);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.color_texture, 0);
 
 		glBindTexture(GL_TEXTURE_2D, fb.depth_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture_param);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture_param);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fb.depth_texture, 0);
 		glCheckFramebufferStatus(GL_FRAMEBUFFER);

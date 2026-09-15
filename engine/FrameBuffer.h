@@ -20,8 +20,8 @@ struct ColorFramebuffer
 };
 
 namespace gfx {
-	ColorFramebuffer create_framebuffer_texture_color(u32 width, u32 height);
-	DoubleTextureFramebuffer create_framebuffer_texture_color_texture_depth(u32 width, u32 height);
+	ColorFramebuffer create_framebuffer_texture_color(u32 width, u32 height, s32 texture_param = 0);
+	DoubleTextureFramebuffer create_framebuffer_texture_color_texture_depth(u32 width, u32 height, s32 texture_param = 0);
 	void framebuffer_bind(const ColorFramebuffer& fb);
 	void framebuffer_bind(const DoubleTextureFramebuffer& fb);
 	void texture_bind(const ColorFramebuffer& fb, u32 slot);
