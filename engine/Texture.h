@@ -67,6 +67,8 @@ namespace gfx
 
 	TextureData texture_create(const char* filepath);
 	TextureData texture_create(const char* filepath, const TextureArgs& args);
+	//Creates a RGBA color texture
+	TextureData texture_create(const glm::vec4& color, u32 width, u32 height, const TextureArgs& args);
 	TextureData texture_cubemap_create(const String* locations, u32 count);
 	TextureData texture_cubemap_create(const String* locations, u32 count, const TextureArgs& args);
 	glm::ivec2  texture_get_width_and_height(const TextureData& data);

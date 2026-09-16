@@ -60,6 +60,46 @@ namespace gfx
 		return texture_data;
 	}
 
+	TextureData texture_create(const glm::vec4& color, u32 width, u32 height, const TextureArgs& args)
+	{
+		if(args.texture_type != GL_TEXTURE_2D)
+			return {};
+
+		TextureData texture_data = {};
+		texture_data.texture_type = args.texture_type;
+		texture_data.bytes_per_pixel = 4;
+
+		glGenTextures(1, &texture_data.id);
+		glActiveTexture(GL_TEXTURE0 + args.default_binding);
+		glBindTexture(GL_TEXTURE_2D, texture_data.id);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		//Being this an uniformed color texture, GL_LINEAR and GL_NEAREST are the same here
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		texture_data.width  = width;
+		texture_data.height = height;
+		auto tex_ptr = gfx::temporary_allocate<u32>(texture_data.width * texture_data.height);
+		defer {gfx::temporary_free(tex_ptr);};
+
+		for(u32 i = 0; i < texture_data.width * texture_data.height; i++) {
+			tex_ptr[i] = 0;
+			tex_ptr[i] |= ((u32)(color.r * 255.0f) << 0);
+			tex_ptr[i] |= ((u32)(color.g * 255.0f) << 8);
+			tex_ptr[i] |= ((u32)(color.b * 255.0f) << 16);
+			tex_ptr[i] |= ((u32)(color.a * 255.0f) << 24);
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture_data.width, texture_data.height, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, tex_ptr);
+
+		texture_data.initialized = true;
+		return texture_data;
+	}
+
 	TextureData texture_cubemap_create(const String* locations, u32 count)
 	{
 		return texture_cubemap_create(locations, count, texture_cubemap_default_args());
