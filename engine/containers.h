@@ -85,13 +85,22 @@ public:
 	GenericString& operator=(const GenericString& string) noexcept
 	{
 		string_size = string.string_size;
+
 		if(string.heap_buffer) {
-			heap_capacity = string.heap_capacity;
-			heap_buffer = gfx::mem_allocate_zeroed<CharType>(heap_capacity);
-			std::memcpy(heap_buffer, string.heap_buffer, string_size);
+			if (heap_buffer && heap_capacity > string.heap_capacity) {
+				std::memcpy(heap_buffer, string.heap_buffer, string.heap_capacity);
+			} else {
+				_free_heap();
+				heap_buffer = gfx::mem_allocate_zeroed<CharType>(string.heap_capacity);
+				std::memcpy(heap_buffer, string.heap_buffer, string_size);
+				heap_capacity = string.heap_capacity;
+			}
 		} else {
 			std::memcpy(stack_buffer, string.stack_buffer, string_size);
 			stack_buffer[string_size] = 0;
+
+			if (heap_buffer)
+				_free_heap();
 		}
 
 		return *this;
