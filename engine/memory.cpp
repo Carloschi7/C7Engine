@@ -735,6 +735,7 @@ namespace gfx
 
 		segment_tree.add_node(new_allocation_start, bytes);
 		g_engine_allocator->permanent_storage.used += bytes;
+		//log_message(":::{}\n", g_engine_allocator->permanent_storage.used);
 		return storage_u8 + new_allocation_start;
 	}
 
@@ -767,6 +768,7 @@ namespace gfx
 		}
 
 		g_engine_allocator->permanent_storage.used -= node->segment.size;
+		//log_message(":::{}\n", g_engine_allocator->permanent_storage.used);
 		segment_tree.remove_node(node_start);
 	}
 
