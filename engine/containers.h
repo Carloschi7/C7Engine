@@ -40,7 +40,7 @@ public:
 	GenericString(const char* string, u32 size)
 	{
 		u32 actual_size = get_c_string_length_no_null_terminating(string);
-		local_assert(size < actual_size, "specified size must be smaller than the actual string size");
+		local_assert(size <= actual_size, "specified size must be smaller than the actual string size");
 
 		CharType* buf = gfx::temporary_allocate<CharType>(size + 1);
 
@@ -324,7 +324,7 @@ public:
 
 	GenericString substr(u32 begin, u32 end) const
 	{
-		if(begin >= string_size || end >= string_size)
+		if(begin > string_size || end > string_size)
 			return {};
 
 		return GenericString(data() + begin, end - begin);

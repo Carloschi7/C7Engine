@@ -269,10 +269,17 @@ namespace gfx
 		}
 
 		if(node_to_delete->parent) {
-			if(node_to_delete->parent->left == node_to_delete)
-				node_to_delete->parent->left = nullptr;
-			else
-				node_to_delete->parent->right = nullptr;
+			if(node_to_delete->parent->left == node_to_delete) {
+				node_to_delete->parent->left = node_to_delete->left;
+
+				if(node_to_delete->left)
+					node_to_delete->left->parent = node_to_delete->parent;
+			} else {
+				node_to_delete->parent->right = node_to_delete->right;
+
+				if(node_to_delete->right)
+					node_to_delete->right->parent = node_to_delete->parent;
+			}
 		}
 
 		delete node_to_delete;
@@ -605,6 +612,38 @@ namespace gfx
 
 		}
 
+		void allocator_test_code_3()
+		{
+			g_engine_allocator = new Allocator;
+			*g_engine_allocator = allocator_create(1024, 1024);
+
+			defer {
+				allocator_cleanup(g_engine_allocator);
+				delete g_engine_allocator;
+			};
+
+			auto& segment_tree = g_engine_allocator->segment_tree;
+			segment_tree.add_node(4, 1);
+			segment_tree.add_node(2, 1);
+			segment_tree.add_node(1, 1);
+			segment_tree.add_node(6, 1);
+			segment_tree.add_node(5, 1);
+			segment_tree.add_node(7, 1);
+			segment_tree.add_node(8, 1);
+			segment_tree.add_node(9, 1);
+
+			segment_tree.remove_node(9);
+			segment_tree.remove_node(4);
+			segment_tree.remove_node(5);
+
+			const _Node* root = segment_tree.get_root();
+			assert(root->segment.start == 6               && root->color               & NODE_COLOR_BLACK, "");
+			assert(root->left->segment.start == 2         && root->left->color         & NODE_COLOR_BLACK, "");
+			assert(root->left->left->segment.start == 1   && root->left->left->color   & NODE_COLOR_RED, "");
+			assert(root->right->segment.start == 7        && root->right->color        & NODE_COLOR_BLACK, "");
+			assert(root->right->right->segment.start == 8 && root->right->right->color & NODE_COLOR_RED, "");
+		}
+
 		void memory_run_tests()
 		{
 			tree_test_code_1();
@@ -613,6 +652,7 @@ namespace gfx
 			tree_test_code_4();
 			allocator_test_code_1();
 			allocator_test_code_2();
+			allocator_test_code_3();
 			log_message("(memory_run_tests) tests: OK\n");
 		}
 	}
@@ -642,6 +682,7 @@ namespace gfx
 
 	void* mem_allocate(u32 bytes)
 	{
+
 		//INFO @C7 for some reason ::operator new called with 0 bytes does not return nullptr...
 		if(bytes == 0)
 			return nullptr;
@@ -694,7 +735,6 @@ namespace gfx
 
 		segment_tree.add_node(new_allocation_start, bytes);
 		g_engine_allocator->permanent_storage.used += bytes;
-
 		return storage_u8 + new_allocation_start;
 	}
 
@@ -707,6 +747,9 @@ namespace gfx
 
 	void mem_free(void* ptr)
 	{
+		if (!ptr)
+			return;
+
 		if(!g_engine_allocator) {
 			::operator delete(ptr);
 			return;
