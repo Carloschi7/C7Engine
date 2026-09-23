@@ -1,6 +1,9 @@
 #include "memory.h"
 #include "MainIncl.h"
 #include <mutex>
+#ifdef _WIN32
+#include "Windows.h"
+#endif
 
 gfx::Allocator* g_engine_allocator = nullptr;
 std::mutex      g_engine_allocator_mutex;
@@ -44,7 +47,6 @@ namespace gfx
 
 	static _Node* rotate_right(_Node* node)
 	{
-
 		if(node->parent) {
 			if(node == node->parent->left) {
 				node->parent->left = node->left;
@@ -53,6 +55,8 @@ namespace gfx
 			}
 		}
 
+		//Changing pointers to replace node with node->left
+		//and then making node node->left's right son
 		auto rotated = node->left;
 		rotated->parent = node->parent;
 		_Node* old_right = rotated->right;
@@ -65,6 +69,43 @@ namespace gfx
 		return rotated;
 	}
 
+/*
+	more descriptive rotation method, left for clarity but commented because there
+	is a faster function above
+
+	static _Node* rotate_right(_Node* node)
+	{
+		if (node->parent) {
+			if (node == node->parent->left) {
+				node->parent->left = node->left;
+			}
+			else {
+				node->parent->right = node->left;
+			}
+		}
+
+		auto old_parent = node->parent;
+		auto old_node   = node;
+		auto old_node_left       = node->left;
+		auto old_node_left_right = node->left->right;
+		auto old_node_left_left  = node->left->left;
+		auto old_node_right      = node->right;
+
+		old_node_left->parent = old_parent;
+		old_node_left->left   = old_node_left_left;
+		old_node_left->right  = old_node;
+
+		old_node->parent = old_node_left;
+		old_node->left   = old_node_left_right;
+
+		if(old_node_left_right) old_node_left_right->parent = old_node;
+		if(old_node_left_left)  old_node_left_left->parent  = old_node_left;
+
+
+		return old_node_left;
+	}
+	*/
+
 	static _Node* rotate_left(_Node* node)
 	{
 		if(node->parent) {
@@ -75,6 +116,8 @@ namespace gfx
 			}
 		}
 
+		//Changing pointers to replace node with node->right
+		//and then making node node->right's left son
 		auto rotated = node->right;
 		rotated->parent = node->parent;
 		_Node* old_left = rotated->left;
@@ -270,19 +313,109 @@ namespace gfx
 
 		if(node_to_delete->parent) {
 			if(node_to_delete->parent->left == node_to_delete) {
-				node_to_delete->parent->left = node_to_delete->left;
+				auto adjacent_node = node_to_delete->left ? node_to_delete->left : node_to_delete->right;
+				node_to_delete->parent->left = adjacent_node;
 
-				if(node_to_delete->left)
-					node_to_delete->left->parent = node_to_delete->parent;
+				if(adjacent_node)
+					adjacent_node->parent = node_to_delete->parent;
 			} else {
-				node_to_delete->parent->right = node_to_delete->right;
+				auto adjacent_node = node_to_delete->left ? node_to_delete->left : node_to_delete->right;
+				node_to_delete->parent->right = adjacent_node;
 
-				if(node_to_delete->right)
-					node_to_delete->right->parent = node_to_delete->parent;
+				if(adjacent_node)
+					adjacent_node->parent = node_to_delete->parent;
 			}
 		}
 
 		delete node_to_delete;
+	}
+
+	static u32 get_max_depth(_Node* node)
+	{
+		if(!node)
+			return 0;
+
+		u32 left_depth  = get_max_depth(node->left)  + 1;
+		u32 right_depth = get_max_depth(node->right) + 1;
+
+		return left_depth > right_depth ? left_depth : right_depth;
+	}
+
+	static void print_tree_level(_Node* root, u32 current_depth, u32 max_depth)
+	{
+		if(current_depth >= max_depth)
+			return;
+
+#ifdef _WIN32
+		HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+#endif
+		assert(max_depth < 32, "Tree too big to print");
+
+		const u32 tabs       = glm::pow(2, max_depth - current_depth);
+		const u32 iterations = glm::pow(2, current_depth);
+		const u32 mask = current_depth > 0 ? glm::pow(2, current_depth - 1) : 0;
+
+		auto current_node = root;
+		for (u32 i = 0; i < iterations; i++) {
+			current_node = root;
+			for(u32 j = 0; j < current_depth && current_node; j++) {
+				if (i & (mask >> j))
+					current_node = current_node->right;
+				else
+					current_node = current_node->left;
+			}
+
+			u32 current_tabs = tabs;
+			if(i == 0)
+				current_tabs /= 2;
+
+			for(u32 j = 0; j < current_tabs; j++) {
+				if(j == current_tabs - 1) {
+					log_message(" ");
+					continue;
+				}
+
+				log_message("    ");
+			}
+
+
+			if (current_node && current_node->color & NODE_COLOR_BLACK) {
+#ifdef _WIN32
+			//Representing black as green to avoid console darkness
+				SetConsoleTextAttribute(console, FOREGROUND_GREEN);
+#endif
+				log_message("BLA{}", current_depth == 0 ? "(root)" : "");
+			} else if(current_node && current_node->color & NODE_COLOR_RED) {
+#ifdef _WIN32
+				SetConsoleTextAttribute(console, FOREGROUND_RED);
+#endif
+				log_message("RED{}", current_depth == 0 ? "(root)" : "");
+			} else {
+#ifdef _WIN32
+				SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+#endif
+				log_message("NUL");
+			}
+		}
+
+		log_message("\n");
+		print_tree_level(root, current_depth + 1, max_depth);
+	}
+
+	void SegmentTree::print()
+	{
+		if(!root) {
+			log_message("(empty)");
+			return;
+		}
+
+		u32 max_depth = get_max_depth(root);
+		print_tree_level(root, 0, max_depth);
+
+#ifdef _WIN32
+		HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+#endif
 	}
 
 	void SegmentTree::cleanup()
@@ -357,9 +490,10 @@ namespace gfx
 			//Case 5
 			if(get_node_color(node_sibling) & NODE_COLOR_BLACK && get_node_color(node_sibling->left) & NODE_COLOR_BLACK && get_node_color(node_sibling->right) & NODE_COLOR_RED) {
 				node_sibling->right->color = node_sibling->color;
-				node_sibling->color        = NODE_COLOR_RED;
+				node_to_delete->color      = NODE_COLOR_RED;
 
-				rotate_right(node_sibling->parent);
+				rotate_left (node_sibling);
+				rotate_right(grandparent(node_sibling));
 			}
 			//Case 6
 			if(get_node_color(node_sibling) & NODE_COLOR_BLACK && get_node_color(node_sibling->left) & NODE_COLOR_RED) {
@@ -373,12 +507,13 @@ namespace gfx
 			}
 
 		} else {
-		//Case 5
+			//Case 5
 			if(get_node_color(node_sibling) & NODE_COLOR_BLACK && get_node_color(node_sibling->right) & NODE_COLOR_BLACK && get_node_color(node_sibling->left) & NODE_COLOR_RED) {
 				node_sibling->left->color = node_sibling->color;
-				node_sibling->color       = NODE_COLOR_RED;
+				node_to_delete->color     = NODE_COLOR_RED;
 
-				rotate_left(node_sibling->parent);
+				rotate_right(node_sibling);
+				rotate_left (grandparent(node_sibling));
 			}
 
 			//Case 6
@@ -460,6 +595,9 @@ namespace gfx
 	void assert_red_black_tree_validity(const SegmentTree& segment_tree)
 	{
 		const auto root = segment_tree.get_root();
+		if (!root)
+			return;
+
 		assert(root->color & NODE_COLOR_BLACK, "the start of a red black tree requires a black node");
 
 		//If all the black paths need to have the same black lenght, just pick a random path first, measure the black
@@ -733,9 +871,13 @@ namespace gfx
 			new_allocation_start = last_allocation_node->segment.start + last_allocation_node->segment.size;
 		}
 
-		segment_tree.add_node(new_allocation_start, bytes);
 		g_engine_allocator->permanent_storage.used += bytes;
-		//log_message(":::{}\n", g_engine_allocator->permanent_storage.used);
+		segment_tree.add_node(new_allocation_start, bytes);
+
+		//Debug calls
+		//log_message(":::+{}\n", g_engine_allocator->permanent_storage.used);
+		//segment_tree.print();
+
 		return storage_u8 + new_allocation_start;
 	}
 
@@ -768,8 +910,11 @@ namespace gfx
 		}
 
 		g_engine_allocator->permanent_storage.used -= node->segment.size;
-		//log_message(":::{}\n", g_engine_allocator->permanent_storage.used);
 		segment_tree.remove_node(node_start);
+		//Debug calls
+		//log_message(":::-{}\n", g_engine_allocator->permanent_storage.used);
+		//segment_tree.print();
+		//assert_red_black_tree_validity(segment_tree);
 	}
 
 	void* temporary_allocate(u32 bytes)

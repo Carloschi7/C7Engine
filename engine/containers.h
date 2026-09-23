@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <string>
 #include "memory.h"
+#include <vector>
 
 #define local_assert(x, msg) if(!(x)) { *(int*)0 = 0; }
 
@@ -513,7 +514,7 @@ public:
 
 		gfx::mem_free(buffer);
 		buffer = nullptr;
-		
+
 		buffer_size     = 0;
 		buffer_capacity = 0;
 	}
@@ -585,3 +586,33 @@ private:
 };
 
 #undef local_assert
+
+
+template<typename T>
+struct CustomAllocator
+{
+	using value_type      = T;
+	using difference_type = std::ptrdiff_t;
+
+	static_assert(std::is_trivially_copyable_v<T>, "Type is required to be trivially copiable to avoid weird bugs");
+	CustomAllocator() noexcept = default;
+
+	template<typename U>
+	CustomAllocator(const CustomAllocator<U>&) noexcept
+	{
+	}
+
+	T* allocate(u64 count)
+	{
+	    void* memory = gfx::mem_allocate((u32)count * sizeof(T));
+	    return static_cast<T*>(memory);
+	}
+
+	void deallocate(T* memory, u64) noexcept
+	{
+	    gfx::mem_free(memory);
+	}
+};
+
+template<class T>
+using Array = std::vector<T, CustomAllocator<T>>;
