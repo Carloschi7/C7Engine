@@ -11,13 +11,13 @@ std::mutex      g_engine_allocator_mutex;
 namespace gfx
 {
 
-	static _Node* grandparent(_Node* node)
+	static _Node* grandparent(const _Node* node)
 	{
 		assert(node->parent, "no grandparent can be found without a parent");
 		return node->parent->parent;
 	}
 
-	static _Node* uncle(_Node* node)
+	static _Node* uncle(const _Node* node)
 	{
 		if(node->parent == grandparent(node)->left) {
 			return grandparent(node)->right;
@@ -26,7 +26,7 @@ namespace gfx
 		return grandparent(node)->left;
 	}
 
-	static _Node* sibling(_Node* node)
+	static _Node* sibling(const _Node* node)
 	{
 		//assert(node->parent, "no sibling can be found without a defined parent");
 		if(!node->parent)
@@ -132,7 +132,7 @@ namespace gfx
 
 
 	//Definitions written according to the red black tree principles
-	void SegmentTree::tree_insert_check(_Node* node)
+	void SegmentTree::rearrange_tree_for_insertion(_Node* node)
 	{
 		if(!node->parent) {
 			node->color = NODE_COLOR_BLACK;
@@ -149,7 +149,7 @@ namespace gfx
 			uncle(node)->color       = NODE_COLOR_BLACK;
 			grandparent(node)->color = NODE_COLOR_RED;
 
-			tree_insert_check(grandparent(node));
+			rearrange_tree_for_insertion(grandparent(node));
 			return;
 		}
 
@@ -191,7 +191,7 @@ namespace gfx
 		current_node->segment.start = start;
 		current_node->segment.size  = size;
 
-		tree_insert_check(*iterator);
+		rearrange_tree_for_insertion(*iterator);
 	}
 
 	_Node** SegmentTree::find_place_to_insert_node(u32 start, _Node** parent)
@@ -289,7 +289,9 @@ namespace gfx
 		}
 
 		assert(node_to_delete, "there was an implementation problem if the node here is null");
-		tree_delete_check(node_to_delete, true);
+		bool already_deleted = preliminary_deletion(node_to_delete);
+		if(!already_deleted)
+			rearrange_tree_for_deletion(node_to_delete);
 	}
 
 	static void red_black_tree_delete(_Node* node)
@@ -299,35 +301,6 @@ namespace gfx
 		red_black_tree_delete(node->left);
 		red_black_tree_delete(node->right);
 		delete node;
-	}
-
-	static void node_removal_utility(_Node* node_to_delete, bool perform_deletion)
-	{
-		if(!perform_deletion) {
-			if(node_to_delete->color & NODE_COLOR_DOUBLE_BLACK) {
-				node_to_delete->color = NODE_COLOR_BLACK;
-			}
-
-			return;
-		}
-
-		if(node_to_delete->parent) {
-			if(node_to_delete->parent->left == node_to_delete) {
-				auto adjacent_node = node_to_delete->left ? node_to_delete->left : node_to_delete->right;
-				node_to_delete->parent->left = adjacent_node;
-
-				if(adjacent_node)
-					adjacent_node->parent = node_to_delete->parent;
-			} else {
-				auto adjacent_node = node_to_delete->left ? node_to_delete->left : node_to_delete->right;
-				node_to_delete->parent->right = adjacent_node;
-
-				if(adjacent_node)
-					adjacent_node->parent = node_to_delete->parent;
-			}
-		}
-
-		delete node_to_delete;
 	}
 
 	static u32 get_max_depth(_Node* node)
@@ -341,7 +314,7 @@ namespace gfx
 		return left_depth > right_depth ? left_depth : right_depth;
 	}
 
-	static void print_tree_level(_Node* root, u32 current_depth, u32 max_depth)
+	static void print_tree_level(_Node* root, u32 current_depth, u32 max_depth, u32* total_nodes)
 	{
 		if(current_depth >= max_depth)
 			return;
@@ -385,11 +358,20 @@ namespace gfx
 				SetConsoleTextAttribute(console, FOREGROUND_GREEN);
 #endif
 				log_message("BLA{}", current_depth == 0 ? "(root)" : "");
+				if(total_nodes) *total_nodes += 1;
 			} else if(current_node && current_node->color & NODE_COLOR_RED) {
 #ifdef _WIN32
 				SetConsoleTextAttribute(console, FOREGROUND_RED);
 #endif
 				log_message("RED{}", current_depth == 0 ? "(root)" : "");
+				if(total_nodes) *total_nodes += 1;
+			} else if(current_node && current_node->color & NODE_COLOR_DOUBLE_BLACK) {
+				//Left as legacy, double black is not currently used in the implementation
+#ifdef _WIN32
+				SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN);
+#endif
+				log_message("DBL{}", current_depth == 0 ? "(root)" : "");
+				if(total_nodes) *total_nodes += 1;
 			} else {
 #ifdef _WIN32
 				SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
@@ -399,7 +381,7 @@ namespace gfx
 		}
 
 		log_message("\n");
-		print_tree_level(root, current_depth + 1, max_depth);
+		print_tree_level(root, current_depth + 1, max_depth, total_nodes);
 	}
 
 	void SegmentTree::print()
@@ -409,13 +391,16 @@ namespace gfx
 			return;
 		}
 
+		log_message("\n\n\n\n");
 		u32 max_depth = get_max_depth(root);
-		print_tree_level(root, 0, max_depth);
+		u32 total_nodes = 0;
+		print_tree_level(root, 0, max_depth, &total_nodes);
 
 #ifdef _WIN32
 		HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 #endif
+		log_message("total_nodes:{}\n", total_nodes);
 	}
 
 	void SegmentTree::cleanup()
@@ -424,6 +409,154 @@ namespace gfx
 		root = nullptr;
 	}
 
+	bool SegmentTree::preliminary_deletion(_Node* node_to_delete)
+	{
+		auto delete_node = [](_Node* node) {
+			if(node->parent->left == node)
+				node->parent->left  = nullptr;
+			else
+				node->parent->right = nullptr;
+
+			delete node;
+		};
+
+		if((!node_to_delete->left && node_to_delete->right) || (node_to_delete->left && !node_to_delete->right)) {
+			auto only_son = node_to_delete->left ? &node_to_delete->left : &node_to_delete->right;
+			if(get_node_color(node_to_delete) & NODE_COLOR_RED) {
+				node_to_delete->color = NODE_COLOR_BLACK;
+			}
+			node_to_delete->segment = (*only_son)->segment;
+			delete_node(*only_son);
+			*only_son = nullptr;
+			return true;
+		}
+
+		if(node_to_delete == root && !node_to_delete->left && !node_to_delete->right) {
+			delete root;
+			root = nullptr;
+			return true;
+		}
+
+		if(get_node_color(node_to_delete) & NODE_COLOR_RED && !node_to_delete->left && !node_to_delete->right) {
+			delete_node(node_to_delete);
+			return true;
+		}
+
+		return false;
+	}
+
+	void SegmentTree::rearrange_tree_for_deletion(_Node* node_to_delete, bool perform_deletion, bool just_456, bool just_6)
+	{
+		auto delete_node = [](_Node* node) {
+			if(node->parent->left == node)
+				node->parent->left  = nullptr;
+			else
+				node->parent->right = nullptr;
+
+			delete node;
+		};
+
+		//removal of black non root
+		//Name references (parent: p, sibling: s, close_nephew: c, distant_nephew: d)
+		auto p = node_to_delete->parent;
+		auto s = sibling(node_to_delete);
+		_Node* c = nullptr, *d = nullptr;
+		if(s) {
+			auto node = node_to_delete;
+			c = node->parent->left == node ? sibling(node)->left  : sibling(node)->right;
+			d = node->parent->left == node ? sibling(node)->right : sibling(node)->left;
+		}
+
+		//Very rare instance where goto is useful
+		if(just_456)
+			goto label_456;
+		if(just_6)
+			goto label_6;
+
+		//Deletion case 2
+		if(get_node_color(p) & NODE_COLOR_BLACK && get_node_color(c) & NODE_COLOR_BLACK && get_node_color(s) & NODE_COLOR_BLACK && get_node_color(d) & NODE_COLOR_BLACK) {
+			if (!s)
+				return;
+
+			s->color = NODE_COLOR_RED;
+			rearrange_tree_for_deletion(node_to_delete->parent, false);
+			if(perform_deletion)
+				delete_node(node_to_delete);
+			return;
+		}
+
+		//Deletion case 3
+		if(get_node_color(s) & NODE_COLOR_RED) {
+			if(p->left == s)
+				rotate_right(p);
+			else
+				rotate_left(p);
+
+			if(!s->parent)
+				root = s;
+
+			auto saved_color = s->color;
+			s->color = p->color;
+			p->color = saved_color;
+
+			rearrange_tree_for_deletion(node_to_delete, false, true, false);
+			if(perform_deletion)
+				delete_node(node_to_delete);
+			return;
+		}
+
+		//Deletion case 4
+label_456:
+		if(get_node_color(p) & NODE_COLOR_RED && get_node_color(c) & NODE_COLOR_BLACK && get_node_color(s) & NODE_COLOR_BLACK && get_node_color(d) & NODE_COLOR_BLACK) {
+			auto saved_color = s->color;
+			s->color = p->color;
+			p->color = saved_color;
+		}
+
+		//Deletion case 5
+		if(get_node_color(c) & NODE_COLOR_RED && get_node_color(s) & NODE_COLOR_BLACK && get_node_color(d) & NODE_COLOR_BLACK) {
+			if(s->left == c)
+				rotate_right(s);
+			else
+				rotate_left(s);
+
+			if(!c->parent)
+				root = c;
+
+			auto saved_color = s->color;
+			s->color = c->color;
+			c->color = saved_color;
+
+			rearrange_tree_for_deletion(node_to_delete, false, false, true);
+			if(perform_deletion)
+				delete_node(node_to_delete);
+			return;
+		}
+
+		//Deletion case 6
+label_6:
+		if(get_node_color(s) & NODE_COLOR_BLACK && get_node_color(d) & NODE_COLOR_RED) {
+			if(p->left == s)
+				rotate_right(p);
+			else
+				rotate_left(p);
+
+			if(!s->parent)
+				root = s;
+
+			auto saved_color = p->color;
+			p->color = s->color;
+			s->color = saved_color;
+			d->color = NODE_COLOR_BLACK;
+		}
+
+		if(perform_deletion) {
+			delete_node(node_to_delete);
+		}
+	}
+
+/*
+	old version of the removal method, left just in case, was not working properly
 	void SegmentTree::tree_delete_check(_Node* node_to_delete, bool perform_deletion)
 	{
 		auto node_sibling = sibling(node_to_delete);
@@ -476,7 +609,7 @@ namespace gfx
 				tree_delete_check(node_to_delete, true);
 			}
 			//INFO @C7 node sibling could be the new root node here, so make sure it still has a parent
-			if(node_sibling->parent && node_sibling == node_sibling->parent->right) {
+			else if(node_sibling->parent && node_sibling == node_sibling->parent->right) {
 				auto new_node = rotate_left(node_sibling->parent);
 				if(!new_node->parent)
 					root = new_node;
@@ -486,14 +619,19 @@ namespace gfx
 			return;
 		}
 
+		_Node* rotated = nullptr;
 		if(node_sibling == node_sibling->parent->left) {
 			//Case 5
 			if(get_node_color(node_sibling) & NODE_COLOR_BLACK && get_node_color(node_sibling->left) & NODE_COLOR_BLACK && get_node_color(node_sibling->right) & NODE_COLOR_RED) {
+				auto temp_color            = node_sibling->right->color;
 				node_sibling->right->color = node_sibling->color;
-				node_to_delete->color      = NODE_COLOR_RED;
+				if (node_sibling->parent->color & NODE_COLOR_RED)
+					node_sibling->color = temp_color;
+				//node_sibling->color        = temp_color;
+				//node_to_delete->color      = NODE_COLOR_RED;
 
-				rotate_left (node_sibling);
-				rotate_right(grandparent(node_sibling));
+				rotate_left(node_sibling);
+				rotated = rotate_right(grandparent(node_sibling));
 			}
 			//Case 6
 			if(get_node_color(node_sibling) & NODE_COLOR_BLACK && get_node_color(node_sibling->left) & NODE_COLOR_RED) {
@@ -503,17 +641,20 @@ namespace gfx
 
 				node_sibling->left->color   = NODE_COLOR_BLACK;
 
-				rotate_right(node_sibling->parent);
+				rotated = rotate_right(node_sibling->parent);
 			}
 
 		} else {
 			//Case 5
 			if(get_node_color(node_sibling) & NODE_COLOR_BLACK && get_node_color(node_sibling->right) & NODE_COLOR_BLACK && get_node_color(node_sibling->left) & NODE_COLOR_RED) {
+				auto temp_color           = node_sibling->left->color;
 				node_sibling->left->color = node_sibling->color;
-				node_to_delete->color     = NODE_COLOR_RED;
+				if (node_sibling->parent->color & NODE_COLOR_RED)
+					node_sibling->color = temp_color;
+				//node_to_delete->color     = NODE_COLOR_RED;
 
 				rotate_right(node_sibling);
-				rotate_left (grandparent(node_sibling));
+				rotated = rotate_left(grandparent(node_sibling));
 			}
 
 			//Case 6
@@ -524,15 +665,16 @@ namespace gfx
 
 				node_sibling->right->color  = NODE_COLOR_BLACK;
 
-				rotate_left(node_sibling->parent);
+				rotated = rotate_left(node_sibling->parent);
 			}
 		}
 
-		if (!node_sibling->parent)
-			root = node_sibling;
+		if (rotated && !rotated->parent)
+			root = rotated;
 
 		node_removal_utility(node_to_delete, perform_deletion);
 	}
+	*/
 
 	static _Node* find_next_node(const _Node* node)
 	{
@@ -877,6 +1019,7 @@ namespace gfx
 		//Debug calls
 		//log_message(":::+{}\n", g_engine_allocator->permanent_storage.used);
 		//segment_tree.print();
+		//assert_red_black_tree_validity(segment_tree);
 
 		return storage_u8 + new_allocation_start;
 	}
@@ -911,6 +1054,7 @@ namespace gfx
 
 		g_engine_allocator->permanent_storage.used -= node->segment.size;
 		segment_tree.remove_node(node_start);
+
 		//Debug calls
 		//log_message(":::-{}\n", g_engine_allocator->permanent_storage.used);
 		//segment_tree.print();

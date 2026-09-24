@@ -50,8 +50,15 @@ namespace gfx
 		//with recursive calls that the tree is still valid according to the RB tree rules, the flag in the
 		//tree_delete_check function explicitly says if the recursive calls perform a deletion or just
 		//rearranges the newly created tree structure
-		void tree_insert_check(_Node* node);
-		void tree_delete_check(_Node* node, bool perform_deletion);
+		void rearrange_tree_for_insertion(_Node* node);
+		//called before rearrange_tree_for_deletion, to handle simpler cases and return faster
+		bool preliminary_deletion(_Node* node_to_delete);
+		//INFO @C7 a deletion custom implementation following standard rules for rb-tree deletion
+		//the flags just_456 and just_6 are false by default, and can be enabled recursively when needed
+		//for example, deletion d3 reqires d4 d5 or d6 to fix the rb structure, so when enabling just_456
+		//the recursive call checks just those other deletion methods, and so on.
+		//(See https://en.wikipedia.org/wiki/Red-black_tree)
+		void rearrange_tree_for_deletion(_Node* node, bool perform_deletion = true, bool just_456 = false, bool just_6 = false);
 
 		_Node* root = nullptr;
 	};
