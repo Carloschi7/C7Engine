@@ -8,6 +8,19 @@
 gfx::Allocator* g_engine_allocator = nullptr;
 std::mutex      g_engine_allocator_mutex;
 
+//overloaded operators to track allocation when needed
+/*
+void* operator new(u64 size)
+{
+	return malloc(size);
+}
+
+void operator delete(void* ptr)
+{
+	free(ptr);
+}
+*/
+
 namespace gfx
 {
 
@@ -181,8 +194,33 @@ namespace gfx
 		_Node* parent = nullptr;
 		_Node** iterator = find_place_to_insert_node(start, &parent);
 
+#ifdef ARENA_USE_NODE_POOL
+
+		if(pool.array_capacity == 0) {
+			pool.array_capacity = 300;
+
+			pool.node_array = (_Node*)::operator new(pool.array_capacity * sizeof(_Node));
+			memset(pool.node_array, 0, pool.array_capacity * sizeof(_Node));
+			pool.array_size = 0;
+		}
+
+		if(pool.array_size >= pool.array_capacity) {
+			assert(false, "Too many allocations have been made, expand the capacity at compile time");
+		}
+
+		pool.array_size += 1;
+		_Node null_node = {};
+		//Grab a node from the array only if it is null, otherwise it is still being used
+		for(u32 i = 0; i < pool.array_capacity; i++) {
+			if(memcmp(&pool.node_array[i], &null_node, sizeof(_Node)) == 0) {
+				*iterator = &pool.node_array[i];
+				break;
+			}
+		}
+#else
 		*iterator = new _Node;
-		std::memset(*iterator, 0, sizeof(_Node));
+		memset(*iterator, 0, sizeof(_Node));
+#endif
 		_Node* current_node = *iterator;
 
 		//The color gets defaulted as red, then eventually that will change in the insert check chain
@@ -293,6 +331,7 @@ namespace gfx
 		if(!already_deleted)
 			rearrange_tree_for_deletion(node_to_delete);
 	}
+
 
 	static void red_black_tree_delete(_Node* node)
 	{
@@ -405,21 +444,37 @@ namespace gfx
 
 	void SegmentTree::cleanup()
 	{
+#ifndef ARENA_USE_NODE_POOL
 		red_black_tree_delete(root);
 		root = nullptr;
+#else
+		if(pool.node_array) {
+			::operator delete(pool.node_array);
+			pool.node_array = nullptr;
+		}
+		root = nullptr;
+#endif
+	}
+
+	void SegmentTree::delete_node(_Node* node)
+	{
+		if(node->parent->left == node)
+			node->parent->left  = nullptr;
+		else
+			node->parent->right = nullptr;
+
+		//Decrease the counter in the node pool by one, signaling that the node is free for next use
+		//The node will be zero initialized again when requested
+#ifdef ARENA_USE_NODE_POOL
+		memset(node, 0, sizeof(_Node));
+		pool.array_size -= 1;
+#else
+		delete node;
+#endif
 	}
 
 	bool SegmentTree::preliminary_deletion(_Node* node_to_delete)
 	{
-		auto delete_node = [](_Node* node) {
-			if(node->parent->left == node)
-				node->parent->left  = nullptr;
-			else
-				node->parent->right = nullptr;
-
-			delete node;
-		};
-
 		if((!node_to_delete->left && node_to_delete->right) || (node_to_delete->left && !node_to_delete->right)) {
 			auto only_son = node_to_delete->left ? &node_to_delete->left : &node_to_delete->right;
 			if(get_node_color(node_to_delete) & NODE_COLOR_RED) {
@@ -432,7 +487,9 @@ namespace gfx
 		}
 
 		if(node_to_delete == root && !node_to_delete->left && !node_to_delete->right) {
+#ifndef ARENA_USE_NODE_POOL
 			delete root;
+#endif
 			root = nullptr;
 			return true;
 		}
@@ -447,15 +504,6 @@ namespace gfx
 
 	void SegmentTree::rearrange_tree_for_deletion(_Node* node_to_delete, bool perform_deletion, bool just_456, bool just_6)
 	{
-		auto delete_node = [](_Node* node) {
-			if(node->parent->left == node)
-				node->parent->left  = nullptr;
-			else
-				node->parent->right = nullptr;
-
-			delete node;
-		};
-
 		//removal of black non root
 		//Name references (parent: p, sibling: s, close_nephew: c, distant_nephew: d)
 		auto p = node_to_delete->parent;
@@ -722,6 +770,20 @@ label_6:
 		check_all_paths_have_the_same_amount_of_black_nodes(node->right, check_val, next_val);
 	}
 
+	static void check_quantities_are_correct(const _Node* node)
+	{
+		if(!node)
+			return;
+
+		if(node->left)
+			assert(node->segment.start > node->left->segment.start, "Incongruent");
+		if(node->right)
+			assert(node->segment.start < node->right->segment.start, "Incongruent");
+
+		check_quantities_are_correct(node->left);
+		check_quantities_are_correct(node->right);
+	}
+
 	static void check_all_red_nodes_have_black_children(const _Node* node)
 	{
 		if(!node) return;
@@ -750,6 +812,7 @@ label_6:
 				left_path_black_nodes++;
 		}
 
+		check_quantities_are_correct(root);
 		check_all_paths_have_the_same_amount_of_black_nodes(root, left_path_black_nodes);
 		check_all_red_nodes_have_black_children(root);
 	}

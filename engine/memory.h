@@ -2,6 +2,12 @@
 #include <type_traits>
 #include "utils/types.h"
 
+//For custom allocators, having a fixed node size reduces new/delete usage while keeping a fixed maximum
+//amount of dynamic allocations (expanding it at compile time would mean changing all the pointers, unfeasible)
+//keep this disabled during development and enable this at the end before shipping to increase performance
+//(but also losing the advantage of node location randomness)
+#define ARENA_USE_NODE_POOL
+
 namespace gfx
 {
 	struct MemorySegment
@@ -14,7 +20,7 @@ namespace gfx
 		NODE_COLOR_UNDEFINED    = 0x00,
 		NODE_COLOR_BLACK        = 0x01,
 		NODE_COLOR_RED          = 0x02,
-		//Marks imperfections when performing deletions that need to be solved
+		//@Deprecated Marks imperfections when performing deletions that need to be solved
 		NODE_COLOR_DOUBLE_BLACK = 0x04
 	};
 
@@ -28,12 +34,21 @@ namespace gfx
 		_Node *left, *right;
 	};
 
+#ifdef ARENA_USE_NODE_POOL
+	struct _NodePool
+	{
+		_Node* node_array  = nullptr;
+		u32 array_size     = 0;
+		u32 array_capacity = 0;
+	};
+#endif
+
 	class SegmentTree
 	{
 	public:
 		SegmentTree() {}
 		~SegmentTree() {
-			if(root) { cleanup(); }
+			cleanup();
 		}
 		void add_node(u32 start, u32 size);
 		_Node** find_place_to_insert_node(u32 start, _Node** parent);
@@ -51,6 +66,7 @@ namespace gfx
 		//tree_delete_check function explicitly says if the recursive calls perform a deletion or just
 		//rearranges the newly created tree structure
 		void rearrange_tree_for_insertion(_Node* node);
+		void delete_node(_Node* node);
 		//called before rearrange_tree_for_deletion, to handle simpler cases and return faster
 		bool preliminary_deletion(_Node* node_to_delete);
 		//INFO @C7 a deletion custom implementation following standard rules for rb-tree deletion
@@ -61,6 +77,9 @@ namespace gfx
 		void rearrange_tree_for_deletion(_Node* node, bool perform_deletion = true, bool just_456 = false, bool just_6 = false);
 
 		_Node* root = nullptr;
+#ifdef ARENA_USE_NODE_POOL
+		_NodePool pool;
+#endif
 	};
 
 	struct MemoryStorage
