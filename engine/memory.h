@@ -57,6 +57,7 @@ namespace gfx
 		const _Node* find_last_node();
 		void remove_node(u32 start);
 		void print();
+		void print_values();
 		void cleanup();
 
 		inline const _Node* get_root() const { return root; }

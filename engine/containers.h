@@ -425,6 +425,17 @@ private:
 
 public:
 	SortedArray() {}
+	//This probably should be defined but we want to make sure
+	//copies are never made from this structure
+	/*
+	*/
+	SortedArray(const SortedArray&) = delete;
+	SortedArray(SortedArray&& other) {
+		other.buffer   = buffer;
+		buffer         = nullptr;
+		other.buffer_size     = buffer_size;
+		other.buffer_capacity = buffer_capacity;
+	}
 	~SortedArray() {
 		if(buffer)
 			gfx::mem_free(buffer);
@@ -581,7 +592,7 @@ private:
 	}
 
 	StoredElement* buffer = nullptr;
-	u32 buffer_size = 0;
+	u32 buffer_size     = 0;
 	u32 buffer_capacity = 0;
 };
 

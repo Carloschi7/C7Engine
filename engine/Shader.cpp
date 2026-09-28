@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include <atomic>
 
 u64 simple_string_hash(const char* string)
 {
@@ -272,19 +273,19 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
 s32 Shader::GetUniformLocation(const char* uniform_name) const
 {
 	//Checking if the uniform is already stored in the cache
-
 	u64 uniform_hash = simple_string_hash(uniform_name);
-	if (m_UniformCache.find(uniform_hash) != m_UniformCache.end())
-		return m_UniformCache[uniform_hash];
+	u32 uniform_index = 0;
+	if (m_UniformCache.contains(uniform_hash, &uniform_index))
+		return m_UniformCache.get_value_at_index(uniform_index);
 
-	int uniform = glGetUniformLocation(m_programID, uniform_name);
+	s32 uniform = glGetUniformLocation(m_programID, uniform_name);
 	if (uniform == -1)
 	{
 		std::cout << GLError << "Uniform <" << uniform_name <<"> was not found, please check string input\n";
 		return -1;
 	}
 
-	m_UniformCache[uniform_hash] = uniform;
+	m_UniformCache.add(uniform_hash, uniform);
 	return uniform;
 }
 

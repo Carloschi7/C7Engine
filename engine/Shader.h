@@ -1,15 +1,11 @@
 #pragma once
 #include <iostream>
-#include <unordered_map>
-#include <fstream>
-#include <sstream>
-#include <atomic>
-#include <vector>
 #include "GL/glew.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "containers.h"
 #include "utils/types.h"
 
 #define GLError "[OpenGL]: Error in file:" << __FILE__ << ", line:" << __LINE__ << "\n"
@@ -72,7 +68,7 @@ private:
 private:
 	bool is_loaded;
 	u32 m_programID;
-	std::vector<u32> m_UniformBuffers;
+	Array<u32> m_UniformBuffers;
 	//Uniform cache
-	mutable std::unordered_map<u64, s32> m_UniformCache;
+	mutable SortedArray<u64, s32> m_UniformCache;
 };

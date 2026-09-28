@@ -9,9 +9,12 @@ gfx::Allocator* g_engine_allocator = nullptr;
 std::mutex      g_engine_allocator_mutex;
 
 //overloaded operators to track allocation when needed
-/*
+
+
 void* operator new(u64 size)
 {
+	//static int sss = 0;
+	//std::cout << sss++ << "\n";
 	return malloc(size);
 }
 
@@ -19,7 +22,7 @@ void operator delete(void* ptr)
 {
 	free(ptr);
 }
-*/
+
 
 namespace gfx
 {
@@ -423,6 +426,40 @@ namespace gfx
 		print_tree_level(root, current_depth + 1, max_depth, total_nodes);
 	}
 
+	static _Node* find_next_node(const _Node* node)
+	{
+		if(!node->right && !node->parent)
+			return nullptr;
+		if(node->right) {
+			auto iter = node->right;
+			while(iter->left)
+				iter = iter->left;
+
+			return iter;
+		}
+
+		if(node->parent->left == node)
+			return node->parent;
+
+		if(node->parent->right == node) {
+			auto iter = node->parent->right;
+			while(iter->parent && iter->parent->right == iter)
+				iter = iter->parent;
+
+			//if iter was the left son of the node, then the parent is returned, otherwise null gets returned
+			//because there would not be successors anyway
+			return iter->parent;
+		}
+
+		return nullptr;
+	}
+
+	static _Node* find_prev_node(const _Node* node)
+	{
+		assert(false, "function still not implemented");
+		return nullptr;
+	}
+
 	void SegmentTree::print()
 	{
 		if(!root) {
@@ -440,6 +477,23 @@ namespace gfx
 		SetConsoleTextAttribute(console, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 #endif
 		log_message("total_nodes:{}\n", total_nodes);
+	}
+
+	void SegmentTree::print_values()
+	{
+		if(!root) {
+			log_message("(empty)\n");
+			return;
+		}
+
+		auto node = root;
+		while(node->left)
+			node = node->left;
+
+		log_message("\n\n\n");
+		for(; node; node = find_next_node(node)) {
+			log_message("{}, {}\n", node->segment.start, node->segment.size);
+		}
 	}
 
 	void SegmentTree::cleanup()
@@ -489,6 +543,8 @@ namespace gfx
 		if(node_to_delete == root && !node_to_delete->left && !node_to_delete->right) {
 #ifndef ARENA_USE_NODE_POOL
 			delete root;
+#else
+			pool.array_size -= 1; //Should get to 0
 #endif
 			root = nullptr;
 			return true;
@@ -724,39 +780,6 @@ label_6:
 	}
 	*/
 
-	static _Node* find_next_node(const _Node* node)
-	{
-		if(!node->right && !node->parent)
-			return nullptr;
-		if(node->right) {
-			auto iter = node->right;
-			while(iter->left)
-				iter = iter->left;
-
-			return iter;
-		}
-
-		if(node->parent->left == node)
-			return node->parent;
-
-		if(node->parent->right == node) {
-			auto iter = node->parent->right;
-			while(iter->parent && iter->parent->right == iter)
-				iter = iter->parent;
-
-			//if iter was the left son of the node, then the parent is returned, otherwise null gets returned
-			//because there would not be successors anyway
-			return iter->parent;
-		}
-
-		return nullptr;
-	}
-
-	static _Node* find_prev_node(const _Node* node)
-	{
-		assert(false, "function still not implemented");
-		return nullptr;
-	}
 
 	static void check_all_paths_have_the_same_amount_of_black_nodes(const _Node* node, u32 check_val, u32 current_val = 0)
 	{
