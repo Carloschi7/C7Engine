@@ -12,9 +12,9 @@
 
 struct ShaderSource
 {
-    std::string vertex_shader_source;
-    std::string geometry_shader_source;
-    std::string fragment_shader_source;
+    String vertex_shader_source;
+    String geometry_shader_source;
+    String fragment_shader_source;
     bool initialized;
 };
 
@@ -30,7 +30,7 @@ public:
 	Shader();
 	//INFO @C7 i dont know why, but if this parameter is a const char* a bunch of errors get thrown,
 	//so just load a std::string here
-	Shader(const std::string& filepath);
+	Shader(const String& filepath);
 	Shader(const Shader&) = delete;
 	Shader(Shader&& shd) noexcept;
 	~Shader();
@@ -63,7 +63,7 @@ private:
 	void BindUniformBuffer(u32 ub_local_index);
 	ShaderSource LoadShadersFromFile(const char* File);
 	s32 GetUniformLocation(const char* uniform_name) const;
-	int SetupShader(std::string& source, GLenum ShaderType);
+	int SetupShader(String& source, GLenum ShaderType);
 	void CheckShaderCompileStatus(u32 shader, GLenum ShaderType);
 private:
 	bool is_loaded;

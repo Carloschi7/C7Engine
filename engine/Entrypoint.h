@@ -18,9 +18,7 @@ static Window InitContext(Args&&... args)
 	//Allows glew initialization
 	w.AttachWndToCurrentContext();
 
-	log_message("{}\nOpenGL version: {}.{}\n", glfwGetVersionString(),
-		major_version, minor_version);
-
+	printf_s("%s\nOpenGL version: %d.%d\n", glfwGetVersionString(), major_version, minor_version);
 	assert(glewInit() == GLEW_OK, "could not initialize glew");
 
 	return w;

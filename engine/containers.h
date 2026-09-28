@@ -137,6 +137,11 @@ public:
 	void append(const CharType* string)
 	{
 		const u32 size = get_c_string_length_no_null_terminating(string);
+		append(string, size);
+	}
+
+	void append(const CharType* string, const u32 size)
+	{
 		if(!heap_buffer) {
 			if(string_size + size < stack_buffer_size) {
 				std::memcpy(stack_buffer + string_size, string, size);
@@ -161,7 +166,6 @@ public:
 			}
 			std::memcpy(heap_buffer + string_size, string, size);
 		}
-
 
 		string_size += size;
 	}

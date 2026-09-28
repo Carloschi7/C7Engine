@@ -17,7 +17,7 @@ u64 simple_string_hash(const char* string)
 Shader::Shader() : is_loaded(false), m_programID(-1)
 {
 }
-Shader::Shader(const std::string& filepath)
+Shader::Shader(const String& filepath)
 {
 	Load(filepath.c_str());
 }
@@ -230,7 +230,7 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
     };
 
     char current_line[max_chars_on_the_same_line] = {};
-    std::string* current_shader_source = nullptr;
+    String* current_shader_source = nullptr;
     FileParseResult parse_result = {};
 
     char vertex_shader_signature[]   = "#shader vertex";
@@ -289,7 +289,7 @@ s32 Shader::GetUniformLocation(const char* uniform_name) const
 	return uniform;
 }
 
-int Shader::SetupShader(std::string& source, GLenum ShaderType)
+int Shader::SetupShader(String& source, GLenum ShaderType)
 {
 	int s = glCreateShader(ShaderType);
 	const char* strvs = source.c_str();

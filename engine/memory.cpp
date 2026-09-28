@@ -10,11 +10,9 @@ std::mutex      g_engine_allocator_mutex;
 
 //overloaded operators to track allocation when needed
 
-
+/*
 void* operator new(u64 size)
 {
-	//static int sss = 0;
-	//std::cout << sss++ << "\n";
 	return malloc(size);
 }
 
@@ -22,7 +20,7 @@ void operator delete(void* ptr)
 {
 	free(ptr);
 }
-
+*/
 
 namespace gfx
 {
