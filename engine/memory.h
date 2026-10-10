@@ -167,4 +167,7 @@ namespace gfx
 		return reinterpret_cast<T*>(temporary_allocate(count * sizeof(T)));
 	}
 
+
+	//Encryption/decryption utilities
+	
 }

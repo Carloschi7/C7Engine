@@ -122,7 +122,7 @@ public:
 		return *this;
 	}
 
-	u32 size()
+	u32 size() const
 	{
 		return string_size;
 	}

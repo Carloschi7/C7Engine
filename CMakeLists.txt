@@ -52,7 +52,8 @@ if(MSVC)
 		${CMAKE_SOURCE_DIR}/Dependencies/ASSIMP/lib/assimp-vc143-mtd.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/x64/glew32sd.lib
 		${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2019/glfw3.lib
-		${CMAKE_SOURCE_DIR}/Dependencies/freetype_lib/freetype.lib)
+		${CMAKE_SOURCE_DIR}/Dependencies/freetype_lib/freetype.lib
+		${CMAKE_SOURCE_DIR}/Dependencies/libsodium/x64/Release/v143/static/libsodium.lib)
 
 	target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOWS_OS)
 
@@ -76,7 +77,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/Dependencies/stbi
 	${PROJECT_SOURCE_DIR}/Dependencies/GLFW
 	${PROJECT_SOURCE_DIR}/Dependencies/GLEW
-	${PROJECT_SOURCE_DIR}/Dependencies/freetype/include)
+	${PROJECT_SOURCE_DIR}/Dependencies/freetype/include
+	${PROJECT_SOURCE_DIR}/Dependencies/libsodium/include)
 
 file(COPY assets/textures DESTINATION assets)
 file(COPY assets/shaders DESTINATION assets)

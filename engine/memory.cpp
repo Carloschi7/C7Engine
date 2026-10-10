@@ -5,6 +5,9 @@
 #include "Windows.h"
 #endif
 
+#define SODIUM_STATIC
+#include <sodium.h>
+
 gfx::Allocator* g_engine_allocator = nullptr;
 std::mutex      g_engine_allocator_mutex;
 
@@ -1209,5 +1212,9 @@ label_6:
 #endif
 
 		g_engine_allocator->temporary_storage.used -= bytes;
+	}
+
+	void buffer_encrypt(const char* input_buffer, const char* output_buffer, u64 key)
+	{
 	}
 }

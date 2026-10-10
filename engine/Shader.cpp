@@ -196,6 +196,19 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
     FILE* file_handle = nullptr;
     fopen_s(&file_handle, file, "r");
 
+	if (!file_handle)
+		return {};
+
+    fseek(file_handle, 0, SEEK_END);
+	u32 file_size = ftell(file_handle);
+    fseek(file_handle, 0, SEEK_SET);
+
+	char* file_buffer   = gfx::temporary_allocate<char>(file_size + 1);
+	u32 buffer_position = 0;
+
+	const u64 bytes_read = fread(file_buffer, 1, file_size, file_handle);
+	file_buffer[bytes_read] = 0;
+
     if(!file_handle){
         shader_source.initialized = false;
         return shader_source;
@@ -203,19 +216,21 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
 
     const u32 max_chars_on_the_same_line = 512;
 
-    auto get_next_line = [](FILE* file, char* buffer) ->FileParseResult {
-        char ch;
+    auto get_next_line = [](const char* file_buffer, u32& buffer_position, char* buffer) ->FileParseResult {
         FileParseResult res = {};
-        while((ch = fgetc(file)) != '\n') {
-            if(ch == EOF) {
-                res.is_eof = true;
-                break;
-            }
+        while(file_buffer[buffer_position] != '\n') {
+        	if(file_buffer[buffer_position] == 0) {
+        		res.is_eof = true;
+        		return res;
+        	}
 
             assert(res.index < max_chars_on_the_same_line, "shader lines are too long");
-            buffer[res.index++] = ch;
+            buffer[res.index++] = file_buffer[buffer_position];
+            buffer_position += 1;
         }
 
+
+        buffer_position += 1;
         return res;
     };
 
@@ -238,7 +253,7 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
     char fragment_shader_signature[] = "#shader fragment";
 
     while(!parse_result.is_eof) {
-        parse_result = get_next_line(file_handle, current_line);
+        parse_result = get_next_line(file_buffer, buffer_position, current_line);
 
         if(strings_match(current_line, vertex_shader_signature, sizeof(vertex_shader_signature) - 1)) {
             current_shader_source = &shader_source.vertex_shader_source;
@@ -265,6 +280,8 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
             current_shader_source->append("\n", 1);
         }
     }
+
+	gfx::temporary_free(file_buffer);
 
     shader_source.initialized = true;
     return shader_source;
