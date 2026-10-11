@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include "macros.h"
 #include <atomic>
 
 u64 simple_string_hash(const char* string)
@@ -69,7 +70,7 @@ void Shader::Load(const char* filepath)
 void Shader::Use() const
 {
 	extern std::atomic<u32> currently_bound_program;
-	assert(is_loaded);
+	assert(is_loaded, "Program must be loaded");
 	if (m_programID != currently_bound_program)
 	{
 		glUseProgram(m_programID);
@@ -195,38 +196,15 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
     ShaderSource shader_source = {};
     FILE* file_handle = nullptr;
 
-#ifdef DEVELOPER
-	fopen_s(&file_handle, file, "r");
-#else
-	String filename_bin = file;
-	filename_bin += ".bin";
-	fopen_s(&file_handle, filename_bin.c_str(), "rb");
-#endif
-
+	file_open(&file_handle, file, "rb");
 	if (!file_handle) {
 		shader_source.initialized = false;
 		return shader_source;
 	}
 
-    fseek(file_handle, 0, SEEK_END);
-	u32 file_size = ftell(file_handle);
-    fseek(file_handle, 0, SEEK_SET);
-
-	char* file_buffer   = gfx::temporary_allocate<char>(file_size + 1);
-	u32 buffer_position = 0;
-
-	const u64 bytes_read = fread(file_buffer, 1, file_size, file_handle);
-	file_buffer[bytes_read] = 0;
-
-    fclose(file_handle);
-
-#ifdef DEVELOPER
-	auto final_buffer = file_buffer;
-#else
-	extern gfx::EncryptionKey g_engine_key;
-	auto decrypted_buffer = gfx::decrypt_buffer(file_buffer, bytes_read, g_engine_key);
-	auto final_buffer = decrypted_buffer;
-#endif
+	auto file_buffer = file_get_entire_content(file_handle);
+	defer { gfx::mem_free(file_buffer); };
+	file_close(file_handle);
 
     const u32 max_chars_on_the_same_line = 512;
 
@@ -266,8 +244,9 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
     char geometry_shader_signature[] = "#shader geometry";
     char fragment_shader_signature[] = "#shader fragment";
 
+	u32 buffer_position = 0;
     while(!parse_result.is_eof) {
-        parse_result = get_next_line(final_buffer, buffer_position, current_line);
+        parse_result = get_next_line(file_buffer, buffer_position, current_line);
 
         if(strings_match(current_line, vertex_shader_signature, sizeof(vertex_shader_signature) - 1)) {
             current_shader_source = &shader_source.vertex_shader_source;
@@ -294,12 +273,6 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
             current_shader_source->append("\n", 1);
         }
     }
-
-	gfx::temporary_free(file_buffer);
-
-#ifndef DEVELOPER
-	gfx::mem_free(decrypted_buffer);
-#endif
 
     shader_source.initialized = true;
     return shader_source;

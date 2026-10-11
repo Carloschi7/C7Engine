@@ -29,6 +29,58 @@ char* string_merge(const char* str1, const char* str2)
 	return buffer;
 }
 
+void file_open(FILE** file, const char* filename, const char* options)
+{
+#ifdef DEVELOPER
+	fopen_s(file, filename, options);
+#else
+	String filename_bin = filename;
+	filename_bin.cut_from_end(filename_bin.size() - filename_bin.find_last_of('.'));
+	filename_bin += ".bin";
+	fopen_s(file, filename_bin.c_str(), options);
+#endif
+}
+
+char* file_get_entire_content(FILE* file, u64* out_bytes_read) //@Free memory
+{
+    fseek(file, 0, SEEK_END);
+	u64 file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+	auto file_buffer = gfx::mem_allocate<char>(file_size + 1);
+	const u64 bytes_read = fread(file_buffer, 1, file_size, file);
+#ifdef DEVELOPER
+	if(out_bytes_read)
+		*out_bytes_read = bytes_read;
+
+	file_buffer[file_size] = 0;
+	return file_buffer;
+#else
+	extern gfx::EncryptionKey g_engine_key;
+	auto decrypted_buffer = gfx::decrypt_buffer(file_buffer, bytes_read, g_engine_key);
+	gfx::mem_free(file_buffer);
+
+	if(out_bytes_read)
+		*out_bytes_read = gfx::get_decrypted_buffer_size(bytes_read);
+
+	decrypted_buffer[gfx::get_decrypted_buffer_size(bytes_read)] = 0;
+	return decrypted_buffer;
+#endif
+}
+
+u64 file_get_size(FILE* file)
+{
+	u64 current_position = ftell(file);
+	fseek(file, 0, SEEK_END);
+	u64 size = ftell(file);
+	fseek(file, current_position, SEEK_SET);
+	return size;
+}
+
+void file_close(FILE* file)
+{
+	fclose(file);
+}
 
 namespace gfx {
 	void test_string()

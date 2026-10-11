@@ -42,32 +42,16 @@ namespace gfx
 		u8*& raw_buffer = texture_data.raw_buffers[0];
 		{
 			FILE* texture_file;
-#ifdef DEVELOPER
-			fopen_s(&texture_file, filepath, "rb");
-#else
-			String filename_bin = filepath;
-			filename_bin += ".bin";
-			fopen_s(&texture_file, filename_bin.c_str(), "rb");
-#endif
+			file_open(&texture_file, filepath, "rb");
+
 			if (!texture_file)
 				return texture_data;
 
-			fseek(texture_file, 0, SEEK_END);
-			u64 file_size = ftell(texture_file);
-			fseek(texture_file, 0, SEEK_SET);
+			u64 bytes_read;
+			auto file_buffer = file_get_entire_content(texture_file, &bytes_read);
+			defer { gfx::mem_free(file_buffer); };
 
-			auto texture_buffer = gfx::temporary_allocate<u8>(file_size + 1);
-			defer { gfx::temporary_free(texture_buffer); };
-			const u64 bytes_read = fread(texture_buffer, 1, file_size, texture_file);
-			texture_buffer[bytes_read] = 0;
-#ifdef DEVELOPER
-			auto final_buffer = texture_buffer;
-#else
-			auto final_buffer = (u8*)gfx::decrypt_buffer((char*)texture_buffer, bytes_read, g_engine_key);
-			defer { gfx::mem_free(final_buffer); };
-#endif
-
-			raw_buffer = stbi_load_from_memory(final_buffer, bytes_read, &texture_data.width, &texture_data.height, &texture_data.bytes_per_pixel, 4);
+			raw_buffer = stbi_load_from_memory((u8*)file_buffer, bytes_read, &texture_data.width, &texture_data.height, &texture_data.bytes_per_pixel, 4);
 
 			fclose(texture_file);
 		}
