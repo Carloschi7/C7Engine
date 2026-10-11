@@ -194,10 +194,19 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
 {
     ShaderSource shader_source = {};
     FILE* file_handle = nullptr;
-    fopen_s(&file_handle, file, "r");
 
-	if (!file_handle)
-		return {};
+#ifdef DEVELOPER
+	fopen_s(&file_handle, file, "r");
+#else
+	String filename_bin = file;
+	filename_bin += ".bin";
+	fopen_s(&file_handle, filename_bin.c_str(), "rb");
+#endif
+
+	if (!file_handle) {
+		shader_source.initialized = false;
+		return shader_source;
+	}
 
     fseek(file_handle, 0, SEEK_END);
 	u32 file_size = ftell(file_handle);
@@ -209,10 +218,15 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
 	const u64 bytes_read = fread(file_buffer, 1, file_size, file_handle);
 	file_buffer[bytes_read] = 0;
 
-    if(!file_handle){
-        shader_source.initialized = false;
-        return shader_source;
-    }
+    fclose(file_handle);
+
+#ifdef DEVELOPER
+	auto final_buffer = file_buffer;
+#else
+	extern gfx::EncryptionKey g_engine_key;
+	auto decrypted_buffer = gfx::decrypt_buffer(file_buffer, bytes_read, g_engine_key);
+	auto final_buffer = decrypted_buffer;
+#endif
 
     const u32 max_chars_on_the_same_line = 512;
 
@@ -253,7 +267,7 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
     char fragment_shader_signature[] = "#shader fragment";
 
     while(!parse_result.is_eof) {
-        parse_result = get_next_line(file_buffer, buffer_position, current_line);
+        parse_result = get_next_line(final_buffer, buffer_position, current_line);
 
         if(strings_match(current_line, vertex_shader_signature, sizeof(vertex_shader_signature) - 1)) {
             current_shader_source = &shader_source.vertex_shader_source;
@@ -282,6 +296,10 @@ ShaderSource Shader::LoadShadersFromFile(const char* file)
     }
 
 	gfx::temporary_free(file_buffer);
+
+#ifndef DEVELOPER
+	gfx::mem_free(decrypted_buffer);
+#endif
 
     shader_source.initialized = true;
     return shader_source;

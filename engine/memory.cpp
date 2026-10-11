@@ -8,8 +8,9 @@
 #define SODIUM_STATIC
 #include <sodium.h>
 
-gfx::Allocator* g_engine_allocator = nullptr;
-std::mutex      g_engine_allocator_mutex;
+gfx::Allocator*    g_engine_allocator = nullptr;
+gfx::EncryptionKey g_engine_key;
+std::mutex         g_engine_allocator_mutex;
 
 //overloaded operators to track allocation when needed
 
@@ -1214,7 +1215,88 @@ label_6:
 		g_engine_allocator->temporary_storage.used -= bytes;
 	}
 
-	void buffer_encrypt(const char* input_buffer, const char* output_buffer, u64 key)
+	static bool libsodium_lib_initialized = false;
+
+	void key_embed_into_buffer(const EncryptionKey& key, unsigned char key_buffer[32])
 	{
+		memcpy(key_buffer + 0,  &key.v0, 8);
+		memcpy(key_buffer + 8,  &key.v1, 8);
+		memcpy(key_buffer + 16, &key.v2, 8);
+		memcpy(key_buffer + 24, &key.v3, 8);
+	}
+
+	u64 get_encrypted_buffer_size(u64 buffer_size)
+	{
+		return buffer_size + crypto_secretstream_xchacha20poly1305_HEADERBYTES + crypto_secretstream_xchacha20poly1305_ABYTES;
+	}
+
+	u64 get_decrypted_buffer_size(u64 buffer_size)
+	{
+		return buffer_size - crypto_secretstream_xchacha20poly1305_HEADERBYTES - crypto_secretstream_xchacha20poly1305_ABYTES;
+	}
+
+	char* encrypt_buffer(const char* input_buffer, u32 input_buffer_size, const EncryptionKey& key) //@Free memory
+	{
+		if(!libsodium_lib_initialized) {
+			if(sodium_init() == -1) {
+				log_message("error initializing libsodium\n");
+			}
+
+			libsodium_lib_initialized = true;
+		}
+
+		crypto_secretstream_xchacha20poly1305_state state;
+		unsigned char key_buffer[crypto_secretstream_xchacha20poly1305_KEYBYTES];
+		unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
+
+		char* output_buffer = gfx::mem_allocate<char>(get_encrypted_buffer_size(input_buffer_size));
+		const char* local_output_buffer = output_buffer + crypto_secretstream_xchacha20poly1305_HEADERBYTES;
+
+		//crypto_secretstream_xchacha20poly1305_keygen(key_buffer);
+		key_embed_into_buffer(key, key_buffer);
+		crypto_secretstream_xchacha20poly1305_init_push(&state, header, key_buffer);
+		memcpy(output_buffer, header, crypto_secretstream_xchacha20poly1305_HEADERBYTES);
+		crypto_secretstream_xchacha20poly1305_push(&state, (u8*)local_output_buffer, nullptr, (const u8*)input_buffer, input_buffer_size, nullptr, 0, crypto_secretstream_xchacha20poly1305_TAG_FINAL);
+
+		return output_buffer;
+	}
+
+	char* decrypt_buffer(const char* input_buffer, u32 input_buffer_size, const EncryptionKey& key) //@Free memory
+	{
+		if(!libsodium_lib_initialized) {
+			if(sodium_init() == -1) {
+				log_message("error initializing libsodium\n");
+			}
+
+			libsodium_lib_initialized = true;
+		}
+
+		crypto_secretstream_xchacha20poly1305_state state;
+		unsigned char key_buffer[crypto_secretstream_xchacha20poly1305_KEYBYTES];
+		unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
+
+		//retrieve the header at the beginning of the stream before decrypting it
+		memcpy(header, input_buffer, crypto_secretstream_xchacha20poly1305_HEADERBYTES);
+		const char* local_input_buffer = input_buffer + crypto_secretstream_xchacha20poly1305_HEADERBYTES;
+
+		u32 output_buffer_size = get_decrypted_buffer_size(input_buffer_size);
+		char* output_buffer = gfx::mem_allocate<char>(output_buffer_size + 1);
+		u8 tag;
+
+		key_embed_into_buffer(key, key_buffer);
+		if(crypto_secretstream_xchacha20poly1305_init_pull(&state, header, key_buffer) != 0) {
+			log_message("invalid decryption header\n");
+		}
+
+		if (crypto_secretstream_xchacha20poly1305_pull(&state, (u8*)output_buffer, nullptr, &tag, (const u8*)local_input_buffer, input_buffer_size - crypto_secretstream_xchacha20poly1305_HEADERBYTES, NULL, 0) != 0) {
+			log_message("error while decrypting the file\n");
+		}
+
+		if(tag != crypto_secretstream_xchacha20poly1305_TAG_FINAL) {
+			log_message("error while decrypting the last chunk decrypted was not final\n");
+		}
+
+		output_buffer[output_buffer_size] = 0;
+		return output_buffer;
 	}
 }

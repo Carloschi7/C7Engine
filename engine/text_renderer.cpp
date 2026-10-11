@@ -23,7 +23,7 @@
 namespace gfx
 {
 
-	void freetype_init(const char* font_name, u32 screen_width, u32 screen_height, u32 texture_width, u32 texture_height, s32 texture_binding, FreetypeInstance* freetype_instance_ptr)
+	void freetype_init(FreetypeInstance* freetype_instance_ptr, const char* font_name, u32 screen_width, u32 screen_height, u32 texture_width, u32 texture_height, s32 texture_binding, const char* custom_shader_location)
 	{
 		assert(freetype_instance_ptr, "This parameter needs to be defined");
 
@@ -47,7 +47,9 @@ namespace gfx
 		}
 
 		//Load shader
-		{
+		if(custom_shader_location) {
+			freetype_instance.text_shader.Load(custom_shader_location);
+		} else {
 			char* const shader_path = string_merge(SOLUTION_PATH, "assets/shaders/text.shader");
 			defer { temporary_free(shader_path); };
 

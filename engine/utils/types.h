@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#define DEVELOPER
+
 #if defined WIN32 || defined _MSC_VER || defined __linux__
 //Linked with x64 bit libs, so this is only x64 by default
 typedef int8_t s8;
