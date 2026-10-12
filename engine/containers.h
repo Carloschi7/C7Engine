@@ -604,8 +604,10 @@ private:
 
 //File utilities
 void file_open(FILE** file, const char* filename, const char* options);
+char* file_get_entire_content_from_plain(FILE* file, u64* out_bytes_read = nullptr);
+char* file_get_entire_content_from_encrypted(FILE* file, u64* out_bytes_read = nullptr);
 char* file_get_entire_content(FILE* file, u64* out_bytes_read = nullptr);
-u64 file_get_size(FILE* file);
+u32 file_get_size(FILE* file);
 void file_close(FILE* file);
 
 template<typename T>

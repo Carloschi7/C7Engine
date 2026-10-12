@@ -41,21 +41,31 @@ void file_open(FILE** file, const char* filename, const char* options)
 #endif
 }
 
-char* file_get_entire_content(FILE* file, u64* out_bytes_read) //@Free memory
+char* file_get_entire_content_from_plain(FILE* file, u64* out_bytes_read) //@Free memory
 {
     fseek(file, 0, SEEK_END);
-	u64 file_size = ftell(file);
+	u32 file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
 	auto file_buffer = gfx::mem_allocate<char>(file_size + 1);
 	const u64 bytes_read = fread(file_buffer, 1, file_size, file);
-#ifdef DEVELOPER
+
 	if(out_bytes_read)
 		*out_bytes_read = bytes_read;
 
 	file_buffer[file_size] = 0;
 	return file_buffer;
-#else
+}
+
+char* file_get_entire_content_from_encrypted(FILE* file, u64* out_bytes_read) //@Free memory
+{
+    fseek(file, 0, SEEK_END);
+	u32 file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+	auto file_buffer = gfx::mem_allocate<char>(file_size + 1);
+	const u64 bytes_read = fread(file_buffer, 1, file_size, file);
+
 	extern gfx::EncryptionKey g_engine_key;
 	auto decrypted_buffer = gfx::decrypt_buffer(file_buffer, bytes_read, g_engine_key);
 	gfx::mem_free(file_buffer);
@@ -65,14 +75,22 @@ char* file_get_entire_content(FILE* file, u64* out_bytes_read) //@Free memory
 
 	decrypted_buffer[gfx::get_decrypted_buffer_size(bytes_read)] = 0;
 	return decrypted_buffer;
+}
+
+char* file_get_entire_content(FILE* file, u64* out_bytes_read) //@Free memory
+{
+#ifdef DEVELOPER
+	return file_get_entire_content_from_plain(file, out_bytes_read);
+#else
+	return file_get_entire_content_from_encrypted(file, out_bytes_read);
 #endif
 }
 
-u64 file_get_size(FILE* file)
+u32 file_get_size(FILE* file)
 {
-	u64 current_position = ftell(file);
+	u32 current_position = ftell(file);
 	fseek(file, 0, SEEK_END);
-	u64 size = ftell(file);
+	u32 size = ftell(file);
 	fseek(file, current_position, SEEK_SET);
 	return size;
 }

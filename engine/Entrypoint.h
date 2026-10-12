@@ -14,11 +14,12 @@ static Window InitContext(Args&&... args)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor_version);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	printf_s("%s\nOpenGL version: %d.%d\n", glfwGetVersionString(), major_version, minor_version);
+
 	Window w(std::forward<Args>(args)...);
 	//Allows glew initialization
 	w.AttachWndToCurrentContext();
 
-	printf_s("%s\nOpenGL version: %d.%d\n", glfwGetVersionString(), major_version, minor_version);
 	assert(glewInit() == GLEW_OK, "could not initialize glew");
 
 	return w;

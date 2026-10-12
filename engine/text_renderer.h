@@ -40,7 +40,7 @@ namespace gfx
 		bool initialized;
 	};
 
-	void freetype_init(FreetypeInstance* freetype_instance_ptr, const char* font_name, u32 screen_width, u32 screen_height, u32 texture_width, u32 texture_height, s32 texture_binding, const char* custom_shader_location = nullptr);
+	void freetype_init(FreetypeInstance* freetype_instance_ptr, const char* font_name, u32 screen_width, u32 screen_height, u32 texture_width, u32 texture_height, u32 font_size, s32 texture_binding, const char* custom_shader_location = nullptr);
 	//The rendering pipeline of the text is all handled by the function itself, including the shading process
 	//we take in s32 coordinates because we may want to draw the glyph starting from a negative coordinate of the
 	//screen space

@@ -23,7 +23,7 @@
 namespace gfx
 {
 
-	void freetype_init(FreetypeInstance* freetype_instance_ptr, const char* font_name, u32 screen_width, u32 screen_height, u32 texture_width, u32 texture_height, s32 texture_binding, const char* custom_shader_location)
+	void freetype_init(FreetypeInstance* freetype_instance_ptr, const char* font_name, u32 screen_width, u32 screen_height, u32 texture_width, u32 texture_height, u32 font_size, s32 texture_binding, const char* custom_shader_location)
 	{
 		assert(freetype_instance_ptr, "This parameter needs to be defined");
 
@@ -41,8 +41,11 @@ namespace gfx
 			defer { temporary_free(font_path); };
 
 			if(FT_New_Face(library, font_path, 0, &face)) {
-				std::cout << "Cannot init the chosen font\n";
-				return;
+				//Try again with just the font name, maybe it is just in the exe folder
+				if(FT_New_Face(library, font_name, 0, &face)) {
+					std::cout << "Cannot init the chosen fonts\n" << font_path << "\n" << font_name << "\n";
+					return;
+				}
 			}
 		}
 
@@ -60,7 +63,7 @@ namespace gfx
 		{
 			f32 fwidth = (f32)screen_width, fheight = (f32)screen_height;
 			//The origin from which the text is drawn considers top-left the (0,0) coordinate
-		 	proj = glm::ortho(0.0f, fwidth, fheight, 0.0f);
+		 	proj = glm::ortho(0.0f, fwidth, fheight , 0.0f);
 		}
 		freetype_instance.text_shader.UniformMat4f(proj, "proj");
 
@@ -89,7 +92,7 @@ namespace gfx
         freetype_instance.texture_height  = texture_height;
         freetype_instance.texture_binding = texture_binding;
 
-		const u32 glyph_height = 60;
+		const u32 glyph_height = font_size;
 		freetype_instance.font_size = glyph_height;
 		FT_Set_Pixel_Sizes(face, 0, glyph_height);
 

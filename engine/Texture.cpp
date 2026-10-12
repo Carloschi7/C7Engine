@@ -53,7 +53,7 @@ namespace gfx
 
 			raw_buffer = stbi_load_from_memory((u8*)file_buffer, bytes_read, &texture_data.width, &texture_data.height, &texture_data.bytes_per_pixel, 4);
 
-			fclose(texture_file);
+			file_close(texture_file);
 		}
 /*
 		u8*& raw_buffer = texture_data.raw_buffers[0];

@@ -180,6 +180,7 @@ namespace gfx
 
 	u64  get_encrypted_buffer_size(u64 buffer_size);
 	u64  get_decrypted_buffer_size(u64 buffer_size);
+	void key_gen(EncryptionKey* key);
 	void key_embed_into_buffer(const EncryptionKey& key, unsigned char key_buffer[32]);
 	char* encrypt_buffer(const char* input_buffer, u32 input_buffer_size, const EncryptionKey& key);
 	char* decrypt_buffer(const char* input_buffer, u32 input_buffer_size, const EncryptionKey& key);

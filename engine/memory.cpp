@@ -26,6 +26,8 @@ void operator delete(void* ptr)
 }
 */
 
+u64 simple_string_hash(const char*); //Borrow this function to generate random u64s for our key
+
 namespace gfx
 {
 
@@ -1216,6 +1218,18 @@ label_6:
 	}
 
 	static bool libsodium_lib_initialized = false;
+
+	void key_gen(EncryptionKey* key)
+	{
+		if(!key)
+			return;
+
+		//Strings are totally random
+		key->v0 = simple_string_hash("asdgh7801h8e°°4298");
+		key->v1 = simple_string_hash("AUISGHBPIUbangoisbgh1289y489192h5");
+		key->v2 = simple_string_hash("ganAIng1985(()!/)BGAASUGB");
+		key->v3 = simple_string_hash("$)=!HJAHaoghoagabuiGBPUA1=28519=1BGASP");
+	}
 
 	void key_embed_into_buffer(const EncryptionKey& key, unsigned char key_buffer[32])
 	{
