@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-//#define DEVELOPER
+#define DEVELOPER
 
 #if defined WIN32 || defined _MSC_VER || defined __linux__
 //Linked with x64 bit libs, so this is only x64 by default

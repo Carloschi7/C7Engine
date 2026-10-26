@@ -63,7 +63,7 @@ namespace gfx
 		{
 			f32 fwidth = (f32)screen_width, fheight = (f32)screen_height;
 			//The origin from which the text is drawn considers top-left the (0,0) coordinate
-		 	proj = glm::ortho(0.0f, fwidth, fheight , 0.0f);
+		 	proj = glm::ortho(0.0f, fwidth, fheight, 0.0f);
 		}
 		freetype_instance.text_shader.UniformMat4f(proj, "proj");
 
@@ -186,17 +186,14 @@ namespace gfx
 			const char current_char = str[i];
 			auto& info = freetype_instance.glyph_info[current_char];
 
-			f32 start_x, start_y, size_x, size_y, offset_x, offset_y, tex_size_x, tex_size_y;
-
-			start_x    = (f32)x + (f32)info.bearing_x;
-			start_y    = (f32)y + (f32)info.offset_from_top;
-			size_x     = (f32)info.size_x;
-			size_y     = (f32)info.size_y;
-			offset_x   = ((f32)info.offset_x)    / (f32)texture_width;
-			offset_y   = ((f32)info.offset_y)    / (f32)texture_height;
-			tex_size_x = ((f32)info.size_x)        / (f32)texture_width;
-			tex_size_y = ((f32)info.size_y) / (f32)texture_height;
-
+			f32 start_x    = (f32)x + (f32)info.bearing_x;
+			f32 start_y    = (f32)y + (f32)info.offset_from_top * scale;
+			f32 size_x     = (f32)info.size_x;
+			f32 size_y     = (f32)info.size_y;
+			f32 offset_x   = ((f32)info.offset_x)    / (f32)texture_width;
+			f32 offset_y   = ((f32)info.offset_y)    / (f32)texture_height;
+			f32 tex_size_x = ((f32)info.size_x)      / (f32)texture_width;
+			f32 tex_size_y = ((f32)info.size_y)      / (f32)texture_height;
 
 			size_x    *= scale;
 			size_y    *= scale;
